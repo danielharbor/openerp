@@ -1,0 +1,1065 @@
+<?xml version="1.0"?>
+<openerp>
+  <data noupdate="1">
+    
+    <!-- Admission Settings -->
+    <record model="admission.settings" id="admis_settings">
+	    <field name="name">Settings</field>
+	    <field name="essay">Please write an essay on why you chose to come to AUN and what your future ambitions and dreams are. Your essay should not be less than 250 words.</field>
+	    <field name="newsletter">Check to sign up for email updates to receive periodic special announcements from the American University of Nigeria.</field>
+    	<field name="upload">Upload any three of the following documents below: Driver's license, International Passport and National ID card.</field>
+    	<field name="disclaimer">Once accepted to AUN, I am aware of the fact that my image, if captured, may be used in AUN publications and advertisements without my being notified. I hereby certify that the information supplied by me on this application is true and correct to the best of my knowledge. If found to be incorrect, the university reserves the right to disqualify me from being admitted.</field>
+    </record>
+
+<!-- Email template for Sections Cancelled -->
+		<record id="section_cancelled" model="email.template">
+		    <field name="name">Section Cancelled</field>
+		    <field name="model_id" ref="academics.model_aun_registrar_enrollment"/>
+		    <field name="email_from"><![CDATA[AUN Registrar <openerp@aun.edu.ng>]]></field>
+		    <field name="email_to">${object.student_id.email}</field>
+		    <field name="subject"><![CDATA[ Section Cancelled]]></field>
+		    <field name="body_html">
+		        <![CDATA[
+		            <p>
+		                Hi ${object.student_id.fname},
+		            </p>
+		            <p>
+		                The following section ${object.course_id.name} section ${object.section_no} (${object.section_id.name}) for ${object.term_id.term_name} has been cancelled.
+		            </p>
+		            <p>
+		            	
+		            </p>
+					<p>
+						You have received this email because you are a member of the class. Please disregard the email if you are not.
+		            <p>
+		                Thanks.
+		            </p>
+		            <pre>
+	--
+
+		            </pre>
+		        ]]>
+		    </field>
+        </record>
+        
+        
+<!-- Email template for Faculty Sections Cancelled -->
+		<record id="faculty_section_cancelled" model="email.template">
+		    <field name="name">Section Cancelled</field>
+		    <field name="model_id" ref="academics.model_aun_faculty_section"/>
+		    <field name="email_from"><![CDATA[AUN Registrar <openerp@aun.edu.ng>]]></field>
+		    <field name="email_to">${object.faculty_id.work_email}</field>
+		    <field name="subject"><![CDATA[ Section Cancelled]]></field>
+		    <field name="body_html">
+		        <![CDATA[
+		            <p>
+		                Hi ${object.faculty_id.first_name},
+		            </p>
+		            <p>
+		                The following section ${object.section_id.course_id.name} section ${object.section_id.section_no} (${object.section_id.name}) for ${object.section_id.term_id.term_name} has been cancelled.
+		            </p>
+		            <p>
+		            	
+		            </p>
+					<p>
+						You have received this email because you are a faculty for the class. Please disregard the email if you are not.
+		            <p>
+		                Thanks.
+		            </p>
+		            <pre>
+	--
+
+		            </pre>
+		        ]]>
+		    </field>
+        </record>
+
+<!-- Email template for Students Accepted -->
+        <record id="acceptance_email" model="email.template">
+            <field name="name">Admitted</field>
+            <field name="model_id" ref="academics.model_aun_applicant"/>
+            <field name="email_from"><![CDATA[Admission <daniel.harbor@aun.edu.ng>]]></field>
+            <field name="email_to">${object.email}</field>
+            <field name="subject"><![CDATA[ Admitted]]></field>
+            <field name="body_html">
+                <![CDATA[
+                    <p>
+                        Dear ${object.fname} ${object.lname},
+                    </p>
+                    <p>
+                        Congratulations. You have been accepted to the American University of Nigeria for ${object.sem_id.name.name} ${object.sem_id.year}.
+                    </p>
+                    <p>
+                        Admission Director.
+                    </p>
+                    <pre>
+--
+
+                    </pre>
+                ]]>
+            </field>
+        </record>
+
+<!-- Email template for Students Accepted Provisionally-->
+        <record id="provisional_email" model="email.template">
+            <field name="name">Provisional Acceptance</field>
+            <field name="model_id" ref="academics.model_aun_applicant"/>
+            <field name="email_from"><![CDATA[Admission <daniel.harbor@aun.edu.ng>]]></field>
+            <field name="email_to">${object.email}</field>
+            <field name="subject"><![CDATA[ Provisional Acceptance]]></field>
+            <field name="body_html">
+                <![CDATA[
+                    <p>
+                        Dear ${object.fname} ${object.lname},
+                    </p>
+                    <p>
+                        You have been accepted provisionally to the American University of Nigeria for ${object.sem_id.name.name} ${object.sem_id.year}.
+                        This provisional admission expires on ${object.prov_end_date} and if you have not submitted all required documents by this time, you will
+                        no longer be able to register for classes in the university.
+                    </p>
+                    <p>
+                        Admission Director.
+                    </p>
+                    <pre>
+--
+
+                    </pre>
+                ]]>
+            </field>
+        </record>
+
+
+	<!-- Email template for Students Rejected -->
+        <record id="rejection_email" model="email.template">
+            <field name="name">Application Denied</field>
+            <field name="model_id" ref="academics.model_aun_applicant"/>
+            <field name="email_from"><![CDATA[Admission <daniel.harbor@aun.edu.ng>]]></field>
+            <field name="email_to">${object.email}</field>
+            <field name="subject"><![CDATA[ Application Denied]]></field>
+            <field name="body_html">
+                <![CDATA[
+                    <p>
+                        Dear ${object.fname} ${object.lname},
+                    </p>
+                    <p>
+                        The American University of Nigeria Admissions Committee has reviewed your application for the ${object.sem_id.name.name} ${object.sem_id.year} semester. Unfortunately, we are unable to offer you a place in this semester.
+                    </p>
+                    <p>
+                        Admission Director.
+                    </p>
+                    <pre>
+--
+
+                    </pre>
+                ]]>
+            </field>
+        </record>
+
+  	<!--Catalogues-->
+	
+    <!--<record model="aun.registrar.catalogue" id="2005/2006">
+      <field name="start_year">2005</field>
+      <field name="end_year">2006</field>
+    </record>
+    <record model="aun.registrar.catalogue" id="2006/2007">
+      <field name="start_year">2006</field>
+      <field name="end_year">2007</field>
+    </record>
+     <record model="aun.registrar.catalogue" id="2007/2008">
+      <field name="start_year">2007</field>
+      <field name="end_year">2008</field>
+    </record>
+    <record model="aun.registrar.catalogue" id="2008/2009">
+      <field name="start_year">2008</field>
+      <field name="end_year">2009</field>
+    </record>
+    <record model="aun.registrar.catalogue" id="2009/2010">
+      <field name="start_year">2009</field>
+      <field name="end_year">2010</field>
+    </record>
+    <record model="aun.registrar.catalogue" id="2010/2011">
+      <field name="start_year">2010</field>
+      <field name="end_year">2011</field>
+    </record>
+    <record model="aun.registrar.catalogue" id="2011/2012">
+      <field name="start_year">2011</field>
+      <field name="end_year">2012</field>
+    </record>
+    <record model="aun.registrar.catalogue" id="2012/2013">
+      <field name="start_year">2012</field>
+      <field name="end_year">2013</field>
+    </record>  -->
+
+
+	<!--Student states-->
+	
+<!--     <record model="student.state" id="Active">
+      <field name="name">Active</field>
+      <field name="is_active">1</field>
+      <field name="proh_reg" eval="False"/>
+      <field name="transcript" eval="False"/>
+      <field name="graduated" eval="False"/>
+      <field name="default_state">1</field>
+    </record>
+    <record model="student.state" id="Dismissed">
+      <field name="name">Dismissed</field>
+      <field name="is_active" eval="False"/>
+      <field name="proh_reg">1</field>
+      <field name="transcript">1</field>
+      <field name="graduated" eval="False"/>
+      <field name="default_state" eval="False"/>
+    </record>
+    <record model="student.state" id="Deceased">
+      <field name="name">Deceased</field>
+      <field name="is_active" eval="False"/>
+      <field name="proh_reg">1</field>
+      <field name="transcript">1</field>
+      <field name="graduated" eval="False"/>
+      <field name="default_state" eval="False"/>
+    </record>
+    <record model="student.state" id="Graduated">
+      <field name="name">Graduated</field>
+      <field name="is_active" eval="False"/>
+      <field name="proh_reg">1</field>
+      <field name="transcript" eval="False"/>
+      <field name="graduated">1</field>
+      <field name="default_state" eval="False"/>
+    </record>
+    <record model="student.state" id="Withdrawn">
+      <field name="name">Withdrawn</field>
+      <field name="is_active" eval="False"/>
+      <field name="proh_reg">1</field>
+      <field name="transcript">1</field>
+      <field name="graduated" eval="False"/>
+      <field name="default_state" eval="False"/>
+    </record> -->
+
+
+	<!--Holds-->
+	
+    <record model="aun.registrar.hold" id="Admissions Hold">
+      <field name="name">Admissions Hold</field>
+      <field name="registration">1</field>
+      <field name="enr_ver" eval="False"/>
+      <field name="transcript" eval="False"/>
+      <field name="graduation">1</field>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application" eval="False"/>
+      <field name="compliance" eval="False"/>
+    </record>
+    <record model="aun.registrar.hold" id="Admissions Fraud Hold">
+      <field name="name">Admissions Fraud Hold</field>
+      <field name="registration">1</field>
+      <field name="enr_ver">1</field>
+      <field name="transcript">1</field>
+      <field name="graduation">1</field>
+      <field name="grades">1</field>
+      <field name="ar">1</field>
+      <field name="application">1</field>
+      <field name="compliance">1</field>
+    </record>
+    <record model="aun.registrar.hold" id="Advisement Hold">
+      <field name="name">Advisement Hold</field>
+      <field name="registration">1</field>
+      <field name="enr_ver" eval="False"/>
+      <field name="transcript" eval="False"/>
+      <field name="graduation">1</field>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application" eval="False"/>
+      <field name="compliance" eval="False"/>
+    </record>
+    <record model="aun.registrar.hold" id="Bursar Hold">
+      <field name="name">Bursar Hold</field>
+      <field name="registration">1</field>
+      <field name="enr_ver">1</field>
+      <field name="transcript">1</field>
+      <field name="graduation">1</field>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application">1</field>
+      <field name="compliance">1</field>
+    </record>
+    <record model="aun.registrar.hold" id="Bad Debt Hold">
+      <field name="name">Bad Debt Hold</field>
+      <field name="registration" eval="False"/>
+      <field name="enr_ver" eval="False"/>
+      <field name="transcript" eval="False"/>
+      <field name="graduation" eval="False"/>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application">1</field>
+      <field name="compliance" eval="False"/>
+    </record>
+    <record model="aun.registrar.hold" id="AUN Campus Store Hold">
+      <field name="name">AUN Campus Store Hold</field>
+      <field name="registration" eval="False"/>
+      <field name="enr_ver" eval="False"/>
+      <field name="transcript" eval="False"/>
+      <field name="graduation" eval="False"/>
+      <field name="grades" eval="False"/>
+      <field name="ar">1</field>
+      <field name="application" eval="False"/>
+      <field name="compliance" eval="False"/>
+    </record>
+    <record model="aun.registrar.hold" id="Student Affairs Hold">
+      <field name="name">Student Affairs Hold</field>
+      <field name="registration">1</field>
+      <field name="enr_ver" eval="False"/>
+      <field name="transcript" eval="False"/>
+      <field name="graduation">1</field>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application" eval="False"/>
+      <field name="compliance" eval="False"/>
+    </record>
+    <record model="aun.registrar.hold" id="Housing and Meals Hold">
+      <field name="name">Housing and Meals Hold</field>
+      <field name="registration">1</field>
+      <field name="enr_ver">1</field>
+      <field name="transcript" eval="False"/>
+      <field name="graduation">1</field>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application">1</field>
+      <field name="compliance">1</field>
+    </record>
+    <record model="aun.registrar.hold" id="Official Transcript Required">
+      <field name="name">Official Transcript Required</field>
+      <field name="registration">1</field>
+      <field name="enr_ver">1</field>
+      <field name="transcript">1</field>
+      <field name="graduation">1</field>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application">1</field>
+      <field name="compliance">1</field>
+    </record>
+    <record model="aun.registrar.hold" id="Registrar Hold">
+      <field name="name">Registrar Hold</field>
+      <field name="registration">1</field>
+      <field name="enr_ver">1</field>
+      <field name="transcript" eval="False"/>
+      <field name="graduation">1</field>
+      <field name="grades" eval="False"/>
+      <field name="ar" eval="False"/>
+      <field name="application">1</field>
+      <field name="compliance">1</field>
+    </record>
+  
+    
+    <!--Majors-->
+	
+    <!--<record model="aun.registrar.major" id="ECO">
+      <field name="name">Economics</field>
+    </record>
+    <record model="aun.registrar.major" id="ICP">
+      <field name="name">International and Comparative Politics</field>
+    </record>
+    <record model="aun.registrar.major" id="ENG">
+      <field name="name">English Literature and Language</field>
+    </record>
+    <record model="aun.registrar.major" id="PET">
+      <field name="name">Petroleum Chemistry and Engineering</field>
+    </record>
+    <record model="aun.registrar.major" id="BUS">
+      <field name="name">Business Management</field>
+    </record>
+    <record model="aun.registrar.major" id="SEN">
+      <field name="name">Software Engineering</field>
+    </record>
+    <record model="aun.registrar.major" id="CSC">
+      <field name="name">Computer Science</field>
+    </record>
+    <record model="aun.registrar.major" id="INF">
+      <field name="name">Information Systems</field>
+    </record>
+    <record model="aun.registrar.major" id="CMD">
+      <field name="name">Communications and Multimedia</field>
+    </record>
+    <record model="aun.registrar.major" id="NES">
+      <field name="name">Natural and Environment Science</field>
+    </record>
+    <record model="aun.registrar.major" id="BAD">
+      <field name="name">Business Administration</field>
+    </record>
+    <record model="aun.registrar.major" id="FIN">
+      <field name="name">Finance</field>
+    </record>
+    <record model="aun.registrar.major" id="TEL">
+      <field name="name">Telecommunications</field>
+    </record>
+    <record model="aun.registrar.major" id="UND">
+      <field name="name">Undecided</field>
+    </record>  -->
+    
+	<!--Categories-->
+		
+    <record model="registrar.category" id="IT">
+      <field name="name">Information Technology</field>
+    </record>
+    <record model="registrar.category" id="SBE">
+      <field name="name">Business and Entrepreneurship</field>
+    </record>
+    <record model="registrar.category" id="ARH">
+      <field name="name">Art and Humanities</field>
+    </record>
+    <record model="registrar.category" id="SBS">
+      <field name="name">Social and Behaviorial Sciences</field>
+    </record>
+    <record model="registrar.category" id="CIV">
+      <field name="name">Civilizations and Cultures</field>
+    </record>
+    <record model="registrar.category" id="MAT">
+      <field name="name">Mathematics and Statistics</field>
+    </record>
+
+
+ <!--Term Names-->
+ 
+    <!--record model="aun.term.term" id="Fall">
+      <field name="name">Fall</field>
+      <field name="code">10</field>
+      <field name="year_adjustment">0</field>
+    </record>
+    
+    <record model="aun.term.term" id="Spring">
+      <field name="name">Spring</field>
+      <field name="code">20</field>
+      <field name="year_adjustment">-1</field>
+    </record>
+    
+    <record model="aun.term.term" id="Summer I">
+      <field name="name">Summer I</field>
+      <field name="code">30</field>
+      <field name="year_adjustment">-1</field>
+    </record>
+    
+    <record model="aun.term.term" id="Summer II">
+      <field name="name">Summer II</field>
+      <field name="code">40</field>
+      <field name="year_adjustment">-1</field>
+    </record-->     
+<!--Terms-->
+	
+	<!--record model="aun.registrar.term" id="Fall 2005">
+      <field name="name" ref="Fall"/>
+      <field name="year">2005</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2006">
+      <field name="name" ref="Spring"/>
+      <field name="year">2006</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2006">
+      <field name="name" ref="Fall"/>
+      <field name="year">2006</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2007">
+      <field name="name" ref="Spring"/>
+      <field name="year">2007</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer I 2007">
+      <field name="name" ref="Summer I"/>
+      <field name="year">2007</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2007">
+      <field name="name" ref="Fall"/>
+      <field name="year">2007</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2008">
+      <field name="name" ref="Spring"/>
+      <field name="year">2008</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer I 2008">
+      <field name="name" ref="Summer I"/>
+      <field name="year">2008</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer II 2008">
+      <field name="name" ref="Summer II"/>
+      <field name="year">2008</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2008">
+      <field name="name" ref="Fall"/>
+      <field name="year">2008</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2009">
+      <field name="name" ref="Spring"/>
+      <field name="year">2009</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer I 2009">
+      <field name="name" ref="Summer I"/>
+      <field name="year">2009</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer II 2009">
+      <field name="name" ref="Summer II"/>
+      <field name="year">2009</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2009">
+      <field name="name" ref="Fall"/>
+      <field name="year">2009</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2010">
+      <field name="name" ref="Spring"/>
+      <field name="year">2010</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer I 2010">
+      <field name="name" ref="Summer I"/>
+      <field name="year">2010</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer II 2010">
+      <field name="name" ref="Summer II"/>
+      <field name="year">2010</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2010">
+      <field name="name" ref="Fall"/>
+      <field name="year">2010</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2011">
+      <field name="name" ref="Spring"/>
+      <field name="year">2011</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer I 2011">
+      <field name="name" ref="Summer I"/>
+      <field name="year">2011</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer II 2011">
+      <field name="name" ref="Summer II"/>
+      <field name="year">2011</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2011">
+      <field name="name" ref="Fall"/>
+      <field name="year">2011</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2012">
+      <field name="name" ref="Spring"/>
+      <field name="year">2012</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer I 2012">
+      <field name="name" ref="Summer I"/>
+      <field name="year">2012</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2012">
+      <field name="name" ref="Fall"/>
+      <field name="year">2012</field>
+    </record>
+    <record model="aun.registrar.term" id="Spring 2013">
+      <field name="name" ref="Spring"/>
+      <field name="year">2013</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer I 2013">
+      <field name="name" ref="Summer I"/>
+      <field name="year">2013</field>
+    </record>
+    <record model="aun.registrar.term" id="Summer II 2013">
+      <field name="name" ref="Summer II"/>
+      <field name="year">2013</field>
+    </record>
+    <record model="aun.registrar.term" id="Fall 2013">
+      <field name="name" ref="Fall"/>
+      <field name="year">2013</field>
+    </record-->
+    
+    
+<!-- Registrar Settings -->    
+    <!--record model="registrar.settings" id="settings">
+      <field name="name">Settings</field>
+      <field name="interval">0</field>
+      <field name="allow_prereq">1</field>
+      <field name="include_current_hrs">1</field>
+    </record-->
+    
+
+<!--Levels-->
+	<!--record model="aun.registrar.level" id="Foundation">
+      <field name="name">Foundation Program</field>
+    </record>	
+    <record model="aun.registrar.level" id="Undergraduate">
+      <field name="name">Undergraduate</field>
+    </record>
+    <record model="aun.registrar.level" id="Graduate">
+      <field name="name">Graduate</field>
+    </record>
+    <record model="aun.registrar.level" id="Doctorate">
+      <field name="name">Doctorate</field>
+    </record-->
+    
+<!--Status -->
+<!-- 	<record model="registrar.status" id="Freshman">
+      <field name="name">Freshman</field>
+      <field name="range_start">0</field>
+      <field name="range_end">29</field>
+      <field name="level_id" ref="Undergraduate"/>
+    </record>
+    <record model="registrar.status" id="Sophomore">
+      <field name="name">Sophomore</field>
+      <field name="range_start">30</field>
+      <field name="range_end">59</field>
+      <field name="level_id" ref="Undergraduate"/>
+    </record>
+    <record model="registrar.status" id="Junior">
+      <field name="name">Junior</field>
+      <field name="range_start">60</field>
+      <field name="range_end">89</field>
+      <field name="level_id" ref="Undergraduate"/>
+    </record>
+    <record model="registrar.status" id="Senior">
+      <field name="name">Senior</field>
+      <field name="range_start">90</field>
+      <field name="range_end">999</field>
+      <field name="level_id" ref="Undergraduate"/>
+    </record>
+    <record model="registrar.status" id="foundation_status">
+      <field name="name">Foundation</field>
+      <field name="range_start">0</field>
+      <field name="range_end">999</field>
+      <field name="level_id" ref="Foundation"/>
+    </record> -->
+
+<!--Programs --> 
+	<!--record model="registrar.program" id="bsc">
+      <field name="name">BSc</field>
+      <field name="title">Bachelor of Science</field>
+      <field name="level_id" ref="Undergraduate"/>
+    </record>
+    <record model="registrar.program" id="ba">
+      <field name="name">BA</field>
+      <field name="title">Bachelor of Art</field>
+      <field name="level_id" ref="Undergraduate"/>
+    </record-->
+    
+<!--Grade Mode-->
+    <!--record model="aun.registrar.grademode" id="Standard Letter">
+      <field name="name">Standard Letter</field>
+    </record>
+    <record model="aun.registrar.grademode" id="pass_fail">
+      <field name="name">Pass/Fail</field>
+    </record-->
+    
+<!-- Course Types -->
+	<!--record model="course.type" id="lecture">
+      <field name="name">Lecture</field>
+    </record>
+    <record model="course.type" id="lecture_lab">
+      <field name="name">Lecture/Lab</field>
+    </record>
+    <record model="course.type" id="lab">
+      <field name="name">Lab</field>
+    </record>
+    <record model="course.type" id="internship">
+      <field name="name">Internship</field>
+    </record-->
+
+<!--Grades-->
+		
+    <!--record model="aun.registrar.grade" id="IP">
+      <field name="name">IP</field>
+      <field name="abbreviation">IP</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="status_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="A">
+      <field name="name">A</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">4.00</field>
+      <field name="numeric_value">100</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="A-">
+      <field name="name">A-</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">3.70</field>
+      <field name="numeric_value">90</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="B+">
+      <field name="name">B+</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">3.30</field>
+      <field name="numeric_value">80</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="B">
+      <field name="name">B</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">3.00</field>
+      <field name="numeric_value">70</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="B-">
+      <field name="name">B-</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">2.70</field>
+      <field name="numeric_value">60</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="C+">
+      <field name="name">C+</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">2.30</field>
+      <field name="numeric_value">50</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="C">
+      <field name="name">C</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">2.00</field>
+      <field name="numeric_value">40</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="C-">
+      <field name="name">C-</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">1.70</field>
+      <field name="numeric_value">30</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="D+">
+      <field name="name">D+</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">1.30</field>
+      <field name="numeric_value">20</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="D">
+      <field name="name">D</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">1.00</field>
+      <field name="numeric_value">10</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="D-">
+      <field name="name">D-</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.70</field>
+      <field name="numeric_value">5</field>
+      <field name="attempted">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="F">
+      <field name="name">F</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="I">
+      <field name="name">I</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="status_indicator">1</field>
+      <field name="web_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="WP">
+      <field name="name">WP</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="WF">
+      <field name="name">WF</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="NA">
+      <field name="name">NA</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="NC">
+      <field name="name">NC</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+     <record model="aun.registrar.grade" id="AW">
+      <field name="name">AW</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">0</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+     <record model="aun.registrar.grade" id="F*">
+      <field name="name">F*</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="gpa">1</field>
+      <field name="status_indicator">0</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="W">
+      <field name="name">W</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="Standard Letter"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+      <field name="refund">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="P">
+      <field name="name">P</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="pass_fail"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">100</field>
+      <field name="attempted">1</field>
+      <field name="passed">1</field>
+      <field name="earned">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+    <record model="aun.registrar.grade" id="PF">
+      <field name="name">PF</field>
+      <field name="level_id" ref="Undergraduate"/>
+      <field name="grademode_id" ref="pass_fail"/>
+      <field name="quality_points">0.00</field>
+      <field name="numeric_value">0</field>
+      <field name="attempted">1</field>
+      <field name="status_indicator">1</field>
+      <field name="repeat_indicator">1</field>
+    </record>
+    <record model="aun.applicant.type" id="new">
+      <field name="name">New</field>
+    </record>
+    <record model="aun.applicant.type" id="transfer">
+      <field name="name">Transfer</field>
+    </record>
+    <record model="aun.applicant.type" id="visiting">
+      <field name="name">Visiting</field>
+    </record>
+    <record model="aun.application.type" id="undergrad_new">
+      <field name="type_id" ref="new"/>
+      <field name="level_id" ref="Undergraduate"/>
+    </record>
+    
+    <record model="aun.application.type" id="undergrad_transfer">
+      <field name="type_id" ref="transfer"/>
+      <field name="level_id" ref="Undergraduate"/>
+    </record>
+    <record model="aun.application.type" id="undergrad_visiting">
+      <field name="type_id" ref="visiting"/>
+      <field name="level_id" ref="Undergraduate"/>
+    </record-->
+    
+	<!-- Email template for Housing Reservation -->
+        <record id="housing_email" model="email.template">
+            <field name="name">Housing Reservation Email</field>
+            <field name="model_id" ref="academics.model_housing_room_students"/>
+            <field name="email_from"><![CDATA[AUN Housing <openerp@aun.edu.ng>]]></field>
+            <field name="email_to">${object.student_id.email}</field>
+            <field name="subject"><![CDATA[ Housing Reservation Confirmation]]></field>
+            <field name="body_html">
+                <![CDATA[
+                    <p>
+                        Hello ${object.student_id.fname} ${object.student_id.lname},
+                    </p>
+                    <p>
+                        Your room reservation request (${object.dorm_id.name} ${object.room_id.name}, ${object.meal_id.name}) for ${object.term_id.name.name} ${object.term_id.year} has been submitted.
+                    </p>
+                    <p>
+                    	
+                    </p>
+					<p>
+						You will recieve an email when this request is approved or denied.
+                    <p>
+                        Thanks,
+                    </p>
+                    <pre>
+--
+
+                    </pre>
+                ]]>
+            </field>
+        </record>
+        
+        <record id="housing_email_approve" model="email.template">
+            <field name="name">Housing Reservation Approval Email</field>
+            <field name="model_id" ref="academics.model_housing_room_students"/>
+            <field name="email_from"><![CDATA[AUN Housing <openerp@aun.edu.ng>]]></field>
+            <field name="email_to">${object.student_id.email}</field>
+            <field name="subject"><![CDATA[ Housing Reservation Approval]]></field>
+            <field name="body_html">
+                <![CDATA[
+                    <p>
+                        Hello ${object.student_id.fname} ${object.student_id.lname},
+                    </p>
+                    <p>
+                        Your room reservation request (${object.dorm_id.name} ${object.room_id.name}, ${object.meal_id.name}) for ${object.term_id.name.name} ${object.term_id.year} has been approved.
+                    </p>
+                    <p>
+                    	
+                    </p>
+					<p>
+						You cannot change your reservation at this point. If the need arises, you can reply to this email with your desired changes. Charges might apply for any changes after this time.
+                    <p>
+                        Thanks,
+                    </p>
+                    <pre>
+--
+
+                    </pre>
+                ]]>
+            </field>
+        </record>
+        
+        <record id="housing_email_reject" model="email.template">
+            <field name="name">Housing Reservation Rejected Email</field>
+            <field name="model_id" ref="academics.model_housing_room_students"/>
+            <field name="email_from"><![CDATA[AUN Housing <openerp@aun.edu.ng>]]></field>
+            <field name="email_to">${object.student_id.email}</field>
+            <field name="subject"><![CDATA[ Housing Reservation Request Rejected]]></field>
+            <field name="body_html">
+                <![CDATA[
+                    <p>
+                        Hello ${object.student_id.fname} ${object.student_id.lname},
+                    </p>
+                    <p>
+                        Your room reservation request (${object.dorm_id.name} ${object.room_id.name}, ${object.meal_id.name}) for ${object.term_id.name.name} ${object.term_id.year} has been refused.
+                    </p>
+                    <p>
+                    	
+                    </p>
+					<p>
+						If you have any questions about this, please reply to this email.
+                    <p>
+                        Thanks,
+                    </p>
+                    <pre>
+--
+
+                    </pre>
+                ]]>
+            </field>
+        </record>
+        
+
+        
+        <record forcecreate="True" id="ir_cron_academic_standing_action" model="ir.cron">
+            <field name="name">Update Student Academic Standing</field>
+            <field name="user_id" ref="base.user_root"/>
+            <field name="interval_number">1</field>
+            <field name="interval_type">days</field>
+            <field name="numbercall">-1</field>
+            <field eval="True" name="doall"/>
+            <field eval="'aun.registrar.standing.rules'" name="model"/>
+            <field eval="'update_students_standing'" name="function"/>
+            <field eval="'()'" name="args"/>
+            <field name="active" eval="False"/>
+        </record>
+  </data>
+</openerp>

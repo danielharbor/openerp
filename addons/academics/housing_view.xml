@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		
+		
+		<!-- Room Type views ========================= start-->
+
+		<record id="housing_room_type_form" model="ir.ui.view">
+			<field name="name">housing.room.type.form</field>
+			<field name="model">housing.room.type</field>
+			<field name="arch" type="xml">
+				<form string="Room Types" version="7.0">
+				<sheet>
+				<group col="4">
+					<field name="name"/>
+					<field name="capacity"/>
+					<field name="credit_limit"/>
+				</group>
+				</sheet>
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="housing_room_type_tree" model="ir.ui.view">
+			<field name="name">housing.room.type.tree</field>
+			<field name="model">housing.room.type</field>
+			<field name="arch" type="xml">
+				<tree string="Room Types">
+					<field name="name"/>
+					<field name="capacity"/>
+					<field name="credit_limit"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="housing_room_type_search" model="ir.ui.view">
+			<field name="name">housing.room.type.search</field>
+			<field name="model">housing.room.type</field>
+			<field name="arch" type="xml">
+				<search string="Room Types">
+					<field name="name"/>
+					<field name="capacity"/>
+				</search>
+			</field>
+		</record>
+		
+		<!-- Housing Room Type Actions -->
+
+		<record id="housing_room_type_action" model="ir.actions.act_window">
+			<field name="name">Room Types</field>
+			<field name="res_model">housing.room.type</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help">This is The List Of Dormitories</field>
+		</record>
+		
+
+		<!-- Room - Students views ========================= start-->
+
+		<record id="housing_room_students_form" model="ir.ui.view">
+			<field name="name">housing.room.students.form</field>
+			<field name="model">housing.room.students</field>
+			<field name="arch" type="xml">
+				<form string="Room/Meal Allocation" version="7.0">
+				<header>
+					<button name="charge_students" string="Test" class="oe_save_only" type="object" groups="base.group_no_one"/>
+	                <button name="case_approve" string="Accept" states="new" type="object" icon="gtk-apply" groups="academics.group_housing_staff" confirm = "Are you approve this reservation?" class="oe_save_only"/>
+					<button name="case_reject" string="Reject" states="new" type="object" icon="gtk-cancel" groups="academics.group_housing_staff" confirm = "Are you sure reject this reservation?" class="oe_save_only"/>
+		    		<button name="case_done" string="Assign" states="approve" type="object" icon="terp-partner" groups="academics.group_housing_staff" confirm = "Are you sure you want to assign this room?" class="oe_save_only"/>
+	                <button name="case_check_in" string="Check In" states="done" type="object" icon="terp-partner" groups="academics.group_housing_res_director" confirm = "Are you sure?" class="oe_save_only"/>
+	                <button name="case_check_out" string="Check Out" states="check_in" type="object" icon="terp-partner" groups="academics.group_housing_res_director" confirm = "Are you sure?" class="oe_save_only"/>
+	                <button name="case_reset" string="Reset to New" states="reject,done,approve" type="object" icon="gtk-convert" groups="academics.group_housing_staff" confirm = "Are you sure you want to reset this reservation?" class="oe_save_only"/>
+	                <button name="case_cancel" string="Cancel Reservation" states="new" type="object" icon="gtk-cancel" groups="academics.group_registrar_student" confirm = "Are you sure you want to cancel this reservation?" class="oe_save_only"/>
+	                <button name="case_cancel" string="Delete Reservation" states="done,approve,done,check_out" type="object" icon="gtk-cancel" groups="academics.group_housing_staff" confirm = "Are you sure you want to delete this reservation?" class="oe_save_only"/>
+					<field name="state" widget="statusbar" statusbar_visible="new,approve,done" statusbar_colors='{"pending":"new"}'/>			
+				</header>
+				<sheet>
+				<group string ="Room Reservation" col="4">
+					<field name="fname" attrs="{'invisible':[('state', 'in', 'draft')],}" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+					<field name="lname" attrs="{'invisible':[('state', 'in', 'draft')],}" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+					<field name="term_id" domain ="[('open_for_reservation','=',True)]" attrs="{'readonly':[('state', 'not in', 'draft')]}" on_change="on_change_term_id(term_id)"/>
+					<field name="student_id" attrs="{'readonly':[('state', 'not in', 'draft')]}" domain ="[('student','=',True)]" on_change="on_change_student_id()" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+					<field name="campus_id" attrs="{'readonly':['|',('term_id', '=', False),('state', 'not in', 'draft')]}" on_change="on_change_campus_id(campus_id,student_id,term_id)" widget="selection"/>
+					<field name="dorm_id" attrs="{'readonly':['|',('campus_id', '=', False),('state', 'not in', 'draft')]}" on_change="on_change_dorm_id(dorm_id)" />
+					<field name="room_type" attrs="{'readonly':['|',('dorm_id', '=', False),('state', 'not in', 'draft')]}" on_change="on_change_room_type(dorm_id,term_id,room_type)"/>
+					<field name="room_id" attrs="{'readonly':['|',('room_type', '=', False),('state', 'not in', 'draft')]}" on_change="on_change_room_id(room_id,term_id)"/> 
+					<field name="spaces_left" attrs="{'invisible':[('state', 'not in', 'draft')]}"/>
+					<field name="occupants" attrs="{'invisible':[('state', 'not in', 'draft')],}"/>
+				</group>
+				<group string ="Meal Plan" groups="academics.group_housing_staff,academics.group_registrar_student">
+					<field name ="meal_id" attrs="{'readonly':[('state', 'in', ['approve','reject','check_in','check_out','done'])]}" widget="selection" groups="academics.group_housing_staff,academics.group_registrar_student"/>
+				</group>
+				</sheet>
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="housing_room_students_tree" model="ir.ui.view">
+			<field name="name">housing.room.students.tree</field>
+			<field name="model">housing.room.students</field>
+			<field name="arch" type="xml">
+				<tree string="Occupants">
+					<field name="term_id"/>
+					<field name="dorm_id"/>
+					<field name="room_id"/>
+					<field name="student_id" groups = "academics.group_housing_staff,academics.group_housing_res_director"/>
+					<field name="meal_id"/>
+					<field name="create_date"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="housing_room_students_search" model="ir.ui.view">
+			<field name="name">housing.room.students.search</field>
+			<field name="model">housing.room.students</field>
+			<field name="arch" type="xml">
+				<search string="Occupants">
+					<filter string="Submitted" name ="message_unread" domain="[('state','=','new')]" groups="academics.group_housing_staff"/>
+					<filter string="Approved" domain="[('state','=','approve')]" groups="academics.group_housing_staff"/>
+					<filter string="Rejected" domain="[('state','=','reject'),('active','=',False)]" groups="academics.group_housing_staff,academics.group_registrar_student"/>
+					<filter string="Assigned" domain="[('state','=','done')]" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+					<filter string="Cancelled" domain="[('state','=','cancel'),('active','=',False)]" groups="academics.group_housing_staff,academics.group_registrar_student"/>
+					<filter string="Checked In" domain="[('state','=','check_in')]" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+					<filter string="Checked Out" domain="[('state','=','check_out'),('active','=',False)]" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Manager" domain="[]" context="{'group_by':'term_id'}"/>
+                        <filter string="Hall" name="Partner"  domain="[]" context="{'group_by':'dorm_id'}"/>
+                        <filter string="Room" name="Parent" domain="[]" context="{'group_by':'room_id'}"/>
+                        <filter string="Student" name="Parent" domain="[]" context="{'group_by':'student_id'}" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+                        <filter string="State" name="Parent" domain="[]" context="{'group_by':'state'}" groups="academics.group_housing_staff"/>
+                    </group>
+					<field name="term_id"/>
+					<field name="dorm_id"/>
+					<field name="room_id"/>
+					<field name="student_id" groups="academics.group_housing_staff,academics.group_housing_res_director"/>
+				</search>
+			</field>
+		</record>
+		
+		
+		<!--
+			Housing Room - Students Actions
+		-->
+
+		<record id="housing_room_allocation_action" model="ir.actions.act_window">
+			<field name="name">Room/Meal Allocation</field>
+			<field name="res_model">housing.room.students</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	        	<p class="oe_view_nocontent_create">
+			   		Click to create a new room reservation
+	           	</p>
+        	</field>
+		</record>
+		
+		<record id="housing_room_reservation_action" model="ir.actions.act_window">
+			<field name="name">Room/Meal Reservation</field>
+			<field name="res_model">housing.room.students</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	        	<p class="oe_view_nocontent_create">
+			   		Click to create a new room reservation
+	           	</p>
+        	</field>
+		</record>
+		
+
+		<!--
+			Residence Hall Actions
+		-->
+
+		<record id="res_dorm_action" model="ir.actions.act_window">
+			<field name="name">Residence Halls</field>
+			<field name="res_model">res.building</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('residence', '=', True)]</field>
+			<field name="context">{'default_residence':1}</field>
+			<field name="help">This is The List Of Residence Halls</field>
+		</record>
+		
+		<!--
+			Housing Room Actions
+		-->
+
+		<record id="housing_room_action" model="ir.actions.act_window">
+			<field name="name">Rooms</field>
+			<field name="res_model">aun.registrar.location</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('location_type', '=', '4')]</field>
+			<field name="context">{'default_location_type':'4','search_default_Building':'1'}</field>
+			<field name="help">This is The List Of Rooms</field>
+		</record>
+
+<!-- Residence Director views ========================= start-->
+
+		<record id="housing_res_director_form" model="ir.ui.view">
+			<field name="name">housing.res.director.form</field>
+			<field name="model">housing.res.director</field>
+			<field name="arch" type="xml">
+				<form string="Resident Directors" version="7.0">
+				<sheet>
+				<group col="4">
+					<field name="name"/>
+				</group>
+					<field name="rooms"/>
+				</sheet>
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="housing_res_director_tree" model="ir.ui.view">
+			<field name="name">housing.res.director.tree</field>
+			<field name="model">housing.res.director</field>
+			<field name="arch" type="xml">
+				<tree string="Resident Directors">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<!-- Housing Residence Director Actions -->
+
+		<record id="housing_res_director_action" model="ir.actions.act_window">
+			<field name="name">Residence Directors</field>
+			<field name="res_model">housing.res.director</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create residence director
+	           </p>
+	        </field>
+		</record>
+<!-- Meal Type views ========================= start-->
+
+		<record id="housing_meal_type_form" model="ir.ui.view">
+			<field name="name">housing.meal.type.form</field>
+			<field name="model">housing.meal.type</field>
+			<field name="arch" type="xml">
+				<form string="Meal Types" version="7.0">
+				<sheet>
+				<group col="4">
+					<field name="name"/>
+					<field name="admin" groups="academics.group_housing_staff"/>
+				</group>
+				</sheet>
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="housing_meal_type_tree" model="ir.ui.view">
+			<field name="name">housing.meal.type.tree</field>
+			<field name="model">housing.meal.type</field>
+			<field name="arch" type="xml">
+				<tree string="Meal Types">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="housing_meal_type_search" model="ir.ui.view">
+			<field name="name">housing.meal.type.search</field>
+			<field name="model">housing.meal.type</field>
+			<field name="arch" type="xml">
+				<search string="Meal Types">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+		
+		<!-- Housing Meal Type Actions -->
+
+		<record id="housing_meal_type_action" model="ir.actions.act_window">
+			<field name="name">Meal Types</field>
+			<field name="res_model">housing.meal.type</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help">This is The List Of Meal Plans</field>
+		</record>
+		
+		<!-- Housing Email Actions -->
+
+		<record id="housing_email_action" model="ir.actions.act_window">
+			<field name="name">Emails</field>
+			<field name="res_model">email.template</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('model_id','=','housing.room.students')]</field>
+			<field name="context">{}</field>
+			<field name="help">Transactional Emails for housing module</field>
+		</record>
+				
+		<menuitem id="housing_main_menu" name="Housing" sequence = "16" groups="academics.group_housing_staff,academics.group_registrar_student,academics.group_housing_res_director,academics.group_housing_director"/>
+			<menuitem id="housing_management_main_menu" parent="housing_main_menu" name="Housing Management" groups="academics.group_housing_staff,academics.group_registrar_student,academics.group_housing_res_director,academics.group_housing_director"/>
+				<menuitem id="dormitory_menu" parent="housing_management_main_menu" action = "res_dorm_action" groups="academics.group_housing_staff"/>
+				<menuitem id="room_menu" parent="housing_management_main_menu" action = "housing_room_action" groups="academics.group_housing_staff"/>
+				<menuitem id="room_allocation_menu" parent="housing_management_main_menu" action = "housing_room_allocation_action" groups="academics.group_housing_staff,academics.group_housing_res_director,academics.group_housing_director"/>
+				<!--  <menuitem id="meal_allocation_menu" parent="housing_management_main_menu" action = "housing_meal_allocation_action"/>-->
+			<menuitem id="housing_config_main_menu" parent="housing_main_menu" name="Configuration" groups="academics.group_housing_staff"/>
+				<menuitem id="housing_term_menu" parent="housing_config_main_menu" action="registrar_term_action"/>
+				<menuitem id="housing_config_menu" parent="housing_config_main_menu" name="Housing"/>
+					<menuitem id="room_type_config_menu" parent="housing_config_menu" action = "housing_room_type_action"/>
+					<menuitem id="res_director_config_menu" parent="housing_config_menu" action = "housing_res_director_action"/>
+    			<menuitem id="meal_config_menu" parent="housing_config_main_menu" name="Meals"/>
+    				<menuitem id="meal_type_config_menu" parent="meal_config_menu" action = "housing_meal_type_action"/>
+    			<menuitem id="email_config_menu" parent="housing_config_main_menu" action="housing_email_action"/>
+    	<menuitem id="student_housing_menu" parent="housing_management_main_menu" action="housing_room_reservation_action" name ="Room/Meal Reservation" groups="academics.group_registrar_student"/>
+    
+    </data>
+</openerp>

@@ -1,0 +1,906 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+		<!--
+			Add Drop Application Views
+		-->
+
+		<record id="view_add_drop_application_form" model="ir.ui.view">
+			<field name="name">add.drop.application.form</field>
+			<field name="model">add.drop.application</field>
+			<field name="priority">1</field>
+			<field name="arch" type="xml">
+				<form string="Add/Drop Application" version="7.0" create="false">
+				<header>
+	                <button name="confirm" string="Confirm" confirm="Are you sure you want to confirm this application. The course will be added or dropped for the student depending on the application type." states="approved_waiting" class="oe_save_only" type="object" icon="gtk-go-forward" groups="academics.group_registrar_ass_registrar"/>
+	                <field name="state" widget="statusbar" statusbar_visible="draft,pending"/>
+				</header>
+					<sheet>
+					<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+						<group col="4">
+							<field name="student_id" context="{'form_view_ref': 'academics.view_student_form'}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_registrar_faculty"/>
+							<field name="term_id" readonly="1"/>
+						</group>
+						<group attrs="{'invisible': [('state','in',['approved','approved_waiting'])]}">
+							<label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+							<div attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean">
+							<field name="fname" class="oe_inline"/>  <field name="lname" class="oe_inline"/>
+							</div>
+							<field name="phone" attrs="{'invisible': [('state','in',['draft'])]}"/>
+							<field name="email" attrs="{'invisible': [('state','in',['draft'])]}"/>
+						</group>
+						<group attrs="{'invisible':[('state','not in',['approved','approved_waiting'])]}">
+							<label for="fname_approved" string="Student Name" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+							<div groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean">
+							<field name="fname_approved" class="oe_inline"/>  <field name="lname_approved" class="oe_inline"/>
+							</div>
+							<field name="phone_approved"/>
+							<field name="email_approved"/>
+						</group>
+						<group col="4">
+							<field name="action" readonly="1"/>
+							<field name="course_id" readonly="1"/>
+							<field name="section_id" readonly="1" context="{'form_view_ref': 'academics.view_student_section_form'}"/>
+							<field name="lab_ids" readonly="1" context="{'form_view_ref': 'academics.view_student_lab_form'}" widget="many2many_tags"/>
+							<field name="grade_id" attrs="{'invisible':[('action','=','add')],'readonly':[('state','not in',['pending','approved_waiting'])]}"/>
+							<field name="enrollment_id" attrs="{'invisible':[('action','=','add')]}" groups="academics.group_registrar_ass_registrar"/>
+						</group>
+						<group attrs="{'invisible':[('state','in',['draft','approved','approved_waiting'])]}">
+							<field name="major_ids" widget="many2many_tags"/>
+							<field name="minor_ids" widget="many2many_tags"/>
+							<field name="concentration_ids" widget="many2many_tags"/>
+						</group>
+						<group attrs="{'invisible':[('state','not in',['approved','approved_waiting'])]}">
+							<field name="majors_approved"/>
+							<field name="minors_approved"/>
+							<field name="concs_approved"/>
+						</group>
+						<field name="approval_ids"/>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_registrar_faculty">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_student_add_drop_form" model="ir.ui.view">
+			<field name="name">student.add.drop.form</field>
+			<field name="model">add.drop.application</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<form string="Add/Drop Application" version="7.0" create="false" edit="false">
+				<header>
+	                <field name="state" widget="statusbar" statusbar_visible="draft,pending"/>
+				</header>
+					<sheet>
+						<group col="4">
+							<field name="term_id" readonly="1"/>
+							<field name="action" readonly="1"/>
+							<field name="course_id" readonly="1"/>
+							<field name="section_id" readonly="1" context="{'form_view_ref': 'academics.view_student_section_form'}"/>
+							<field name="lab_ids" readonly="1" context="{'form_view_ref': 'academics.view_student_lab_form'}" widget="many2many_tags"/>
+							<field name="grade_id" attrs="{'invisible':[('action','=','add')]}" readonly="1"/>
+						</group>
+						<field name="approval_ids"/>
+					</sheet>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_student_add_drop_application_form" model="ir.ui.view">
+			<field name="name">student.add.drop.application.form</field>
+			<field name="model">add.drop.application</field>
+			<field name="priority">3</field>
+			<field name="arch" type="xml">
+				<form string="Add/Drop Application" version="7.0" create="false" edit="false">
+				<header>
+	                <field name="state" widget="statusbar" statusbar_visible="draft,pending"/>
+				</header>
+					<sheet>
+						<group col="4">
+							<field name="action" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}" on_change="on_change_action(action,term_id,sections)"/>
+							<field name="section_id" domain="[('term_id','=',term_id),('state','=','active')]" on_change="on_change_section(action,student_id,term_id,section_id,sections)" attrs="{'invisible': [('action','=',False)], 'readonly':[('state','not in',['draft'])]}" context="{'form_view_ref': 'academics.view_student_section_form'}"/>
+							<field name="lab_ids" attrs="{'invisible':['|',('section_id','=',False)],'readonly':['|',('state','not in',['draft']),('action','=','drop')]}" domain="[('section_id','=',section_id),('state','=','active')]" context="{'form_view_ref': 'academics.view_student_lab_form'}" widget="many2many_tags"/>
+							<field name="course_id" readonly="1" attrs="{'invisible':[('section_id','=',False)]}"/>
+							<field name="grade_id" attrs="{'invisible':['|',('state','in',['draft']),('action','=','add')]}" readonly="1"/>
+							<field name="sections" invisible="1"/>
+							<field name="term_id" invisible="1"/>
+							<field name="student_id" invisible="1"/>
+						</group>
+						<field name="approval_ids" attrs="{'invisible':[('state','in',['draft'])]}"/>
+					</sheet>
+				</form>
+			</field>
+		</record>
+
+		<record id="add_drop_application_tree" model="ir.ui.view">
+			<field name="name">add.drop.application.tree</field>
+			<field name="model">add.drop.application</field>
+			<field name="arch" type="xml">
+				<tree string="Add/Drop Application" create="false" colors="blue:state=='pending';grey:state=='approved';red:state=='denied'">
+					<field name="student_id"/>
+					<field name="student_name"/>
+					<field name="term_id"/>
+					<field name="action"/>
+					<field name="course_id"/>
+					<field name="section_id"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="student_add_drop_application_tree" model="ir.ui.view">
+			<field name="name">student.add.drop.application.tree</field>
+			<field name="model">add.drop.application</field>
+			<field name="arch" type="xml">
+				<tree string="Add/Drop Application" create="false" colors="blue:state=='pending';grey:state=='approved';red:state=='denied'">
+					<field name="term_id"/>
+					<field name="action"/>
+					<field name="course_id"/>
+					<field name="section_id"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_add_drop_filter" model="ir.ui.view">
+			<field name="name">registrar.add.drop.filter</field>
+			<field name="model">add.drop.application</field>
+			<field name="arch" type="xml">
+				<search string="Add/Drop Application">
+					<field name="action"/>
+					<field name="term_id"/>
+					<field name="student_id"/>
+					<field name="section_id"/>
+					<field name="state"/>
+					<filter string="Pending" name="message_unread" domain="[('state','in',['approved_waiting'])]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Cancelled" domain="[('active','=',False)]" groups="academics.group_registrar_ass_registrar"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                        <filter string="Student" name="Student" domain="" context="{'group_by':'student_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+		
+		<record id="view_dean_add_drop_filter" model="ir.ui.view">
+			<field name="name">dean.add.drop.filter</field>
+			<field name="model">add.drop.application</field>
+			<field name="arch" type="xml">
+				<search string="Add/Drop Application">
+					<field name="action"/>
+					<field name="term_id"/>
+					<field name="student_id"/>
+					<field name="section_id"/>
+					<field name="state"/>
+					<filter string="Pending" name="message_unread" domain="[('state','in',['pending']),('approval_ids.id','not in',approval_ids)]"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                        <filter string="Student" name="Student" domain="" context="{'group_by':'student_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Add Drop Application Action
+		-->
+
+		<record id="registrar_add_drop_application_action" model="ir.actions.act_window">
+			<field name="name">Add/Drop Applications</field>
+			<field name="res_model">add.drop.application</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+<!-- 			<field name="groups_id" eval="[(4, ref('academics.group_registrar_ass_registrar'))]"/> -->
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Term': 1, 'search_default_Student': 1}</field>
+			<field name="view_id" ref="add_drop_application_tree"/>
+			<field name="search_view_id" ref="view_registrar_add_drop_filter"/>
+			<field name="help">
+	       		No add/drop applications
+	        </field>
+		</record>
+		
+		<record id="dean_add_drop_application_action" model="ir.actions.act_window">
+			<field name="name">Add/Drop Applications</field>
+			<field name="res_model">add.drop.application</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Term': 1, 'search_default_Student': 1}</field>
+			<field name="view_id" ref="add_drop_application_tree"/>
+			<field name="search_view_id" ref="view_dean_add_drop_filter"/>
+			<field name="help">
+	       		No add/drop applications
+	        </field>
+		</record>
+		
+		<record id="student_add_drop_application_action" model="ir.actions.act_window">
+			<field name="name">Add/Drop Applications</field>
+			<field name="res_model">add.drop.application</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="view_id" eval="False"/>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Term': 1}</field>
+			<field name="help">
+	        	No add/drop applications
+	        </field>
+		</record>
+		
+		<record id="action_student_add_drop_tree" model="ir.actions.act_window.view">
+        	<field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="student_add_drop_application_tree"/>
+            <field name="act_window_id" ref="student_add_drop_application_action"/>
+		</record>
+		
+        <record id="action_student_add_drop_form" model="ir.actions.act_window.view">
+        	<field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_student_add_drop_form"/>
+            <field name="act_window_id" ref="student_add_drop_application_action"/>
+		</record>
+		
+		
+		<!-- Add Drop Manager -->
+		
+	    <record model="ir.actions.act_window" id="action_add_drop_manager">
+	        <field name="name">Add Drop Managers</field>
+	        <field name="res_model">add.drop.manager</field>
+	        <field name="view_type">form</field>
+	    </record>
+	    
+	    <record id="add_drop_manager_tree" model="ir.ui.view">
+            <field name="name">add.drop.manager.tree</field>
+            <field name="model">add.drop.manager</field>
+            <field name="arch" type="xml">
+                <tree string="Add Drop Managers">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="type"/>
+                    <field name="employee_ids"/>
+                    <field name="role"/>
+                    <field name="sequence"/>
+                </tree>
+            </field>
+	    </record>
+	    
+	    <record id="add_drop_manager_form" model="ir.ui.view">
+            <field name="name">add.drop.manager.form</field>
+            <field name="model">add.drop.manager</field>
+            <field name="arch" type="xml">
+                <form string="Approval Managers" version="7.0">
+                    <sheet>
+                        <group col="4">
+                        	<field name="name" groups="academics.group_registrar_registrar"/>
+                            <field name="employee_id" attrs="{'required':[('type','=',False)], 'invisible':[('type','=','department')]}" groups="academics.group_registrar_registrar"/>
+                            <field name="type" on_change="onchange_type()" groups="academics.group_registrar_registrar"/>
+                            <field name="employee_ids" widget="many2many_tags" attrs="{'invisible':['|',('type','=','department'),('employee_id','=',False)]}" domain="[('user_id','!=',uid)]" groups="academics.group_registrar_faculty,academics.group_registrar_dean,academics.group_registrar_ass_registrar"/>
+                            <field name="role" attrs="{'required':[('type','=','department')], 'invisible':[('type','=',False)]}" groups="academics.group_registrar_registrar"/>
+                            <field name="sequence" class="oe_save_only" groups="academics.group_registrar_registrar"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+	    </record>	    
+	    
+	    <!-- End of Add Drop Manager -->
+	
+	
+	    <!-- Add Drop Approval Tree View -->
+		<record id="add_drop_approval_tree" model="ir.ui.view">
+			<field name="name">add.drop.approval.tree</field>
+			<field name="model">add.drop.approval</field>
+			<field name="arch" type="xml">
+				<tree string="Add Drop Authorizations" colors="red:state=='denied'" editable="bottom">
+					<field name="manager_id"/>
+					<field name="state"/>
+	    			<button name="deny" states="in_progress" string="Deny?" icon="gtk-cancel" type="object" confirm="Are you sure?" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+	    			<button name="approve" states="in_progress,denied" string="Approve?" icon="gtk-apply" type="object" confirm="Are you sure?" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+	    			<field name="write_uid" attrs="{'invisible':[('state','NOT IN',['denied', 'approved'])]}"/>
+	    			<field name="write_date" attrs="{'invisible':[('state','NOT IN',['denied', 'approved'])]}"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="add_drop_approval_form" model="ir.ui.view">
+			<field name="name">add.drop.approval.form</field>
+			<field name="model">add.drop.approval</field>
+			<field name="arch" type="xml">
+				<form string="Add Drop Authorizations"></form>
+			</field>
+		</record>
+		
+		
+		<!--
+			Override Views
+		-->
+
+		<record id="view_registrar_override_form" model="ir.ui.view">
+			<field name="name">registrar.override.form</field>
+			<field name="model">aun.registrar.override</field>
+			<field name="arch" type="xml">
+				<form string="Override Information" version="7.0" edit="false">
+					<header>
+		                <button name="confirm" string="Confirm" confirm="Are you sure you want to confirm this course override?" states="approved_waiting" class="oe_save_only" type="object" icon="gtk-go-forward" groups="academics.group_registrar_ass_registrar"/>
+		                <field name="state" widget="statusbar" statusbar_visible="draft,pending"/>
+					</header>
+					<sheet>
+						<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+						<group col="6">
+							<group attrs="{'invisible':[('state','in',['approved','approved_waiting'])]}">
+								<field name="student_id" on_change="on_change_student(student_id)" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}" context="{'form_view_ref': 'academics.view_student_form'}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+								<label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+								<div attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean">
+								<field name="fname" class="oe_inline"/>  <field name="lname" class="oe_inline"/>
+								</div>
+								<field name="term_id" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}" on_change="on_change_term(term_id,section_id)"/>
+								<field name="section_id" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('term_id','=',False)]}" domain="[('term_id','=',term_id)]" on_change="on_change_section(section_id)"/>
+								<field name="course_id" attrs="{'invisible':[('section_id','=',False)]}"/>
+								<field name="phone" attrs="{'invisible': [('state','in',['draft'])]}"/>
+								<field name="email" attrs="{'invisible': [('state','in',['draft'])]}"/>
+								<field name="major_ids" attrs="{'invisible': [('state','in',['draft'])]}" widget="many2many_tags"/>
+								<field name="minor_ids" attrs="{'invisible': [('state','in',['draft'])]}" widget="many2many_tags"/>
+								<field name="concentration_ids" attrs="{'invisible': [('state','in',['draft'])]}" widget="many2many_tags"/>
+							</group>
+							<group attrs="{'invisible':[('state','not in',['approved','approved_waiting'])]}">
+								<field name="student_approved" context="{'form_view_ref': 'academics.view_student_form'}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+								<label for="fname_approved" string="Student Name" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+								<div groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean">
+								<field name="fname_approved" class="oe_inline"/>  <field name="lname_approved" class="oe_inline"/>
+								</div>
+								<field name="term_approved"/>
+								<field name="section_approved"/>
+								<field name="course_approved"/>
+								<field name="phone_approved"/>
+								<field name="email_approved"/>
+								<field name="majors_approved"/>
+								<field name="minors_approved"/>
+								<field name="concs_approved"/>
+								<field name="note_approved"/>
+							</group>
+							<group>
+								<field name="override_prerequisite" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+								<field name="override_corequisite" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+								<field name="override_repeat_limit" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+								<field name="override_class_size" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+								<field name="override_time_conflict" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+								<field name="override_status" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+								<field name="override_level" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+<!-- 								<field name="override_major" attrs="{'readonly':[('state','not in',['draft'])]}"/> -->
+							</group>
+						</group>
+						<group attrs="{'invisible':[('state','in',['approved','approved_waiting'])]}">
+							<field name="note" attrs="{'readonly':[('state','not in',['draft'])],'invisible':[('section_id','=',False)]}"/>
+						</group>
+						<field name="approval_ids" attrs="{'invisible':[('state','in',['draft'])]}"/>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_override_tree" model="ir.ui.view">
+			<field name="name">registrar.override.tree</field>
+			<field name="model">aun.registrar.override</field>
+			<field name="arch" type="xml">
+				<tree string="Overrides" colors="blue:state=='pending';grey:state=='approved';red:state=='denied'">
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="section_id"/>
+					<field name="override_prerequisite" string="Prerequisite"/>
+					<field name="override_corequisite" string="Corequisite"/>
+					<field name="override_class_size" string="Class Size"/>
+					<field name="override_time_conflict" string="Time Conflict"/>
+					<field name="override_repeat_limit" string="Repeat Limit"/>
+					<field name="override_status" string="Status"/>
+					<field name="override_level" string="Level"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="student_override_tree" model="ir.ui.view">
+			<field name="name">student.override.tree</field>
+			<field name="model">aun.registrar.override</field>
+			<field name="arch" type="xml">
+				<tree string="Overrides" colors="blue:state=='pending';grey:state=='approved';red:state=='denied'">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="section_id"/>
+					<field name="override_prerequisite" string="Prerequisite"/>
+					<field name="override_corequisite" string="Corequisite"/>
+					<field name="override_class_size" string="Class Size"/>
+					<field name="override_time_conflict" string="Time Conflict"/>
+					<field name="override_repeat_limit" string="Repeat Limit"/>
+					<field name="override_status" string="Status"/>
+					<field name="override_level" string="Level"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_override_search" model="ir.ui.view">
+			<field name="name">registrar.override.search</field>
+			<field name="model">aun.registrar.override</field>
+			<field name="arch" type="xml">
+				<search string="Override Information">
+					<field name="student_id"/>
+					<field name="section_id"/>
+					<field name="course_id"/>
+					<field name="term_id"/>
+					<field name="state"/>
+					<filter string="Awaiting Registrar" name="message_unread" domain="[('state','in',['approved_waiting'])]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Approved" domain="[('state','=','approved')]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Awaiting Approval" domain="[('state','=','pending')]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Denied" domain="[('state','=','denied')]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Cancelled" domain="[('active','=',False)]" groups="academics.group_registrar_ass_registrar"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                        <filter string="Student" name="Student" domain="" context="{'group_by':'student_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+		
+		<record id="view_dean_override_search" model="ir.ui.view">
+			<field name="name">dean.override.search</field>
+			<field name="model">aun.registrar.override</field>
+			<field name="arch" type="xml">
+				<search string="Override Information">
+					<field name="student_id"/>
+					<field name="section_id"/>
+					<field name="course_id"/>
+					<field name="term_id"/>
+					<field name="state"/>
+					<filter string="Pending" name="message_unread" domain="[('state','in',['pending'])]"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                        <filter string="Student" name="Student" domain="" context="{'group_by':'student_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+		
+		<record id="view_faculty_override_search" model="ir.ui.view">
+			<field name="name">faculty.override.search</field>
+			<field name="model">aun.registrar.override</field>
+			<field name="arch" type="xml">
+				<search string="Override Information">
+					<field name="student_id"/>
+					<field name="section_id"/>
+					<field name="course_id"/>
+					<field name="term_id"/>
+					<field name="state"/>
+					<filter string="Pending" name="message_unread" domain="[('state','in',['pending']),('faculty_approved','=',False)]"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                        <filter string="Student" name="Student" domain="" context="{'group_by':'student_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Override Actions
+		-->
+
+		<record id="registrar_override_action" model="ir.actions.act_window">
+			<field name="name">Overrides</field>
+			<field name="res_model">aun.registrar.override</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Term': 1, 'search_default_Student': 1}</field>
+			<field name="view_id" ref="view_registrar_override_tree"/>
+			<field name="search_view_id" ref="view_registrar_override_search"/>
+			<field name="help">
+	       		No override applications
+	        </field>
+		</record>
+		
+		<record id="dean_override_action" model="ir.actions.act_window">
+			<field name="name">Overrides</field>
+			<field name="res_model">aun.registrar.override</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('state','not in',['cancelled'])]</field>
+			<field name="context">{'search_default_Term': 1, 'search_default_Student': 1}</field>
+			<field name="view_id" ref="view_registrar_override_tree"/>
+			<field name="search_view_id" ref="view_dean_override_search"/>
+			<field name="help">
+	       		No override applications
+	        </field>
+		</record>
+
+		<record id="faculty_override_action" model="ir.actions.act_window">
+			<field name="name">Overrides</field>
+			<field name="res_model">aun.registrar.override</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('state','not in',['cancelled'])]</field>
+			<field name="context">{'search_default_Term': 1, 'search_default_Student': 1}</field>
+			<field name="view_id" ref="view_registrar_override_tree"/>
+			<field name="search_view_id" ref="view_faculty_override_search"/>
+			<field name="help">
+	       		No override applications
+	        </field>
+		</record>
+
+		<record id="student_override_action" model="ir.actions.act_window">
+			<field name="name">Overrides</field>
+			<field name="res_model">aun.registrar.override</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('state','not in',['cancelled'])]</field>
+			<field name="context">{'search_default_Term': 1}</field>
+			<field name="view_id" ref="student_override_tree"/>
+			<field name="search_view_id" ref="view_dean_override_search"/>
+			<field name="help">
+            	Click to fill a course override form
+	        </field>
+		</record>
+		
+
+		<!-- Override Manager -->
+		
+	    <record model="ir.actions.act_window" id="action_override_manager">
+	        <field name="name">Override Managers</field>
+	        <field name="res_model">override.manager</field>
+	        <field name="view_type">form</field>
+	    </record>
+	    
+	    <record id="override_manager_tree" model="ir.ui.view">
+            <field name="name">override.manager.tree</field>
+            <field name="model">override.manager</field>
+            <field name="arch" type="xml">
+                <tree string="Override Managers">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="type"/>
+                    <field name="employee_ids"/>
+                    <field name="role"/>
+                    <field name="sequence"/>
+                </tree>
+            </field>
+	    </record>
+	    
+	    <record id="override_manager_form" model="ir.ui.view">
+            <field name="name">override.manager.form</field>
+            <field name="model">override.manager</field>
+            <field name="arch" type="xml">
+                <form string="Approval Managers" version="7.0">
+                    <sheet>
+                        <group col="4">
+                        	<field name="name" groups="academics.group_registrar_registrar"/>
+                            <field name="employee_id" attrs="{'required':[('type','=',False)], 'invisible':[('type','=','department')]}" groups="academics.group_registrar_registrar"/>
+                            <field name="type" on_change="onchange_type()" groups="academics.group_registrar_registrar"/>
+                            <field name="employee_ids" widget="many2many_tags" attrs="{'invisible':['|',('type','=','department'),('employee_id','=',False)]}" domain="[('user_id','!=',uid)]" groups="academics.group_registrar_faculty,academics.group_registrar_dean,academics.group_registrar_ass_registrar"/>
+                            <field name="role" attrs="{'required':[('type','=','department')], 'invisible':[('type','=',False)]}" groups="academics.group_registrar_registrar"/>
+                            <field name="sequence" class="oe_save_only" groups="academics.group_registrar_registrar"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+	    </record>	    
+
+	
+	    <!-- Override Approval Tree View -->
+	    
+		<record id="override_approval_tree" model="ir.ui.view">
+			<field name="name">override.approval.tree</field>
+			<field name="model">override.approval</field>
+			<field name="arch" type="xml">
+				<tree string="Override Authorizations" colors="red:state=='denied'" editable="bottom">
+					<field name="manager_id"/>
+					<field name="state"/>
+	    			<button name="deny" states="in_progress" string="Deny?" icon="gtk-cancel" type="object" confirm="Are you sure?" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+	    			<button name="approve" states="in_progress,denied" string="Approve?" icon="gtk-apply" type="object" confirm="Are you sure?" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+	    			<field name="write_uid" attrs="{'invisible':[('state','NOT IN',['denied', 'approved'])]}"/>
+	    			<field name="write_date" attrs="{'invisible':[('state','NOT IN',['denied', 'approved'])]}"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="override_approval_form" model="ir.ui.view">
+			<field name="name">override.approval.form</field>
+			<field name="model">override.approval</field>
+			<field name="arch" type="xml">
+				<form string="Override Authorizations"></form>
+			</field>
+		</record>
+
+
+		<!--
+			Overload Views
+		-->
+
+		<record id="view_course_overload_form" model="ir.ui.view">
+			<field name="name">course.overload.form</field>
+			<field name="model">course.overload</field>
+			<field name="arch" type="xml">
+				<form string="Overload Information" version="7.0" edit="false">
+					<header>
+		                <button name="confirm" string="Confirm" confirm="Are you sure you want to confirm this course overload?" states="approved_waiting" type="object" icon="gtk-go-forward" groups="academics.group_registrar_ass_registrar"/>
+		                <field name="state" widget="statusbar" statusbar_visible="draft,pending"/>
+					</header>
+					<sheet>
+						<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+						<group col="4">
+							<field name="student_id" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}" context="{'form_view_ref': 'academics.view_student_form'}" on_change="on_change_student_term(student_id,term_id,'student_id')" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+							<field name="term_id" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}" on_change="on_change_student_term(student_id,term_id,'term_id')"/>
+						</group>
+						<group attrs="{'invisible': [('state','in',['approved','approved_waiting'])]}" col="4">
+							<label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+							<div attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean">
+							<field name="fname" class="oe_inline"/>  <field name="lname" class="oe_inline"/>
+							</div>
+							<label for="credits_allowed"/>
+							<b><font color="blue"><field name="credits_allowed" attrs="{'readonly':[('state','not in',['draft'])],'invisible':['|',('student_id','=',False),('term_id','=',False)]}"/></font></b>
+							<field name="phone" attrs="{'invisible': [('state','in',['draft'])]}"/>
+							<field name="active_credits" attrs="{'invisible': [('state','in',['draft'])]}"/>
+							<field name="email" attrs="{'invisible': [('state','in',['draft'])]}"/>
+							<field name="total_credits" attrs="{'invisible': [('state','in',['draft'])]}"/>
+							<field name="cgpa" attrs="{'invisible': [('state','in',['draft'])]}"/>
+						</group>
+						<group attrs="{'invisible':[('state','not in',['approved','approved_waiting'])]}" col="4">
+							<label for="fname" string="Student Name" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+							<div groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean">
+							<field name="fname_approved" class="oe_inline"/>  <field name="lname_approved" class="oe_inline"/>
+							</div>
+							<label for="credits_approved"/>
+							<b><font color="blue"><field name="credits_approved"/></font></b>
+							<field name="phone_approved"/>
+							<field name="active_approved"/>
+							<field name="email_approved"/>
+							<field name="total_approved"/>
+							<field name="cgpa_approved"/>
+						</group>
+						<group attrs="{'invisible':[('state','in',['draft','approved','approved_waiting'])]}">
+							<field name="major_ids" widget="many2many_tags"/>
+							<field name="minor_ids" widget="many2many_tags"/>
+							<field name="concentration_ids" widget="many2many_tags"/>
+							<field name="school_ids" widget="many2many_tags"/>
+						</group>
+						<group attrs="{'invisible':[('state','not in',['approved','approved_waiting'])]}">
+							<field name="majors_approved"/>
+							<field name="minors_approved"/>
+							<field name="concs_approved"/>
+							<field name="schools_approved"/>
+						</group>
+						<group>
+							<field name="dean_user_ids" widget="many2many_tags" invisible="1"/>
+							<!-- <field name="fnct_dean_user_ids" widget="many2many_tags" invisible="1"/> -->
+						</group>
+						<field name="approval_ids" attrs="{'invisible':[('state','in',['draft'])]}"/>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_course_overload_tree" model="ir.ui.view">
+			<field name="name">course.overload.tree</field>
+			<field name="model">course.overload</field>
+			<field name="arch" type="xml">
+				<tree string="Overloads" colors="blue:state=='pending';grey:state=='approved';red:state=='denied'">
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="term_id"/>
+					<field name="credits_allowed"/>
+					<field name="state"/>
+<!-- 					<field name="fnct_dean_user_ids" invisible="1"/> -->
+				</tree>
+			</field>
+		</record>
+
+		<record id="student_overload_tree" model="ir.ui.view">
+			<field name="name">student.overload.tree</field>
+			<field name="model">course.overload</field>
+			<field name="arch" type="xml">
+				<tree string="Overloads" colors="blue:state=='pending';grey:state=='approved';red:state=='denied'">
+					<field name="term_id"/>
+					<field name="credits_allowed"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_overload_search" model="ir.ui.view">
+			<field name="name">registrar.overload.search</field>
+			<field name="model">course.overload</field>
+			<field name="arch" type="xml">
+				<search string="Overload Information">
+					<field name="student_id"/>
+					<field name="term_id"/>
+					<field name="credits_allowed"/>
+					<field name="state"/>
+					<filter string="Awaiting Registrar" name="message_unread" domain="[('state','in',['approved_waiting'])]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Awaiting Approval" name="message_unread" domain="[('state','in',['pending'])]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Approved" name="message_unread" domain="[('state','in',['approved'])]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Denied" name="message_unread" domain="[('state','in',['denied'])]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Cancelled" domain="[('active','=',False)]" groups="academics.group_registrar_ass_registrar"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" context="{'group_by':'term_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+		
+		<record id="view_dean_overload_search" model="ir.ui.view">
+			<field name="name">dean.overload.search</field>
+			<field name="model">course.overload</field>
+			<field name="arch" type="xml">
+				<search string="Overload Information">
+					<field name="student_id"/>
+					<field name="term_id"/>
+					<field name="credits_allowed"/>
+					<field name="state"/>
+					<filter string="Pending" name="message_unread" domain="[('state','in',['pending'])]"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" context="{'group_by':'term_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Overload Actions
+		-->
+
+		<record id="registrar_overload_action" model="ir.actions.act_window">
+			<field name="name">Overloads</field>
+			<field name="res_model">course.overload</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Term': 1}</field>
+			<field name="view_id" ref="view_course_overload_tree"/>
+			<field name="search_view_id" ref="view_registrar_overload_search"/>
+			<field name="help">
+	       		No overload applications
+	        </field>
+		</record>
+		
+		<record id="dean_overload_action" model="ir.actions.act_window">
+			<field name="name">Overloads</field>
+			<field name="res_model">course.overload</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Term': 1}</field>
+			<field name="view_id" ref="view_course_overload_tree"/>
+			<field name="search_view_id" ref="view_dean_overload_search"/>
+			<field name="help">
+	       		No overload applications
+	        </field>
+		</record>
+
+		<record id="student_overload_action" model="ir.actions.act_window">
+			<field name="name">Overloads</field>
+			<field name="res_model">course.overload</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="view_id" ref="student_overload_tree"/>
+			<field name="search_view_id" ref="view_registrar_overload_search"/>
+			<field name="help">
+	        	Click to fill a course overload form
+	        </field>
+		</record>
+		
+
+		<!-- Overload Manager -->
+		
+	    <record model="ir.actions.act_window" id="action_overload_manager">
+	        <field name="name">Overload Managers</field>
+	        <field name="res_model">overload.manager</field>
+	        <field name="view_type">form</field>
+	    </record>
+	    
+	    <record id="overload_manager_tree" model="ir.ui.view">
+            <field name="name">overload.manager.tree</field>
+            <field name="model">overload.manager</field>
+            <field name="arch" type="xml">
+                <tree string="Overload Managers">
+                    <field name="name"/>
+                    <field name="employee_id"/>
+                    <field name="type"/>
+                    <field name="employee_ids"/>
+                    <field name="role"/>
+                    <field name="sequence"/>
+                </tree>
+            </field>
+	    </record>
+	    
+	    <record id="overload_manager_form" model="ir.ui.view">
+            <field name="name">overload.manager.form</field>
+            <field name="model">overload.manager</field>
+            <field name="arch" type="xml">
+                <form string="Approval Managers" version="7.0">
+                    <sheet>
+                        <group col="4">
+                        	<field name="name" groups="academics.group_registrar_registrar"/>
+                            <field name="employee_id" attrs="{'required':[('type','=',False)], 'invisible':[('type','=','department')]}" groups="academics.group_registrar_registrar"/>
+                            <field name="type" on_change="onchange_type()" groups="academics.group_registrar_registrar"/>
+                            <field name="employee_ids" widget="many2many_tags" attrs="{'invisible':['|',('type','=','department'),('employee_id','=',False)]}" domain="[('user_id','!=',uid)]" groups="academics.group_registrar_faculty,academics.group_registrar_dean,academics.group_registrar_ass_registrar"/>
+                            <field name="role" attrs="{'required':[('type','=','department')], 'invisible':[('type','=',False)]}" groups="academics.group_registrar_registrar"/>
+                            <field name="sequence" class="oe_save_only" groups="academics.group_registrar_registrar"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+	    </record>
+
+	
+	
+	    <!-- Overload Approval Tree View -->
+	    
+		<record id="overload_approval_tree" model="ir.ui.view">
+			<field name="name">overload.approval.tree</field>
+			<field name="model">overload.approval</field>
+			<field name="arch" type="xml">
+				<tree string="Overload Authorizations" colors="red:state=='denied'" editable="bottom">
+					<field name="manager_id"/>
+					<field name="state"/>
+	    			<button name="deny" states="in_progress" string="Deny?" icon="gtk-cancel" type="object" confirm="Are you sure?" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+	    			<button name="approve" states="in_progress,denied" string="Approve?" icon="gtk-apply" type="object" confirm="Are you sure?" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty,academics.group_registrar_dean"/>
+	    			<field name="write_uid" attrs="{'invisible':[('state','NOT IN',['denied','approved'])]}"/>
+	    			<field name="write_date" attrs="{'invisible':[('state','NOT IN',['denied','approved'])]}"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="overload_approval_form" model="ir.ui.view">
+			<field name="name">overload.approval.form</field>
+			<field name="model">overload.approval</field>
+			<field name="arch" type="xml">
+				<form string="Overload Authorizations"></form>
+			</field>
+		</record>
+
+	
+		<menuitem id="forms_menu" parent="academics_main_menu" name="Forms"/>
+			<menuitem id="registrar_add_drop_submenu" parent="forms_menu" action="registrar_add_drop_application_action" groups="academics.group_registrar_ass_registrar" sequence="1"/>
+			<menuitem id="dean_add_drop_submenu" parent="forms_menu" action="dean_add_drop_application_action" groups="academics.group_registrar_dean,academics.group_registrar_faculty" sequence="1"/>
+			<menuitem id="student_add_drop_submenu" parent="forms_menu" action="student_add_drop_application_action" groups="academics.group_registrar_student" sequence="1"/>			
+			<menuitem id="registrar_override_submenu" parent="forms_menu" action="registrar_override_action" groups="academics.group_registrar_ass_registrar" sequence="2"/>
+			<menuitem id="dean_override_submenu" parent="forms_menu" action="dean_override_action" groups="academics.group_registrar_dean,academics.group_registrar_faculty" sequence="2"/>
+<!-- 			<menuitem id="student_override_submenu" parent="forms_menu" action="student_override_action" groups="academics.group_registrar_student" sequence="2"/> -->
+			<menuitem id="registrar_overload_submenu" parent="forms_menu" action="registrar_overload_action" groups="academics.group_registrar_ass_registrar"/>
+			<menuitem id="dean_overload_submenu" parent="forms_menu" action="dean_overload_action" groups="academics.group_registrar_dean"/>
+<!-- 			<menuitem id="student_overload_submenu" parent="forms_menu" action="student_overload_action" groups="academics.group_registrar_student" sequence="3"/> -->
+				<menuitem id="registrar_add_drop_manager_menu" parent="registrar_add_drop_submenu" action="action_add_drop_manager"/>
+				<menuitem id="dean_add_drop_manager_menu" parent="dean_add_drop_submenu" action="action_add_drop_manager"/>
+				<menuitem id="registrar_override_manager_menu" parent="registrar_override_submenu" action="action_override_manager"/>
+<!-- 				<menuitem id="dean_override_manager_menu" parent="dean_override_submenu" action="action_override_manager"/> -->
+				<menuitem id="registrar_overload_manager_menu" parent="registrar_overload_submenu" action="action_overload_manager"/>
+				<menuitem id="dean_overload_manager_menu" parent="dean_overload_submenu" action="action_overload_manager"/>	
+    </data>
+</openerp>

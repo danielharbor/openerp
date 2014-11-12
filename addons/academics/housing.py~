@@ -1,0 +1,392 @@
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
+from datetime import date
+from openerp import SUPERUSER_ID
+
+
+class housing_room_type(osv.osv):
+    _name = 'housing.room.type'
+    _description = 'Room Type'
+    _inherit = ["mail.thread"]
+    _columns = {
+            'name': fields.char('Room Type', size=64, required=True, track_visibility = "onchange"),
+            'capacity': fields.selection([('1','1'), ('2','2'), ('3','3'), ('4','4'), ('5','5')],'Capacity', required=True, track_visibility = "onchange"),
+            'rent': fields.float('Room Charge', track_visibility = "onchange"),
+            'credit_limit': fields.float('Mininum Balance For Reservation', track_visibility = "onchange"),
+        }
+housing_room_type()
+
+class housing_meal_type(osv.osv):
+    _name = 'housing.meal.type'
+    _description = 'meal Type'
+    _inherit = ["mail.thread"]
+    _columns = {
+            'name': fields.char('Meal Type', size=64, required=True, track_visibility = "onchange"),
+            'number': fields.float('Number of Meals', track_visibility = "onchange"),
+            'charge': fields.float('Meal Charge', track_visibility = "onchange"),
+            'admin': fields.boolean('Admin Only')
+        }
+housing_meal_type()
+
+# class housing_meal_students(osv.osv):
+#     _name = 'housing.meal.students'
+#     _description = 'Meal Allocation'
+#     _inherit = ["mail.thread", 'ir.needaction_mixin']
+#     
+#     def name_get(self, cr, uid, ids, context=None):
+#         if not ids:
+#             return []
+#         reads = self.browse(cr, uid, ids, context=context)
+#         res = []
+#         for record in reads:
+#             name = record.student_id.name
+#             name = name + ' - ' + record.meal_id.name
+#             res.append((record['id'], name))
+#         return res
+#     
+#     def create(self, cr, uid, vals, context=None):
+#         vals['state'] = 'new'
+#         self.search(cr,uid,[('student_id','=',vals['student_id']),('term_id','=',vals['term_id']),('state','!=','cancel')])
+#         res = super(housing_meal_students, self).create(cr, uid, vals, context)
+#         
+#         return res
+#         
+#     _columns = {
+#             'term_id': fields.many2one('aun.registrar.term', 'Term', ondelete="cascade", required=True),
+#             'meal_id': fields.many2one('housing.meal.type', 'Meal Plan', ondelete="cascade", required=True),
+#             'student_id': fields.many2one('res.partner', 'Student ID', ondelete="cascade", required=True),
+#             'state': fields.selection([('draft','Draft'),('new','Submitted'), ('approve','Approved'), ('reject','Rejected'), ('done','Assigned'), ('cancel','Cancelled')],'State', required=True, track_visibility = "onchange")
+#         }
+#     _defaults = {
+#             'state' : 'draft'
+#         }
+# housing_meal_students()
+
+class housing_room_students(osv.osv):
+    _name = 'housing.room.students'
+    _description = 'Room/Meal Reservation'
+    _inherit = ["mail.thread", 'ir.needaction_mixin']
+    
+    def name_get(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+        reads = self.browse(cr, uid, ids, context=context)
+        res = []
+        for record in reads:
+            name = record.student_id.name
+            name = name + ' - ' + record.dorm_id.name + " " + record.room_id.name
+            res.append((record['id'], name))
+        return res
+    
+    def on_change_term_id(self, cr, uid, ids, term_id, context=None):
+        return {'value': {'campus_id': []}}
+    
+    def on_change_student_id(self, cr, uid, ids, context=None):
+        return {'value': {'campus_id': []}}
+    
+    def on_change_campus_id(self, cr, uid, ids, campus_id, student_id, term_id, context=None):
+        term = self.pool.get('aun.registrar.term').browse(cr,uid,term_id)
+        student = self.pool.get('res.partner').browse(cr,uid,student_id)
+        if (term.name in ['Summer I','Summer II']):
+            return {'domain': {'dorm_id': [('campus_id','=',campus_id),('unavailable','=',False),('residence','=',True),('gender','=',student.sex)]},'value': {'dorm_id': []}}
+        
+        return {'domain': {'dorm_id': [('campus_id','=',campus_id),('residence','=',True),('gender','=',student.sex)]},'value': {'dorm_id': []}}
+
+    def on_change_dorm_id(self, cr, uid, ids, dorm_id, context=None):
+        ids= self.pool.get('aun.registrar.location').search(cr, uid, [('building_id','=',dorm_id),('location_type','=','4')])
+        rooms = self.pool.get('aun.registrar.location').browse(cr, uid, ids)
+        types = []
+        for room in rooms:
+            if (room.res_room_type):
+                types.append(room.res_room_type.id)
+        types = list(set(types))
+        return {'domain': {'room_type': [('id','in',types)]},'value': {'room_type': []}}
+    
+    def on_change_room_type(self, cr, uid, ids, dorm_id, term_id, room_type, context=None):
+        result = []
+        if (room_type):
+            ids= self.pool.get('aun.registrar.location').search(cr, SUPERUSER_ID, [('res_room_type','=',room_type),('building_id','=',dorm_id),('isactive','=',True)])
+            rooms = self.pool.get('aun.registrar.location').browse(cr, SUPERUSER_ID, ids)
+            for room in rooms:
+                res = self.pool.get('housing.room.students').search(cr, SUPERUSER_ID, [('term_id','=',term_id),('room_id','=',room.id),('state','not in',('cancel','reject'))])
+                count = len(res)
+                if (int(count) < int(room.res_room_type.capacity)):
+                    result.append(room.id)
+        return {'domain': {'room_id': [('id','in',result)]},'value': {'room_id': []}}
+    
+    def on_change_room_id(self, cr, uid, ids, room_id, term_id, context=None):
+        spaces = 0
+        ids = self.pool.get('housing.room.students').search(cr, SUPERUSER_ID, [('term_id','=',term_id),('room_id','=',room_id),('state','not in',('cancel','reject'))])
+        res = self.pool.get('housing.room.students').browse(cr, SUPERUSER_ID, ids)
+        count = len(ids)
+        occupants = ""
+        if (res):
+            for r in res:
+                occupants = occupants + " " + r.student_id.name
+        else:
+            occupants = "None"    
+        if (room_id):
+            room = self.pool.get('aun.registrar.location').browse(cr, SUPERUSER_ID, room_id)
+            spaces = int(room.res_room_type.capacity) - int(count)
+        return {'value': {'spaces_left': spaces, 'occupants': occupants},}
+    
+    def case_approve(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'approve'}, context=context)
+        template = self.pool.get('ir.model.data').get_object(cr, uid, 'academics', 'housing_email_approve')
+        mail_obj = self.pool.get('mail.mail')
+        assert template._name == 'email.template'
+        for user in self.browse(cr, uid, ids, context):
+            if not user.student_id.email:
+                raise osv.except_osv(_("Cannot send email: user has no email address."), user.student_id.name)
+            mail_id = self.pool.get('email.template').send_mail(cr, uid, template.id, user.id, True, context=context)
+            mail_state = mail_obj.read(cr, uid, mail_id, ['state'], context=context)
+            if mail_state and mail_state['state'] == 'exception':
+                raise osv.except_osv(_("Cannot send email: no outgoing email server configured.\nYou can configure it under Settings/General Settings."), user.student_id.name)
+        return True
+    
+    def case_reject(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'reject'}, context=context)
+        template = self.pool.get('ir.model.data').get_object(cr, uid, 'academics', 'housing_email_reject')
+        mail_obj = self.pool.get('mail.mail')
+        assert template._name == 'email.template'
+        for user in self.browse(cr, uid, ids, context):
+            if not user.student_id.email:
+                raise osv.except_osv(_("Cannot send email: user has no email address."), user.student_id.name)
+            mail_id = self.pool.get('email.template').send_mail(cr, uid, template.id, user.id, True, context=context)
+            mail_state = mail_obj.read(cr, uid, mail_id, ['state'], context=context)
+            if mail_state and mail_state['state'] == 'exception':
+                raise osv.except_osv(_("Cannot send email: no outgoing email server configured.\nYou can configure it under Settings/General Settings."), user.student_id.name)
+
+        return True
+    
+    def case_done(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'done'}, context=context)
+        return True
+    
+    def case_cancel(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'cancel'}, context=context)
+        return True
+    
+    def case_reset(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'state': 'new'}, context=context)
+        return True
+    
+    def create(self, cr, uid, vals, context=None):
+        vals['state'] = 'new'
+        res = super(housing_room_students, self).create(cr, uid, vals, context)
+        group = self.pool.get('ir.model.data').get_object(cr, uid, 'academics', 'group_housing_staff')
+        group = cr.execute("select uid from res_groups_users_rel WHERE gid=(%s)" %group.id)
+        s = cr.fetchall()
+        group = []
+        for a in s:
+            group.append(a[0])
+        if self.pool.get('ir.model.access').check_groups(cr, uid, "academics.group_housing_staff"):
+            student = self.pool.get('res.partner').browse(cr,uid,[vals['student_id']])[0]
+            if student.user_ids:
+                group.append(student.user_ids[0].id)
+            else:
+                raise osv.except_osv(_("This student does not have a user account, Contact Administrator"), student.name)
+        self.message_subscribe_users(cr, SUPERUSER_ID, [res] , group, context=context)
+        
+        template = self.pool.get('ir.model.data').get_object(cr, uid, 'academics', 'housing_email')
+        mail_obj = self.pool.get('mail.mail')
+        assert template._name == 'email.template'
+        for user in self.browse(cr, uid, [res], context):
+            if not user.student_id.email:
+                raise osv.except_osv(_("Cannot send email: user has no email address."), user.student_id.name)
+            mail_id = self.pool.get('email.template').send_mail(cr, uid, template.id, user.id, True, context=context)
+            mail_state = mail_obj.read(cr, uid, mail_id, ['state'], context=context)
+            if mail_state and mail_state['state'] == 'exception':
+                raise osv.except_osv(_("Cannot send email: no outgoing email server configured.\nYou can configure it under Settings/General Settings."), user.student_id.name)
+        return res
+    
+    def _needaction_domain_get (self, cr, uid, context=None):
+        if self.pool.get('ir.model.access').check_groups(cr, uid, "academics.group_housing_staff"):
+            return [('state','=','new')]
+        return False
+    
+    def check_duplicate(self, cr, uid, ids, context=None):
+        res = self.browse(cr, uid, ids,context=context)[0]
+        dup = self.pool.get('housing.room.students').search(cr,uid,[('student_id','=',res.student_id.id),('term_id','=',res.term_id.id),('state','not in',['cancel','reject']),('id','!=',res.id)])
+        if (dup):
+            return False
+        return True
+    
+    def check_availability(self, cr, uid, ids, context=None):
+        rec = self.browse(cr, uid, ids,context=context)[0]
+        res = self.pool.get('housing.room.students').search(cr, SUPERUSER_ID, [('term_id','=',rec.term_id.id),('room_id','=',rec.room_id.id),('state','not in',('cancel','reject'))])
+        count = len(res)
+        if (int(count) > int(rec.room_id.res_room_type.capacity)):
+            return False
+        return True
+    
+    def get_student_id(self, cr, uid, context=None):
+        res = ""
+        if self.pool.get('ir.model.access').check_groups(cr, uid, "academics.group_registrar_student"):
+            user = self.pool.get('res.users').browse(cr, uid, uid, context)
+            res = user.partner_id.id
+        return res
+            
+    _columns = {
+            'term_id': fields.many2one('aun.registrar.term', 'Term', ondelete="cascade", required=True, track_visibility = "onchange"),
+            'campus_id': fields.related('room_id', 'building_id', 'campus_id', type='many2one', relation="res.campus", string="Campus", store=False),
+            'dorm_id': fields.related('room_id', 'building_id', type='many2one', relation="res.building", string="Building", store=True),
+            'room_type': fields.related('room_id', 'res_room_type', type='many2one', relation="housing.room.type", string="Room Type", store=False),
+            'room_id': fields.many2one('aun.registrar.location', 'Room', ondelete="cascade", required=True, track_visibility = "onchange"),
+            'student_id': fields.many2one('res.partner', 'Student ID', ondelete="cascade", required=True, track_visibility = "onchange"),
+            'meal_id': fields.many2one('housing.meal.type', 'Meal Plan', ondelete="cascade", required=True, track_visibility = "onchange"),
+            'spaces_left': fields.char('Spaces Left', size=2, readonly=True, store = False),
+            'occupants': fields.text('Occupants', readonly=True, store = False),
+            'state': fields.selection([('draft','Draft'),('new','Submitted'), ('approve','Approved'), ('reject','Rejected'), ('done','Assigned'), ('cancel','Cancelled')],'State', required=True, track_visibility = "onchange"),
+            'fname': fields.related('student_id','fname',type = "char", relation="res.partner", string ="First Name", store = False),
+            'lname': fields.related('student_id','lname',type = "char", relation="res.partner", string ="Surname", store = False),
+            'create_date': fields.datetime('Create Date')
+        }
+    _defaults = {
+            'student_id' : get_student_id,
+            'state' : 'draft'
+        }
+
+    _constraints =[
+        (check_duplicate, """You cannot have multiple reservations for one term, Please Cancel Your Previous 
+        Reservation before creating a new one""",['student ID']),
+        (check_availability, "This room is fully booked, Please select another room",['Room'])
+    ]
+    
+    
+#    def unlink(self, cr, uid, ids, context=None):
+#        if context is None:
+#            context = {}
+#                 
+#        assignment_ids = self.read(cr, uid, ids, context=context)
+#        assignments = self.browse(cr, uid, ids,context=context)    
+#        invoice_obj = self.pool.get('account.invoice')
+#        invoice_line_obj = self.pool.get('account.invoice.line')
+#        address_obj = self.pool.get('res.partner.address')
+#        
+#        for a in assignments:
+#            student = a.name
+#            room = a.room_id
+#            rent = room.room_type.rent   
+#            invoice_name = a.term_id.name + a.term_id.year + "Inv" + student.name
+#            term_invoice_draft = invoice_obj.search(cr, uid, [('name','=',invoice_name), ('state', '=', 'draft')])
+#               
+#            if term_invoice_draft:        
+#                invoice_line_id = invoice_line_obj.search(cr, uid, [('invoice_id','=',term_invoice_draft[0]), ('name','=','Housing')])  
+#                invoice_line = invoice_line_obj.browse(cr, uid, invoice_line_id[0])
+#                new_amount = invoice_line.price_unit - rent
+#                invoice_line_obj.write(cr, uid, invoice_line_id, {'price_unit': new_amount}, context=context)    
+#            else:
+#                refund_name = a.term_id.name + a.term_id.year + "Refund" + student.name
+#                term_draft_refund_exists = invoice_obj.search(cr, uid, [('name','=',refund_name), ('state', '=', 'draft')])
+#                
+#                if term_draft_refund_exists:
+#                    housing_refund_line_id = invoice_line_obj.search(cr, uid, [('invoice_id','=',term_draft_refund_exists[0]), ('name','=','Housing')])  
+#                    
+#                    if housing_refund_line_id:
+#                        refund_line = invoice_line_obj.browse(cr, uid, housing_refund_line_id[0])
+#                        new_amount = refund_line.price_unit + rent
+#                        invoice_line_obj.write(cr, uid, housing_refund_line_id, {'price_unit': new_amount}, context=context)
+#                    else:
+#                        invoice_line_obj.create(cr,uid,{
+#                               'invoice_id': term_draft_refund_exists[0],
+#                               'account_id': "19",
+#                               'name': 'Housing',
+#                               'price_unit': rent
+#                               })                         
+#                else:
+#                    refund = invoice_obj.create(cr,uid,{
+#                           'name': refund_name,
+#                           'partner_id': student.id,
+#                           'type': 'out_refund',
+#                           'address_invoice_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0],
+#                           'account_id': student.property_account_receivable.id,
+#                           'address_contact_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0]
+#                           })
+#                    invoice_line_obj.create(cr,uid,{
+#                           'invoice_id': refund,
+#                           'account_id': "19",
+#                           'name': 'Housing',
+#                           'price_unit': rent
+#                           })    
+#                #raise osv.except_osv(_('Invalid action!'), _('You cannot delete this room assignment. Its invoice is either open or has been paid'))
+#                
+#        unlink_ids = []
+#        for a in assignment_ids:
+#            unlink_ids.append(a['id'])
+#
+#        osv.osv.unlink(self, cr, uid, unlink_ids, context=context)
+#        return True    
+    
+#    def create(self, cr, uid, vals, context=None):
+#        res = super(housing_room_students, self).create(cr, uid, vals, context)
+#        assignment = self.pool.get('housing.room.students').browse(cr, uid, res, context=context)
+#        student = assignment.student_id
+#        room = assignment.room_id
+#        rent = room.room_type.rent
+#        invoice_name = assignment.term_id.name + assignment.term_id.year + "Inv" + student.name
+#        invoice_obj = self.pool.get('account.invoice')
+#        invoice_line_obj = self.pool.get('account.invoice.line')
+#        address_obj = self.pool.get('res.partner.address')
+#     
+#        term_invoice_draft = invoice_obj.search(cr, uid, [('name','=',invoice_name), ('state', '=', 'draft')])
+#               
+#        if term_invoice_draft:
+#            invoice_line_id = invoice_line_obj.search(cr, uid, [('invoice_id','=',term_invoice_draft[0]), ('name','=','Housing')])
+#            
+#            if invoice_line_id:
+#                invoice_line = invoice_line_obj.browse(cr, uid, invoice_line_id[0]) 
+#                new_amount = invoice_line.price_unit + rent
+#                invoice_line_obj.write(cr, uid, invoice_line_id, {'price_unit': new_amount}, context=context)
+#            else:
+#                invoice_line_obj.create(cr,uid,{
+#                               'invoice_id': term_invoice_draft[0],
+#                               'account_id': "19",
+#                               'name': 'Housing',
+#                               'price_unit': rent
+#                               })               
+#        else:
+#            #count = student.term_invoice_count + 1
+#            invoice = invoice_obj.create(cr,uid,{
+#                           'name': invoice_name,
+#                           'partner_id': student.id,
+#                           'address_invoice_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0],
+#                           'account_id': student.property_account_receivable.id,
+#                           'address_contact_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0],
+#                           #'enrollment_number': count
+#                           })
+#            invoice_line_obj.create(cr,uid,{
+#                           'invoice_id': invoice,
+#                           'account_id': "19",
+#                           'name': 'Housing',
+#                           'price_unit': rent
+#                           })   
+#            #student_obj.write(cr, uid, student.id, {'term_invoice_count': count}, context=context)
+#        
+#        return res    
+    
+#    def _check_assignment(self, cr, uid, ids, context=None):
+#        assign = self.browse(cr, uid, ids, context=context)[0]
+#        assignment_obj = self.pool.get('housing.room.students')
+#        assignment_ids = assignment_obj.search(cr, uid, []) 
+#        all_assignments = self.browse(cr, uid, assignment_ids, context=context)
+#        assignments = all_assignments[:len(all_assignments)-1]
+#        for ass in assignments:
+#            if ass.room_id.id == assign.room_id.id and ass.student_id.id == assign.student_id.id and ass.term_id.id == assign.term_id.id and ass.dorm_id.id == assign.dorm_id.id:
+#                return False
+#        return True
+
+housing_room_students()
+
+#class housing_room_category(osv.osv):
+#    _name = 'housing.room.category'
+#    _description = 'Room Category'
+#    _inherit = ["mail.thread"]
+#    _columns = {
+#            'dorm_id': fields.many2one('res.building', 'Residence', ondelete="cascade", required=True),
+#            'resident_director': fields.many2one('hr.employee', 'Resident Director'),
+#            'asst_resident_director': fields.many2one('hr.employee', 'Asst. Resident Director'),
+#            'resident_assistants': fields.many2many('res.partner','rel_ra_dorm','resident_assistants','name', 'Resident Assistants'),
+#        }
+#housing_room_category()
+

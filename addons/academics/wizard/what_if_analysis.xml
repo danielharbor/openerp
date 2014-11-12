@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_what_if_analysis" model="ir.ui.view">
+            <field name="name">what.if.analysis.form</field>
+            <field name="model">what.if.analysis</field>
+            <field name="arch" type="xml">
+                <form string="What If Analysis" version="7.0">
+                    <group col="4">
+						<field name="student_id" on_change="on_change_student_id(student_id)" domain="[('student','=',True)]" class="oe_inline" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor"/>
+						<label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor"/>
+						<div attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor">
+						<field name="fname" class="oe_inline"/> <field name="mname" class="oe_inline"/> <field name="lname" class="oe_inline"/>
+						</div>
+                        <field name="level_id"/>
+                        <field name="catalogue_id" on_change="on_change_majors(student_id, catalogue_id, major_ids, minor_ids, concentration_ids)"/>
+                        <field name="major_ids" widget="many2many_tags" on_change="on_change_majors(student_id, catalogue_id, major_ids, minor_ids, concentration_ids)"/>
+                        <field name="minor_ids" domain="[('id','not in',major_ids[0][2]),('major_course_ids.catalogue_id','in',[catalogue_id]),('minor','=',True),('major_course_ids.program_id.level_id','in',[level_id])]" widget="many2many_tags"/>
+                        <field name="concentration_ids" widget="many2many_tags"/>
+						<field name="program_ids" widget="many2many_tags" readonly="1"/>
+						<field name="school_ids" widget="many2many_tags" readonly="1"/>
+                   </group>
+                   <footer>
+                       <button string="Submit" name="print_report" type="object" class="oe_highlight"/>
+                       or
+                       <button string="Cancel" class="oe_link" special="cancel"/>
+                   </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_what_if_analysis" model="ir.actions.act_window">
+            <field name="name">What If Analysis</field>
+            <field name="res_model">what.if.analysis</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_what_if_analysis"/>
+            <field name="target">new</field>
+        </record>
+
+        <!--  act_window id="what_if_analysis_wizard_action"
+            name="What If Analysis"
+            src_model="res.partner"
+            res_model="what.if.analysis"
+            view_type="form" view_mode="form"
+            key2="client_action_multi" target="new"
+            groups="academics.group_registrar_student"/>-->
+            
+        <menuitem action="action_what_if_analysis"
+            id="menu_action_what_if_analysis"
+            parent="academics.student_reports_main_menu" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor"/>
+		
+		<menuitem action="action_what_if_analysis"
+            id="menu_action_what_if_analysis_student"
+            parent="academics.student_records_menu" groups="academics.group_registrar_student"/>
+    
+    </data>
+</openerp>

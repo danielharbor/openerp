@@ -1,0 +1,1056 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+	<!-- Applicants -->
+
+	<record id="applicant_form" model="ir.ui.view">
+		<field name="name">applicant.form</field>
+		<field name="model">aun.applicant</field>
+		<field name="arch" type="xml">
+			<form string="Applicant" version="7.0">
+			<header>
+                <button name="case_submit" string="Submit Application" states="draft" class="oe_save_only oe_highlight" confirm = "You will not be able to make changes to your application through the online system after submission." type="object"/>
+                <button name="%(action_enter_refusal_password)d" string="Reject" class="oe_save_only" states="submitted,pending" type="action" icon="gtk-cancel" groups="academics.group_admis_director"/>
+                <button name="%(action_enter_acceptance_password)d" string="Accept" class="oe_save_only" states="submitted,pending" type="action" icon="gtk-media-pause" groups="academics.group_admis_director"/>
+	    		<button name="case_admit" string="Admit" states="accepted" class="oe_save_only" type="object" icon="terp-partner" groups="academics.group_regional_reps"/>
+                <button name="case_reset" string="Reset to New" states="refused" type="object" icon="gtk-convert" groups="academics.group_admis_staff"/>
+                <button name="case_pending" string="Reviewed" class="oe_save_only" states="submitted" type="object" groups="academics.group_admis_staff"/>
+                <!--<button name="create_stud_account" string="Test" class="oe_save_only" states="accepted" type="object" groups="base.group_no_one"/>-->
+                <field name="state" widget="statusbar" statusbar_visible="draft,submitted" statusbar_colors='{"accepted":"blue"}'/>
+			</header>
+			<sheet>
+				<div class="oe_right oe_button_box">
+					<font color="red"><i>* indicates a required question</i></font>
+				</div>
+				<field name="image" widget='image' attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" class="oe_left oe_avatar" options='{"preview_image": "image_medium", "size": [90, 90]}'/>
+					<div class="oe_title">
+                        <label for="student_id" class="oe_edit_only" attrs="{'invisible':[('state','IN',['submitted','draft','refused','pending'])]}"/>
+						<h1>
+                        	<field name="student_id" attrs="{'invisible':[('state','IN',['submitted','draft','refused'])]}"/>
+                        </h1>
+                        <label for="name" class="oe_edit_only"/>
+                        <h2>
+                        	<group col="1">
+                        	<field name="name" class="oe_inline" nolabel="1"/>
+                            <field name="fname" class="oe_edit_only" attrs="{'invisible':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" placeholder="First Name *" nolabel="1"/>
+                            <field name="mname" class="oe_edit_only" attrs="{'invisible':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" placeholder="Middle Name" nolabel="1"/>
+                            <field name="lname" class="oe_edit_only" attrs="{'invisible':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" placeholder="Surname *" nolabel="1"/>	                        
+                        	</group>
+                        </h2>
+                    </div>
+				<group>
+					<group>
+		                <field name="type" string="Application Type *" widget="selection" on_change="on_change_type(type,major_id)" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+		                <field name="create_date" groups="academics.group_regional_reps" attrs="{'invisible':[('state','IN',['draft'])]}"/>
+	                	<field name="provisional" on_change="on_change_prov()" attrs="{'invisible':[('state','IN',['draft','refused'])],'readonly':['|',('state','IN',['accepted','done']),('editable','=',False)]}" groups="academics.group_admis_staff"/>
+	                	<field name="prov_end_date" attrs="{'invisible':[('provisional','=',False)],'required':[('provisional','=',True)],'readonly':['|',('state','IN',['accepted','done']),('editable','=',False)]}" groups="academics.group_admis_staff"/>
+	                	<field name="editable" attrs="{'invisible':[('state','IN',['draft','admitted','refused'])]}" groups="academics.group_regional_reps"/>
+	                	<field name="date_admitted" attrs="{'invisible':[('state','!=','done')]}" groups="academics.group_regional_reps"/>
+	                </group>
+	                <group>
+ 						<field name="sem_id" string="Application Term *" widget="selection" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                	<field name="term_admitted" options='{"no_open": True}' attrs="{'invisible':[('state','IN',['draft','submitted','pending','refused'])],'readonly':[('state','=','done')]}" groups="academics.group_regional_reps"/>
+	                	<field name="deferred" attrs="{'invisible':[('state','IN',['draft','refused','pending','submitted'])],'readonly':[('state','IN',['done'])]}" groups="academics.group_admis_staff"/>
+	                	<field name="deferred_term" attrs="{'invisible':['|',('deferred','=',False),('state','IN',['draft','refused','pending','submitted'])],'readonly':[('state','IN',['done'])],'required':[('deferred','!=',False)]}" groups="academics.group_regional_reps"/>
+	                	<field name="date_accepted" attrs="{'invisible':[('state','NOT IN',['accepted','done'])]}" groups="academics.group_regional_reps"/>
+	                	<field name="partner_id" invisible="1"/>
+	                	<field name="level_id" widget="selection" invisible="1" groups="academics.group_admis_staff"/> <!-- attrs="{'invisible':[('state','IN',['draft','refused'])],'required':[('state','IN',['submitted','accepted'])],'readonly':[('state','IN',['submitted','pending','accepted','done']),('editable','=',False)]}" -->
+	                </group>
+                </group>
+                
+        		<font color="red"><i>You must complete all seven(7) steps of the application form before submission</i></font>
+                
+	 			<notebook>
+					<page string = "Personal Information (Step 1) *">
+						<group col="4">
+							<field name="email" string="Email *" widget="email" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="sex" string="Gender *" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="phone" string="Mobile 1 *" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="city_of_birth" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="intl" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" on_change="on_change_intl(intl)"/>
+							<field name="state_of_origin" string="State of Origin *" options='{"no_open": True}' attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)],'invisible':[('intl','=',True)]}" domain="[('country_id.name','=','Nigeria')]" on_change="on_change_state(state_of_origin,'state_of_origin')"/>
+							<field name="state_of_residence" string="State of Residence *" options='{"no_open": True}' domain="[('country_id.name','=','Nigeria')]" attrs="{'required':[('intl','=',False)],'invisible':[('intl','=',True)],'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="country_of_origin" string="Country of Origin *" options='{"no_open": True}' attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" on_change="on_change_country(country_of_origin,state_of_origin,'country_of_origin')"/>
+							<field name="dob" string="Date of Birth *" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+<!-- 							<field name="no_of_siblings_uni" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/> -->
+						</group>
+						<field name="upload_msg" readonly="1"/>
+						<field name="upload1" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+						<field name="upload2" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+						<field name="upload3" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+						<div>
+							<h4><field name="newsletter" class="oe_inline"/>
+							<label for="newsletter" string=" "/>
+							<field name="newsletter_msg" readonly="1" class="oe_inline"/></h4>
+						</div>
+					</page>
+					<page string = "Mailing Address (Step 2) *">
+						<h3>Fill permanent address if different from mailing address</h3>
+						<group col="4">
+							<group>
+								<label for="street" string="Mailing Address *"/>
+	                            <div>
+	                                <field name="street" placeholder="Street... *" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                <field name="street2" placeholder="Street2..." attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                <div class="address_format">
+	                                    <field name="city" placeholder="City *" style="width: 40%%" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                    <field name="state_id" class="oe_no_button" placeholder="State *" style="width: 36%%" options='{"no_open": True}' attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" on_change="on_change_state(state_id, 'state')"/>
+	                                	<field name="zip" placeholder="ZIP" style="width: 20%%" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                </div>
+	                                <field name="country_id" placeholder="Country *" class="oe_no_button" options='{"no_open": True}' attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" on_change="on_change_country(country_id, state_id, 'country')"/>
+	                            </div>
+	                            <field name="mobile" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                        </group>
+							<group>
+								<label for="street" string="Permanent Address"/>
+	                            <div>
+	                                <field name="perm_street" placeholder="Street..." attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                <field name="perm_street2" placeholder="Street2..." attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                <div class="address_format">
+	                                    <field name="perm_city" placeholder="City" style="width: 40%%" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                    <field name="perm_state_id" class="oe_no_button" placeholder="State" style="width: 36%%" options='{"no_open": True}' attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" on_change="on_change_state(perm_state_id, 'perm_state')"/>
+	                                	<field name="perm_zip" placeholder="ZIP" style="width: 20%%" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+	                                </div>
+	                                <field name="perm_country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}' attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" on_change="on_change_country(perm_country_id, perm_state_id, 'perm_country')"/>
+	                            </div>
+	                            <field name="land_phone" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							</group>
+						</group>
+					</page>
+					<page string = "Parent/Guardian Information (Step 3)">
+						<field name="guardians" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+					</page>
+<!-- 					<page string = "Extra Curricular Activities"> -->
+<!-- 	                    <field name="activities" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/> -->
+<!-- 					</page> -->
+					<page string = "High School Information (Step 4) *">
+	                    <field name="high_school" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+						Please upload at least one recommendation letter below.
+						<group>
+							<field name="recommendation1" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="recommendation2" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+						</group>
+					</page>
+					<page string = "Major Area of Study (Step 5) *">
+						<group>
+		                    <field name="major_id" string="Major *" class="oe_inline" domain="['|',('no_school','=',True),'&amp;',('major','=',True),('major_course_ids.level_id','in',[level_id])]" attrs="{'invisible':['|',('sem_id','=',False),('type','=',False)],'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="app_prev" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="app_prev_acc" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="app_prev_enr" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+							<field name="prev_student_id" string="If yes, enter your student ID*" class="oe_inline" attrs="{'invisible':[('app_prev_enr','=',False)], 'required':[('app_prev_enr','=',True)], 'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}"/>
+<!-- 							<field name="app_prev_enr_term" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}" placeholder="e.g. Fall 2008, Spring 2009..."/> -->
+							<label for="major_id" string="Please select your application type and application term to select a major" attrs="{'invisible':[('sem_id','!=',False),('type','!=',False)]}"/>
+						</group>
+					</page>
+	                <page string = "Examination Results (Step 6) *">
+						<field name="test_result_ids" string="Test Results *" context="{'default_app_id': active_id, 'form_view_ref': 'academics.view_app_test_form'}" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted']),('editable','=',False)]}">
+							<tree>
+								<field name="test_name_id"/>
+							</tree>
+						</field>
+					</page>
+					<page string="Essay (Step 7) *">
+						<h4><i><field name="essay_instruction" readonly="1"/></i></h4>
+						<field name="essay_upload" attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted'])],'invisible':[('essay','!=',False)]}"/>
+						<field name="essay" widget="html" placeholder="Type your essay here..." attrs="{'readonly':[('state','IN',['submitted','pending','done','refused','accepted'])],'invisible':[('essay_upload','!=',False)]}"/>
+					</page>
+					<page string="Signature (Step 8) *">
+						<h4><field name="disclaimer_msg" readonly="1"/></h4>
+						<group>
+							<field name="signature" style="width: 30%%" attrs="{'readonly':[('state','IN',['done','submitted','pending','accepted','refused']),('editable','=',False)]}"/>
+							<field name="sign_date" class="oe_save_only"/>
+						</group>
+					</page>
+				</notebook>
+            </sheet>
+            <div class="oe_chatter" groups="academics.group_regional_reps">
+	        	<field name="message_follower_ids" widget="mail_followers"/>
+	        	<field name="message_ids" widget="mail_thread"/>
+            </div>
+            </form>
+		</field>
+	</record>	
+	
+	<record id="applicants_tree" model="ir.ui.view">
+		<field name="name">applicant.tree</field>
+		<field name="model">aun.applicant</field>
+		<field name="arch" type="xml">
+			<tree string="Applicants" colors="grey:state=='done';blue:state=='accepted';red:state=='refused';green:state=='submitted'">
+				<field name="sem_id"/>
+				<field name="fname"/>
+				<field name="lname"/>
+                <field name="type"/>
+                <field name="state"/>
+			</tree>
+		</field>
+	</record>	
+	
+	<record id="applicant_search" model="ir.ui.view">
+		<field name="name">applicant.search</field>
+		<field name="model">aun.applicant</field>
+		<field name="arch" type="xml">
+			<search string="Applicants">
+				<field name="sem_id" groups="academics.group_regional_reps"/>
+				<field name="student_id" groups="academics.group_regional_reps"/>
+				<field name="fname" groups="academics.group_regional_reps"/>
+				<field name="lname" groups="academics.group_regional_reps"/>
+				<field name="sex" groups="academics.group_regional_reps"/>
+				<field name="email" groups="academics.group_regional_reps"/>
+				<field name="dob" groups="academics.group_regional_reps"/>
+				<field name="type" groups="academics.group_regional_reps"/>
+                <newline/>
+                <filter string="Incomplete" icon="terp-partner" domain="[('state','=','draft')]" context="" groups="academics.group_regional_reps"/>
+                <filter string="Submitted" icon="terp-partner" domain="[('state','=','submitted')]" context="" groups="academics.group_regional_reps"/>
+                <filter string="Refused" icon="terp-partner" domain="[('state','=','refused')]" context="" groups="academics.group_regional_reps"/>
+                <filter string="Accepted" icon="terp-partner" domain="[('state','=','accepted')]" context="" groups="academics.group_regional_reps"/>
+                <filter string="Admitted" icon="terp-partner" domain="[('state','=','done')]" context="" groups="academics.group_regional_reps"/>
+                <filter string="International" domain="[('intl','=',True)]" groups="academics.group_regional_reps"/>
+                <filter string="Newsletter" domain="[('newsletter','=',True)]" groups="academics.group_admis_staff"/>
+                <filter string="Deferred" domain="[('deferred','=',True)]" groups="academics.group_admis_staff"/>
+                <newline/>
+				<group expand="1" string="Group By..." groups="academics.group_regional_reps">
+					<filter string="Name" icon="terp-personal" domain="[]" context="{'group_by':'lname'}" groups="academics.group_regional_reps"/>
+					<filter string="Term" icon="terp-personal" domain="[]" context="{'group_by':'sem_id'}" groups="academics.group_regional_reps"/>
+                    <filter string="State" icon="terp-personal" domain="[]" context="{'group_by':'state'}" groups="academics.group_regional_reps"/>
+                </group>
+			</search>
+		</field>
+	</record>
+
+    <record id="guardian_form" model="ir.ui.view">
+		<field name="name">guardian.form</field>
+		<field name="model">aun.guardian</field>
+		<field name="arch" type="xml">
+			<form string="Guardians" version="7.0">
+	            <group>
+		            <group>	
+						<field name="name"/>
+		                <field name="fname"/>
+		            	<field name="lname"/>
+		            </group>
+		            <group>
+		            	<field name="prefix"/>
+		            	<field name="mname"/>
+		            </group>
+		            <group>
+		                <label for="street" string="Address"/>
+	                    <div>
+	                        <field name="street" placeholder="Street..."/>
+	                        <field name="street2" placeholder="Street2..."/>
+	                        <div class="address_format">
+	                            <field name="city" placeholder="City" style="width: 40%%"/>
+	                            <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}' on_change="on_change_state(state_id)"/>                         
+	                        	<field name="zip" placeholder="ZIP" style="width: 20%%"/>
+	                        </div>
+	                        <field name="country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}' on_change="on_change_country(country_id, state_id)"/>
+	                    </div>
+	                </group>
+			        <group>
+			            <field name="phone"/>
+		                <field name="email"/>
+		                <field name="employer"/>
+		            </group>	                
+	            </group>
+            	<group>
+            		<!--field name="priority" style="width: 10%%"/-->
+                	<field name="deceased"/>
+                </group>
+			</form>
+		</field>
+	</record>
+
+    <record id="guardian_tree" model="ir.ui.view">
+		<field name="name">guardian.tree</field>
+		<field name="model">aun.guardian</field>
+		<field name="arch" type="xml">
+			<tree string="Guardians">
+				<field name="name"/>
+				<field name="prefix"/>
+                <field name="fname"/>
+                <field name="lname"/>
+                <field name="phone"/>
+                <field name="email"/>
+                <!--field name="priority"/-->
+			</tree>
+		</field>
+	</record>
+
+
+    <record id="activity_form" model="ir.ui.view">
+		<field name="name">activity.form</field>
+		<field name="model">aun.activity</field>
+		<field name="arch" type="xml">
+			<form string="Activities" version="7.0">
+				<group>
+					<field name="name"/>
+	                <field name="office_held"/>
+	                <field name="hours_per_week"/>
+	                <field name="to_continue"/>
+	            </group>
+			</form>
+		</field>
+	</record>
+
+    <record id="activity_tree" model="ir.ui.view">
+		<field name="name">activity.tree</field>
+		<field name="model">aun.activity</field>
+		<field name="arch" type="xml">
+			<tree string="Activities">
+				<field name="name"/>
+                <field name="office_held"/>
+                <field name="hours_per_week"/>
+			</tree>
+		</field>
+	</record>
+
+    <record id="high_school_form" model="ir.ui.view">
+		<field name="name">high.school.form</field>
+		<field name="model">aun.high.school</field>
+		<field name="arch" type="xml">
+			<form string="High School" version="7.0"> 
+			<sheet>
+				<group>
+					<field name="name" style="width: 50%%"/>
+				</group>
+				<group>
+					<label for="street" string="Address"/>
+                    <div>
+                        <field name="street" placeholder="Street..." style="width: 50%%"/>
+                        <field name="street2" placeholder="Street2..." style="width: 50%%"/>
+                        <field name="city" placeholder="City" style="width: 50%%"/>
+                        <field name="state_id" class="oe_no_button" style="width: 50%%" placeholder="State" options='{"no_open": True}' on_change="on_change_state(state_id)"/>
+                        <field name="country_id" placeholder="Country" style="width: 50%%" class="oe_no_button" options='{"no_open": True}' on_change="on_change_country(country_id, state_id)"/>
+                    	<field name="zip" placeholder="Postal Code" style="width: 50%%"/>
+                    </div>
+	            </group>
+	        </sheet>
+	        <div class="oe_chatter" groups="academics.group_regional_reps">
+	        	<field name="message_follower_ids" widget="mail_followers"/>
+	        	<field name="message_ids" widget="mail_thread"/>
+            </div>
+			</form>
+		</field>
+	</record>
+
+    <record id="high_school_tree" model="ir.ui.view">
+		<field name="name">high.school.tree</field>
+		<field name="model">aun.high.school</field>
+		<field name="arch" type="xml">
+			<tree string="High School">
+                <field name="name"/>
+                <field name="street"/>
+				<field name="city"/>
+				<field name="state_id"/>
+				<field name="zip"/>
+			</tree>
+		</field>
+	</record>
+
+    <record id="high_school_search" model="ir.ui.view">
+		<field name="name">high.school.search</field>
+		<field name="model">aun.high.school</field>
+		<field name="arch" type="xml">
+			<search string="High School">
+				<field name="name"/>
+				<field name="city"/>
+				<field name="zip"/>
+                <field name="state_id"/>
+				<group expand="0" string="Group By...">
+				</group>
+			</search>
+		</field>
+	</record>
+
+    <record id="high_school_app_form" model="ir.ui.view">
+		<field name="name">high.school.app.form</field>
+		<field name="model">aun.high.school.app</field>
+		<field name="arch" type="xml">
+			<form string="High School" version="7.0">
+				<group>
+					<group>
+						<field name="name_search" on_change="on_change_name_search(name_search)" placeholder="Select 'Other' if school is not listed here"/>
+						<field name="name" invisible="1" on_change="on_change_name(name)" placeholder="Type if school is not in search above"/>
+						<label for="street" string="Address"/>
+                        <div>
+                            <field name="street"/>
+                            <field name="street2"/>
+                            <div class="address_format">
+                            <field name="city" style="width: 40%%"/>
+                            <field name="state_id" class="oe_no_button" style="width: 37%%" options='{"no_open": True}' on_change="on_change_state(state_id)"/>
+                            <field name="zip" style="width: 20%%"/>
+                            </div>
+                            <field name="country_id" class="oe_no_button" options='{"no_open": True}' on_change="on_change_country(country_id, state_id)"/>
+                        </div>
+					</group>
+					<group>
+						<field name="counselor"/>
+						<field name="counselor_email"/>
+						<field name="counselor_no"/>
+						<field name="graduation_date"/>
+					</group>
+				</group>
+				<group>
+					<field name="transcript_upload"/>
+					<field name="transcript_ids"/>
+				</group>
+			</form>
+		</field>
+	</record>
+
+    <record id="high_school_app_tree" model="ir.ui.view">
+		<field name="name">high.school.app.tree</field>
+		<field name="model">aun.high.school.app</field>
+		<field name="arch" type="xml">
+			<tree string="High School">
+                <field name="name"/>
+				<field name="graduation_date"/>
+			</tree>
+		</field>
+	</record>
+
+    <record id="application_view_action" model="ir.actions.act_window">
+		<field name="name">Applications</field>
+		<field name="res_model">aun.applicant</field>
+		<field name="view_mode">tree,form</field>
+		<field name="view_type">form</field>
+		<field name="domain">[]</field>
+		<field name="context">{}</field>
+		<field name="search_view_id" ref="applicant_search"/>
+		<field name="help" type="html">
+           <p class="oe_view_nocontent_create">
+             Click to create an application.
+           </p>
+        </field>
+	</record>
+
+    <record id="high_school_view_action" model="ir.actions.act_window">
+		<field name="name">High Schools</field>
+		<field name="res_model">aun.high.school</field>
+		<field name="view_mode">tree,form</field>
+		<field name="view_type">form</field>
+		<field name="domain">[]</field>
+		<field name="context">{}</field>
+		<field name="search_view_id" ref="high_school_search"/>
+		<field name="help">High Schools Information</field>
+	</record>
+	
+	<record id="admission_term_action" model="ir.actions.act_window">
+		<field name="name">Terms</field>
+		<field name="res_model">aun.registrar.term</field>
+		<field name="view_mode">tree,form</field>
+		<field name="view_type">form</field>
+		<field name="domain">[]</field>
+		<field name="context">{}</field>
+		<field name="help">This is a list of available terms</field>
+	</record>
+
+
+        <!--
+			Applicant Type Views
+		-->
+
+		<record id="view_applicant_type_form" model="ir.ui.view">
+	        <field name="name">applicant.type.form</field>
+            <field name="model">aun.applicant.type</field>
+            <field name="arch" type="xml">
+                <form string="Applicant Types" version="7.0">
+                <sheet>
+	                <group>
+	                	<field name="name" placeholder="E.g. New, Visiting..."/>
+	                    <field name="description"/>
+                    </group>
+                 </sheet>
+               	<div class="oe_chatter" groups="academics.group_regional_reps">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+                </form>
+            </field>
+		</record>
+
+		<record id="view_applicant_type_tree" model="ir.ui.view">
+	        <field name="name">applicant.type.tree</field>
+            <field name="model">aun.applicant.type</field>
+            <field name="arch" type="xml">
+                <tree string="Applicant Types">
+                    <field name="name"/>
+                </tree>
+            </field>
+		</record>
+		
+		<record id="view_applicant_type_search" model="ir.ui.view">
+	        <field name="name">applicant.type.search</field>
+            <field name="model">aun.applicant.type</field>
+            <field name="arch" type="xml">
+                <search string="Applicant Types">
+                    <field name="name"/>
+                </search>
+            </field>
+		</record>
+
+ 		<!--
+			Applicant Type Actions
+		-->
+
+		<record id="applicant_type_action" model="ir.actions.act_window">
+			<field name="name">Applicant Types</field>
+			<field name="res_model">aun.applicant.type</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create an applicant type
+	           </p>
+	        </field>
+		</record>
+  
+
+        <!--
+			Application Type Views
+		-->
+
+		<record id="view_application_type_form" model="ir.ui.view">
+	        <field name="name">application.type.form</field>
+            <field name="model">aun.application.type</field>
+            <field name="arch" type="xml">
+                <form string="Application Types" version="7.0">
+                <sheet>
+	                <group>
+	                	<field name="name" class="oe_save_only"/>
+	                	<field name="type_id" attrs="{'readonly':[('state','=','done')]}" class="oe_edit_only" style="width: 20%%"/>
+	                    <field name="level_id" attrs="{'readonly':[('state','=','done')]}" class="oe_edit_only" style="width: 20%%"/>
+	                    <field name="description"/>
+	                    <field name="state" invisible="1"/>
+                    </group>
+                </sheet>
+                <div class="oe_chatter" groups="academics.group_regional_reps">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+                </form>
+            </field>
+		</record>
+
+		<record id="view_application_type_tree" model="ir.ui.view">
+	        <field name="name">application.type.tree</field>
+            <field name="model">aun.application.type</field>
+            <field name="arch" type="xml">
+                <tree string="Application Types">
+                    <field name="name"/>
+                </tree>
+            </field>
+		</record>
+		
+		<record id="view_application_type_search" model="ir.ui.view">
+	        <field name="name">application.type.search</field>
+            <field name="model">aun.application.type</field>
+            <field name="arch" type="xml">
+                <search string="Application Types">
+                    <field name="name"/>
+                </search>
+            </field>
+		</record>
+
+ 		<!--
+			Application Type Action
+		-->
+
+		<record id="application_type_action" model="ir.actions.act_window">
+			<field name="name">Application Types</field>
+			<field name="res_model">aun.application.type</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create an application type
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Test Name Views
+		-->
+
+		<record id="view_test_name_form" model="ir.ui.view">
+			<field name="name">test.name.form</field>
+			<field name="model">test.name</field>
+			<field name="arch" type="xml">
+				<form string="Test" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="name"/>
+							<field name="code"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_regional_reps">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_test_name_tree" model="ir.ui.view">
+			<field name="name">test.name.tree</field>
+			<field name="model">test.name</field>
+			<field name="arch" type="xml">
+				<tree string="Tests">
+					<field name="name"/>
+					<field name="code"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_test_name_search" model="ir.ui.view">
+			<field name="name">test.name.search</field>
+			<field name="model">test.name</field>
+			<field name="arch" type="xml">
+				<search string="Test Information">
+					<field name="name"/>
+					<field name="code"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Test Name Actions
+		-->
+
+		<record id="test_name_action" model="ir.actions.act_window">
+			<field name="name">Tests</field>
+			<field name="res_model">test.name</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a test
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Test Code Views
+		-->
+
+		<record id="view_test_code_form" model="ir.ui.view">
+			<field name="name">test.code.form</field>
+			<field name="model">test.code</field>
+			<field name="arch" type="xml">
+				<form string="Test Code Validation" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="test_id"/>
+							<field name="subject"/>
+							<field name="score_type"/>
+							<field name="positions"/>
+							<field name="low"/>
+							<field name="high"/>
+							<field name="scores" colspan="4" placeholder="If there are specific scores allowed in the range, enter them here separated by comma e.g. A1, A2, B2, F9..."/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_regional_reps">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_test_code_tree" model="ir.ui.view">
+			<field name="name">test.code.tree</field>
+			<field name="model">test.code</field>
+			<field name="arch" type="xml">
+				<tree string="Test Codes">
+					<field name="test_id"/>
+					<field name="subject"/>
+					<field name="score_type"/>
+					<field name="positions"/>
+					<field name="low"/>
+					<field name="high"/>
+					<field name="scores"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_test_code_search" model="ir.ui.view">
+			<field name="name">test.code.search</field>
+			<field name="model">test.code</field>
+			<field name="arch" type="xml">
+				<search string="Test Code Information">
+					<field name="test_id"/>
+					<field name="subject"/>
+					<field name="positions"/>
+					<field name="score_type"/>
+					<field name="low"/>
+					<field name="high"/>
+					<group expand="0" string="Group By...">
+						<filter name="Test" context="{'group_by':'test_id'}"/>
+					</group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Test Code Actions
+		-->
+
+		<record id="test_code_action" model="ir.actions.act_window">
+			<field name="name">Test Codes</field>
+			<field name="res_model">test.code</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Test': 1}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a test subject
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Test Result Views
+		-->
+
+		<record id="view_test_result_tree" model="ir.ui.view">
+			<field name="name">test.result.tree</field>
+			<field name="model">test.result</field>
+			<field name="arch" type="xml">
+				<tree string="Test Results" editable="bottom">
+					<field name="test_id" on_change="on_change_test(test_id)" domain="[('test_id','=',parent.test_name_id)]"/>
+					<field name="score"/>
+				</tree>
+			</field>
+		</record>
+
+
+
+		<!--
+			Applicant Test Views
+		-->
+
+		<record id="view_applicant_test_form" model="ir.ui.view">
+			<field name="name">applicant.test.form</field>
+			<field name="model">applicant.test</field>
+			<field name="priority">1</field>
+			<field name="arch" type="xml">
+				<form string="Test Results" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="app_id"/>
+							<field name="test_name_id" on_change="on_change_test(test_name_id)"/>
+							<field name="test" required="1"/>
+							<field name="exam_no"/>
+						</group>
+						<group>
+							<field name="test_result_ids" attrs="{'readonly':[('test_name_id','=',False)]}"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_regional_reps">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="view_app_test_form" model="ir.ui.view">
+			<field name="name">app.test.form</field>
+			<field name="model">applicant.test</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<form string="Test Results" version="7.0">
+					<sheet>
+						<group>
+							<field name="test_name_id" on_change="on_change_test(test_name_id)" style="width: 48%%"/>
+							<field name="exam_no" style="width: 48%%"/>
+							<field name="awaiting_result"/>
+							<field name="test" attrs="{'invisible':[('awaiting_result','=',True)]}"/>
+							<field name="test_result_ids" attrs="{'readonly':[('test_name_id','=',False)],'invisible':[('awaiting_result','=',True)]}"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_regional_reps">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_applicant_test_tree" model="ir.ui.view">
+			<field name="name">applicant.test.tree</field>
+			<field name="model">applicant.test</field>
+			<field name="arch" type="xml">
+				<tree string="Test Results">
+					<field name="app_id"/>
+					<field name="test_name_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_applicant_test_search" model="ir.ui.view">
+			<field name="name">applicant.test.search</field>
+			<field name="model">applicant.test</field>
+			<field name="arch" type="xml">
+				<search string="Test Results">
+					<field name="app_id"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Applicant" name="Applicant" domain="" context="{'group_by':'app_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Applicant Test Action
+		-->
+
+		<record id="applicant_test_action" model="ir.actions.act_window">
+			<field name="name">Test Results</field>
+			<field name="res_model">applicant.test</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Applicant': 1}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a student's test results
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Transcript Course Views
+		-->
+
+		<record id="view_transcript_course_form" model="ir.ui.view">
+			<field name="name">transcript.course.form</field>
+			<field name="model">transcript.course</field>
+			<field name="arch" type="xml">
+				<form string="Transcript Course" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="name"/>
+							<field name="max"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_admission_staff">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_transcript_course_tree" model="ir.ui.view">
+			<field name="name">transcript.course.tree</field>
+			<field name="model">transcript.course</field>
+			<field name="arch" type="xml">
+				<tree string="Transcript Courses">
+					<field name="name"/>
+					<field name="max"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_transcript_course_search" model="ir.ui.view">
+			<field name="name">transcript.course.search</field>
+			<field name="model">transcript.course</field>
+			<field name="arch" type="xml">
+				<search string="Transcript Subject Information">
+					<field name="name"/>
+					<field name="max"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Transcript Course Actions
+		-->
+
+		<record id="transcript_course_action" model="ir.actions.act_window">
+			<field name="name">Transcript Courses</field>
+			<field name="res_model">transcript.course</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a test subject
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Transcript Course App Views
+		-->
+
+		<record id="view_transcript_course_tree" model="ir.ui.view">
+			<field name="name">transcript.course.app.tree</field>
+			<field name="model">transcript.course.app</field>
+			<field name="arch" type="xml">
+				<tree string="Applicant Transcript Course" editable="bottom">
+					<field name="name"/>
+					<field name="score"/>
+				</tree>
+			</field>
+		</record>
+
+
+
+        <!--
+			Change Password View
+		-->
+
+		<record id="view_acceptance_password_form" model="ir.ui.view">
+	        <field name="name">acceptance.password.form</field>
+            <field name="model">acceptance.password</field>      
+            <field name="arch" type="xml">
+                <form string="Change Password" version="7.0" create="false" delete="false">
+               	<sheet>
+					<group>
+						<h3><i><label string="Password change successful. Click the 'Change Password' link on the left to change your password again." attrs="{'invisible':[('name','=','draft')]}"/></i></h3>
+						<newline/>
+						<field name="name" invisible="1"/>
+						<newline/>
+						<field name="orig_password" password="True" style="width: 10%%" class="oe_edit_only" attrs="{'invisible':[('name','!=','draft')],'readonly':[('name','!=','draft')]}"/>
+						<field name="new_password" password="True" style="width: 10%%" class="oe_edit_only" attrs="{'invisible':[('name','!=','draft')],'readonly':[('name','!=','draft')]}"/>
+						<field name="confirm_password" password="True" style="width: 10%%" class="oe_edit_only" attrs="{'invisible':[('name','!=','draft')],'readonly':[('name','!=','draft')]}"/>
+					</group>
+				</sheet>
+	            </form>
+            </field>
+		</record>
+
+ 		<!--
+			Change Password Action
+		-->
+
+		<record id="acceptance_password_action" model="ir.actions.act_window">
+			<field name="name">Change Password</field>
+			<field name="res_model">acceptance.password</field>
+			<field name="view_mode">form</field>
+			<field name="view_type">form</field>
+		</record>
+
+
+ 	
+        <!--
+			Admission Settings Views
+		-->
+
+		<record id="view_admission_settings_form" model="ir.ui.view">
+	        <field name="name">admission.settings.form</field>
+            <field name="model">admission.settings</field>       
+            <field name="arch" type="xml">
+                <form string="Admission Settings" version="7.0" create="false" delete="false">
+              	<header groups="base.group_system">
+              		<button name="reset_password" string="Reset Acceptance Password" class="oe_save_only" type="object" confirm="Are you sure you want to reset the admission password?"/>
+				</header>
+               	<sheet>
+					<group>
+						<field name="essay"/>
+						<field name="newsletter"/>
+						<field name="disclaimer"/>
+						<field name="upload"/>
+						<field name="no_of_uploads"/>
+					</group>
+				</sheet>
+				<div class="oe_chatter">
+					<field name="message_follower_ids" widget="mail_followers"/>
+					<field name="message_ids" widget="mail_thread"/>
+				</div>
+	            </form>
+            </field>
+		</record>
+		
+		<record id="view_admission_settings_tree" model="ir.ui.view">
+	        <field name="name">admission.settings.tree</field>
+            <field name="model">admission.settings</field>       
+            <field name="arch" type="xml">
+                <tree string="Admission Settings" create="false" delete="false">
+					<field name="essay"/>
+					<field name="newsletter"/>
+					<field name="disclaimer"/>
+	            </tree>
+            </field>
+		</record>
+
+
+ 		<!--
+			Admission Settings Action
+		-->
+
+		<record id="admission_settings_action" model="ir.actions.act_window">
+			<field name="name">Settings</field>
+			<field name="res_model">admission.settings</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+		</record>
+ 	  
+ 	  
+ 	  
+		<!-- Admission Email Action -->
+
+		<record id="admission_email_action" model="ir.actions.act_window">
+			<field name="name">Emails</field>
+			<field name="res_model">email.template</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('model_id','=','aun.applicant')]</field>
+			<field name="context">{}</field>
+		</record>
+		
+		
+		<!-- Students Action -->
+		
+		<record id="admission_student_action" model="ir.actions.act_window">
+			<field name="name">Students</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_mode">kanban,tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('student', '=', True)]</field>
+			<field name="context">{'default_student':1, 'search_default_student':1}</field>
+			<field name="help">This is the list of AUN students</field>
+		</record>
+	
+	
+<menuitem id="menu_admission" name="Admission"/>
+	<menuitem id="menu_application" name="Application" parent="menu_admission" groups="group_admis_applicant"/>
+		<menuitem id="menu_application_form" name="Application Form" action="application_view_action" parent="menu_application"/>
+    <menuitem id="menu_admin_admission" name="Administration" parent="menu_admission" groups="group_regional_reps"/>
+    	<menuitem id="menu_applicants" action="application_view_action" parent="menu_admin_admission"/>
+    	<menuitem id="menu_semester" action="admission_term_action" parent="menu_admin_admission"/>
+    	<menuitem id="menu_high_school" action="high_school_view_action" parent="menu_admin_admission"/>
+    	<menuitem id="menu_applicant_type" action="applicant_type_action" parent="menu_admin_admission"/>
+    	<menuitem id="menu_application_type" action="application_type_action" parent="menu_admin_admission"/>
+    	<menuitem id="admission_settings_menu" action="admission_settings_action" parent="menu_admin_admission"/>
+		<menuitem id="admission_email_menu" action="admission_email_action" parent="menu_admin_admission"/>
+		<menuitem id="menu_change_password" action="acceptance_password_action" parent="menu_admin_admission"/>
+        <menuitem id="admission_hold_menu" parent="menu_admin_admission" action="registrar_hold_assignment_action"/>
+        <menuitem id="admission_hold_run_menu" parent="menu_admin_admission" action="hold_run_action"/>
+        <menuitem id="transcript_course_menu" parent="menu_admin_admission" action="transcript_course_action"/>
+<!-- 		<menuitem id="menu_students" action="admission_student_action" parent="menu_admin_admission"/> -->
+		<menuitem id="admission_test_menu" name="Tests" parent="menu_admission" groups="group_regional_reps"/>
+		<menuitem id="test_name_menu" parent="admission_test_menu" action="test_name_action"/>
+		<menuitem id="test_code_menu" parent="admission_test_menu" action="test_code_action"/>
+		<menuitem id="applicant_test_menu" parent="admission_test_menu" action="applicant_test_action"/>
+	</data>
+</openerp>

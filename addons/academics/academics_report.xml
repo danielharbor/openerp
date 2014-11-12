@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<openerp>
+    <data noupdate="0">	
+	<report id="report_applicant"
+		string="List of Applicants"
+		model="aun.applicant"
+		name="report.aun.applicant"
+		auto="True"
+		rml="academics/report/applicant_list.rml"
+		keyword="client_print_multi" multi="True" menu="True" />
+	
+    <record id="aeroo_applicant_details_report" model="ir.actions.report.xml">
+        <field name="name">Applicant Details</field>
+        <field name="type">ir.actions.report.xml</field>
+        <field name="model">aun.applicant</field>
+        <field name="report_name">applicant_details</field>
+<!--         <field name="report_type">aeroo</field> -->
+<!--         <field name="in_format">oo-odt</field> -->
+<!--         <field name="parser_loc">academics/report/applicant_details.py</field> -->
+        <field name="report_rml">academics/report/applicant_details.odt</field>
+<!--         <field name="parser_state">loc</field> -->
+<!--         <field name="tml_source">file</field> -->
+        <field name="groups_id" eval="[(4, ref('group_admis_staff'))]"/>
+    </record>
+		
+    <record id="aeroo_unofficial_transcript_report" model="ir.actions.report.xml">
+        <field name="name">Unofficial Transcript</field>
+        <field name="type">ir.actions.report.xml</field>
+        <field name="model">res.partner</field>
+        <field name="report_name">unofficial_transcript</field>
+<!--         <field name="report_type">aeroo</field> -->
+<!--         <field name="in_format">oo-odt</field> -->
+<!--         <field name="parser_loc">academics/report/transcript.py</field> -->
+        <field name="report_rml">academics/report/unofficial_transcript.odt</field>
+<!--         <field name="parser_state">loc</field> -->
+<!--         <field name="tml_source">file</field> -->
+        <field name="groups_id" eval="[(4, ref('group_registrar_student')), (4, ref('group_registrar_dean')),(4, ref('group_academic_advisor')),(4, ref('group_registrar_ass_registrar'))]"/>
+    </record>
+    
+    <record id="aeroo_official_transcript_report" model="ir.actions.report.xml">
+        <field name="name">Official Transcript</field>
+        <field name="type">ir.actions.report.xml</field>
+        <field name="model">res.partner</field>
+        <field name="report_name">official_transcript</field>
+<!--         <field name="report_type">aeroo</field> -->
+<!--         <field name="in_format">oo-odt</field> -->
+<!--         <field name="parser_loc">academics/report/transcript.py</field> -->
+        <field name="report_rml">academics/report/official_transcript.odt</field>
+<!--         <field name="parser_state">loc</field> -->
+<!--         <field name="tml_source">file</field> -->
+        <field name="groups_id" eval="[(4, ref('group_registrar_ass_registrar'))]"/>
+    </record>
+    
+    <record id="aeroo_audit_report" model="ir.actions.report.xml">
+        <field name="name">Degree Audit</field>
+        <field name="type">ir.actions.report.xml</field>
+        <field name="model">res.partner</field>
+        <field name="report_name">degree_audit</field>
+<!--         <field name="report_type">aeroo</field> -->
+<!--         <field name="in_format">oo-odt</field> -->
+<!--         <field name="parser_loc">academics/report/degree_audit.py</field> -->
+        <field name="report_rml">academics/report/degree_audit.odt</field>
+<!--         <field name="parser_state">loc</field> -->
+<!--         <field name="tml_source">file</field> -->
+        <field name="groups_id" eval="[(4, ref('group_registrar_dean')),(4, ref('group_academic_advisor')),(4, ref('group_registrar_ass_registrar'))]"/>
+    </record>
+    
+    <record id="aeroo_what_if_analysis_report" model="ir.actions.report.xml">
+        <field name="name">What If Analysis</field>
+        <field name="type">ir.actions.report.xml</field>
+        <field name="model">res.partner</field>
+        <field name="report_name">what_if_analysis</field>
+<!--         <field name="report_type">aeroo</field> -->
+<!--         <field name="in_format">oo-odt</field> -->
+<!--         <field name="parser_loc">academics/report/degree_audit.py</field> -->
+        <field name="report_rml">academics/report/what_if_analysis.odt</field>
+<!--         <field name="parser_state">loc</field> -->
+<!--         <field name="tml_source">file</field> -->
+        <field name="groups_id" eval="[(4, ref('group_registrar_student')), (4, ref('group_registrar_dean')),(4, ref('group_registrar_avp')),(4, ref('group_registrar_ass_registrar'))]"/>
+    </record>
+
+    <ir_set>
+        <field eval="'action'" name="key"/>
+        <field eval="'client_print_multi'" name="key2"/>
+        <field eval="['res.partner']" name="models"/>
+        <field name="name">Unoffical Transcript</field>
+        <field eval="'ir.actions.report.xml,'+str(aeroo_unofficial_transcript_report)" name="value"/>
+        <field eval="True" name="isobject"/>
+        <field eval="True" name="replace"/>
+    </ir_set>
+    
+    <ir_set>
+        <field eval="'action'" name="key"/>
+        <field eval="'client_print_multi'" name="key2"/>
+        <field eval="['res.partner']" name="models"/>
+        <field name="name">Degree Audit</field>
+        <field eval="'ir.actions.report.xml,'+str(aeroo_audit_report)" name="value"/>
+        <field eval="True" name="isobject"/>
+        <field eval="True" name="replace"/>
+    </ir_set>
+    
+    <ir_set>
+        <field eval="'action'" name="key"/>
+        <field eval="'client_print_multi'" name="key2"/>
+        <field eval="['res.partner']" name="models"/>
+        <field name="name">What If Analysis</field>
+        <field eval="'ir.actions.report.xml,'+str(aeroo_what_if_analysis_report)" name="value"/>
+        <field eval="True" name="isobject"/>
+        <field eval="True" name="replace"/>
+    </ir_set>
+    
+    <ir_set>
+        <field eval="'action'" name="key"/>
+        <field eval="'client_print_multi'" name="key2"/>
+        <field eval="['res.partner']" name="models"/>
+        <field name="name">Applicant Details</field>
+        <field eval="'ir.actions.report.xml,'+str(aeroo_applicant_details_report)" name="value"/>
+        <field eval="True" name="isobject"/>
+        <field eval="True" name="replace"/>
+    </ir_set>
+     </data>
+</openerp>

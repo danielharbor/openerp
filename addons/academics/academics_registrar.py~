@@ -1,0 +1,2414 @@
+# -*- coding: utf-8 -*-
+##############################################################################
+#
+#    OpenERP, Open Source Management Solution
+#    Copyright (C) 2004-2010 Tiny SPRL (<http://tiny.be>).
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU Affero General Public License as
+#    published by the Free Software Foundation, either version 3 of the
+#    License, or (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU Affero General Public License for more details.
+#
+#    You should have received a copy of the GNU Affero General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+##############################################################################
+from openerp.osv import fields, osv
+from openerp.tools.translate import _
+from datetime import date, datetime
+import collections
+
+#AVAILABLE_STATES = [
+#    ('inactive', 'Inactive'),
+#    ('active', 'Active')
+#]
+
+ENROLLMENT_STATES = [
+    ('draft', 'Draft'),
+    ('registered', 'Registered'),
+    ('dropped', 'Dropped')
+]
+
+SECTION_STATES = [
+    ('draft', 'Draft'),
+    ('active', 'Active'),
+    ('cancelled', 'Cancelled')
+]
+
+STUDENT_STATES = [
+    ('active', 'Active'),
+    ('dismissed', 'Dismissed'),
+    ('withdrawn', 'Withdrawn'),
+    ('graduated', 'Graduated'),
+    ('deceased', 'Deceased')
+]
+
+ADD_DROP_STATES = [
+    ('draft', 'Draft'),
+    ('done', 'Done')
+]
+
+
+class res_campus(osv.osv):
+    _name = 'res.campus'
+    _description = 'Campus'
+    _inherit = ["mail.thread"]
+    _columns = {
+            'name': fields.char('Name', size=128, required=True, track_visibility = "onchange"),
+            'building_ids': fields.one2many('res.building', 'campus_id', 'Buildings'),
+        }
+res_campus()
+
+class res_building(osv.osv):
+    _name = 'res.building'
+    _description = 'Buildings'
+    _inherit = ["mail.thread"]
+    _columns = {
+            'name': fields.char('Name', size=128, required=True, track_visibility = "onchange"),
+            'campus_id': fields.many2one('res.campus', 'Campus', ondelete="cascade", required=True, track_visibility = "onchange"),
+            'residence': fields.boolean('Is a Residence', track_visibility = "onchange"),
+            'gender': fields.selection([('M','Male'),('F','Female'),('G','General'),('A','Alumni')],'Gender', track_visibility = "onchange"),
+            'unavailable': fields.boolean('Closed For Summer', track_visibility = "onchange"),
+        }
+res_building()
+
+class aun_registrar_duration(osv.osv):
+    _name = "aun.registrar.duration"
+    _description = "Class Duration"
+    _inherit = ["mail.thread"] 
+    _columns = {
+        'name': fields.char('Name', size=32, readonly=True),
+        'mon': fields.boolean('Monday'),
+        'tue': fields.boolean('Tuesday'),
+        'wed': fields.boolean('Wednesday'),
+        'thur': fields.boolean('Thursday'),
+        'fri': fields.boolean('Friday'),
+        'sat': fields.boolean('Saturday'),
+        'sun': fields.boolean('Sunday'),
+	    'starts': fields.integer('Starts', required=True),
+        'ends': fields.integer('Ends', required=True),
+	    'section_ids': fields.one2many('aun.registrar.section', 'duration_id', 'Sections')
+    }
+        
+    def write(self, cr, uid, ids, vals, context=None):
+        duration = self.browse(cr, uid, ids, context=context)[0]
+ 
+        days = []
+        time = [] 
+        try:
+            if vals['mon']:
+                days.append("M")   
+        except:
+            if duration.mon:
+                days.append("M")
+        try:
+            if vals['tue']:
+                days.append("T")   
+        except:
+            if duration.tue:
+                days.append("T")
+        try:
+            if vals['wed']:
+                days.append("W")   
+        except:
+            if duration.wed:
+                days.append("W")
+        try:
+            if vals['thur']:
+                days.append("R")   
+        except:
+            if duration.thur:
+                days.append("R")                      
+        try:
+            if vals['fri']:
+                days.append("F")   
+        except:
+            if duration.fri:
+                days.append("F")               
+        try:
+            if vals['sat']:
+                days.append("S")   
+        except:
+            if duration.sat:
+                days.append("S")
+        try:
+            if vals['sun']:
+                days.append("Su")   
+        except:
+            if duration.sun:
+                days.append("Su")
+        try:
+            if vals['starts']:
+                time.append(str(vals['starts']))   
+        except:
+            time.append(str(duration.starts))
+        
+        try:
+            if vals['ends']:
+                time.append(str(vals['ends']))   
+        except:
+            time.append(str(duration.ends))
+ 
+        time = [t.rjust(4, '0') for t in time]
+        days = ''.join(days)
+        time = ' - '.join(time)
+        name = days + ' ' + time       
+                     
+        vals.update({'name': name})
+        return super(aun_registrar_duration, self).write(cr, uid, ids, vals, context=context)
+    
+    def check_start_end(self, cr, uid, ids, context=None):
+        duration = self.browse(cr, uid, ids,context=context)[0]
+        return duration.ends > duration.starts
+        
+    _constraints=[
+        (check_start_end, 'Please verify that the end time is greater than the start time.',['Start',' End'])
+    ]
+
+aun_registrar_duration()
+
+
+class aun_registrar_location(osv.osv):
+    _name = "aun.registrar.location"
+    _description = "Location"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Room', size=256, required=True),
+	    'building_id': fields.many2one('res.building', 'Building', ondelete="cascade", required=True, track_visibility = "onchange"),
+        'location_type': fields.selection([('1','Lecture Hall'),('2','Lab'),('3','Lecture/Lab'),('4','Residence')],'Location Type', track_visibility = "onchange", required=True),
+        'capacity': fields.integer('Capacity', required=True),
+        'floor': fields.selection([('b','Basement'), ('0','Ground'), ('1st','1st'), ('2nd','2nd'), ('3rd','3rd'), ('4th','4th'), ('5th','5th')],'Floor', track_visibility = "onchange", required=True),
+        'res_room_type': fields.many2one('housing.room.type', 'Room Type', required=True, track_visibility = "onchange"),
+        'isactive': fields.boolean('Active', track_visibility = "onchange")
+    }
+    _defaults={
+        'location_type': '1',
+        'isactive' : '1'
+         }
+    
+aun_registrar_location()
+
+class aun_registrar_term(osv.osv):
+    _name = "aun.registrar.term"
+    _description = "Term"
+    _inherit = ["mail.thread"]
+
+    def _finalgrades_open_search(self, cursor, user, obj, name, args, context=None):
+        if not args:
+            return []
+        res = []
+        #res[term.id]['is_active'] = term.start_date <= str(date.today()) <= term.end_date
+        #res[term.id]['finalgrades_open'] = term.finalgrades_start <= str(date.today()) <= term.finalgrades_end
+        res_ids = self.search(cursor, user, [('finalgrades_start', '<=', str(date.today())), ('finalgrades_end','>',str(date.today()))])
+        #res_ids = [x[0] for x in cursor.fetchall()]
+        res.append(('id', 'in', res_ids))
+        return res
+    
+    def _reservation_search(self, cursor, user, obj, name, args, context=None):
+        if not args:
+            return []
+        res = []
+        res_ids = self.search(cursor, user, [('reservation_start', '<=', str(date.today())), ('reservation_end','>',str(date.today()))])
+        res.append(('id', 'in', res_ids))
+        return res
+        
+    def _is_active_search(self, cursor, user, obj, name, args, context=None):
+        if not args:
+            return []
+        res = []
+        res_ids = self.search(cursor, user, [('start_date', '<=', str(date.today())), ('end_date','>',str(date.today()))])
+        #res_ids = [x[0] for x in cursor.fetchall()]
+        res.append(('id', 'in', res_ids))
+        return res
+    
+    def _compute_term_code(self, cr, uid, ids, passed_hours, arg, context=None):
+        res={}
+        for term in self.browse(cr, uid, ids):
+            prefix = str(int(term.year) + int(term.name.year_adjustment))
+            suffix = str(term.name.code)
+            code = str(prefix + suffix)
+            res[term.id] = code
+        return res
+
+    def on_change_date(self, cr, uid, ids, start_date, end_date, context=None):    
+        result = {'value': {'is_active': start_date <= str(date.today()) <= end_date}}
+        return result   
+    
+    def on_change_reg_date(self, cr, uid, ids, add_drop_start, add_drop_end, reg_start, reg_end, context=None):    
+        value = (reg_start <= str(date.today()) <= reg_end) or (add_drop_start <= str(date.today()) <= add_drop_end)
+        result = {'value': {'open_for_registration': value}}
+        return result
+ 
+    def on_change_faculty_date(self, cr, uid, ids, faculty_start, faculty_end, context=None):    
+        result = {'value': {'open_for_grading': faculty_start <= str(date.today()) <= faculty_end}}
+        return result
+    
+    def on_change_finalgrades_date(self, cr, uid, ids, finalgrades_start, finalgrades_end, context=None):    
+        result = {'value': {'finalgrades_open': finalgrades_start <= str(date.today()) <= finalgrades_end}}
+        return result 
+ 
+    def on_change_reservation_date(self, cr, uid, ids, reservation_start, reservation_end, context=None):    
+        result = {'value': {'open_for_reservation': reservation_start <= str(date.today()) <= reservation_end}}
+        return result 
+    
+    def check_term_start_end_dates(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        return term.end_date > term.start_date
+    
+    def check_reg_dates(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if (term.reg_start and not term.reg_end) or (term.reg_end and not term.reg_start):
+            return False
+        if term.reg_start and term.reg_end:
+            return term.reg_end > term.reg_start
+        return True
+    
+    def check_reg(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if term.reg_start and term.reg_end:
+            return term.reg_end < term.start_date
+        return True
+
+    def check_add_drop_dates(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if (term.add_drop_start and not term.add_drop_end) or (term.add_drop_end and not term.add_drop_start):
+            return False
+        if term.add_drop_start and term.add_drop_end:
+            return term.add_drop_end > term.add_drop_start
+        return True 
+    
+    def check_add_drop(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if term.add_drop_start and term.add_drop_end:
+            return (term.start_date <= term.add_drop_start < term.end_date) and (term.start_date <= term.add_drop_end < term.end_date)
+        return True
+
+    def check_admission_dates(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if (term.admission_start and not term.admission_end) or (term.admission_end and not term.admission_start):
+            return False
+        if term.admission_start and term.admission_end:
+            return term.admission_end > term.admission_start
+        return True
+    
+    def check_reservation_dates(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if (term.reservation_start and not term.reservation_end) or (term.reservation_end and not term.reservation_start):
+            return False
+        if term.reservation_start and term.reservation_end:
+            return term.reservation_end > term.reservation_start
+        return True
+    
+    def check_faculty_dates(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if (term.faculty_start and not term.faculty_end) or (term.faculty_end and not term.faculty_start):
+            return False
+        if term.faculty_start and term.faculty_end:
+            return term.faculty_end > term.faculty_start
+        return True
+ 
+    def check_finalgrades_dates(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0]
+        if (term.finalgrades_start and not term.finalgrades_end) or (term.finalgrades_end and not term.finalgrades_start):
+            return False
+        if term.finalgrades_start and term.finalgrades_end:
+            return term.finalgrades_end > term.finalgrades_start
+        return True
+
+    def _check_dates(self, cursor, uid, ids, name, arg, context=None):
+        res = {} 
+        for term in self.browse(cursor, uid, ids, context=context):
+            res[term.id] = {}
+            res[term.id]['is_active'] = term.start_date <= str(date.today()) <= term.end_date
+            res[term.id]['finalgrades_open'] = term.finalgrades_start <= str(date.today()) <= term.finalgrades_end
+            res[term.id]['open_for_reservation'] = term.reservation_start <= str(date.today()) <= term.reservation_end
+            res[term.id]['open_for_registration'] = (term.reg_start <= str(date.today()) <= term.reg_end) or (term.add_drop_start <= str(date.today()) <= term.add_drop_end)
+            res[term.id]['open_for_grading'] = term.faculty_start <= str(date.today()) <= term.faculty_end
+        return res
+
+    def _populate_year(self, cr, uid, context=None):
+        current_year = date.today().year
+        return [(str(i), str(i)) for i in range(current_year-3, current_year+10)]
+
+    _columns = {
+		'name': fields.many2one('aun.term.term', 'Term', required=True, write=['academics.group_registrar_registrar']),
+        'year': fields.selection(_populate_year, 'Year', required=True, write=['academics.group_registrar_registrar']),
+		'code':fields.function(_compute_term_code, type='char', method=True, string='Code', store=False),
+        'open_for_grading':fields.function(_check_dates, string='Open For Grading', type='boolean', method=True, multi='checks', store=False),
+        'open_for_registration':fields.function(_check_dates, string='Open For Registration', type='boolean', method=True, multi='checks', store=False),
+        'open_for_reservation':fields.function(_check_dates, string='Open For Reservation', type='boolean', method=True, multi='checks', store=False, fnct_search=_reservation_search),
+        'finalgrades_open':fields.function(_check_dates, string='Final Grades Open', type='boolean', method=True, multi='checks', store=False, fnct_search=_finalgrades_open_search),
+        'is_active':fields.function(_check_dates, string='Active', type='boolean', method=True, multi='checks', store=False, fnct_search=_is_active_search),
+        'start_date': fields.date('Start Date', required=True),
+        'end_date': fields.date('End Date', required=True),
+        'admission_start':fields.date('Start Date'),
+        'admission_end':fields.date('End Date'),
+        'reg_start': fields.date('Start Date'),
+        'reg_end': fields.date('End Date'),
+        'add_drop_start': fields.date('Start Date'),
+        'add_drop_end': fields.date('End Date'),
+        'reservation_start': fields.date('Start Date'),
+        'reservation_end': fields.date('End Date'),
+        'faculty_start': fields.date('Start Date'),
+        'faculty_end': fields.date('End Date'),
+        'finalgrades_start': fields.date('Start Date'),
+        'finalgrades_end': fields.date('End Date'),
+		'section_ids': fields.one2many('aun.registrar.section', 'term_id', 'Sections', select=True)
+    }
+    
+    _sql_constraints = [
+        ('term_uniq', 'unique(name, year)', 'This term already exists!'),
+    ]
+    
+    _constraints=[
+        (check_term_start_end_dates, 'Please verify that the term end date is greater than the start date.',['Start Date',' End Date']),
+        (check_reg_dates, 'Enter both dates and the end date should be greater than the start date.',['Registration Start/End']),
+        (check_reg, 'Registration should end before the term start date.',['Registration End',]),
+        (check_add_drop_dates, 'Enter both dates and the end date should be greater than the start date.',['Add&Drop Start/End']),
+        (check_add_drop, 'These dates should be between the term start and end dates.',['Add&Drop Start/End']),
+        (check_admission_dates, 'Enter both dates and the end date should be greater than the start date.',['Add&Drop Start/End']),
+        (check_reservation_dates, 'Enter both dates and the end date should be greater than the start date.',['Reservation Start/End']),
+        (check_faculty_dates, 'Enter both dates and the end date should be greater than the start date.',['Faculty Start/End']),
+        (check_finalgrades_dates, 'Enter both dates and the end date should be greater than the start date.',['View Final Grades Start/End']),
+    ]
+    
+    def name_get(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+        reads = self.read(cr, uid, ids, ['name', 'year'], context=context)
+        res = []
+        for record in reads:
+            name = str(record['name'][1])
+            name = name + ' ' + str(record['year'])
+            res.append((record['id'], name))
+        return res
+    
+aun_registrar_term()
+
+
+class aun_registrar_override(osv.osv):
+    _name = "aun.registrar.override"
+    _description = "Overrides"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'student_id': fields.many2one('res.partner', 'Student', required=True, domain=[('student','=',True)]),
+        'course_id': fields.many2one('aun.registrar.course', 'Course', required=True),
+        'term_id': fields.many2one('aun.registrar.term', 'Term', required=True),
+        'override_prerequisite': fields.boolean('Override Course Prerequisite(s)'),
+        'override_repeat_limit': fields.boolean('Override Repeat Limit'),
+        'override_class_size': fields.boolean('Override Class Size'),
+        'override_status': fields.boolean('Override Academic Status')
+        }
+
+#     def name_get(self, cr, uid, ids, context=None):
+#         if not ids:
+#             return []
+#         reads = self.read(cr, uid, ids, ['name', 'term_id'], context=context)
+#         res = []
+#         for record in reads:
+#             name = 'Allow ' + str(record['name']) + ' Credit Hours'
+#             res.append((record['id'], name))
+#         return res
+    
+aun_registrar_override()
+
+
+class aun_term_term(osv.osv):
+    _name = "aun.term.term"
+    _description = "Term"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Name', size=32, required=True),
+        'code': fields.integer('Code', required=True),
+        'year_adjustment': fields.selection([('0','0'), ('-1','-1')], 'Year Adjustment', required=True),
+        'defaults': fields.one2many('aun.level.term.defaults', 'term_term_id', 'Level Defaults'),
+        }
+    
+    _sql_constraints = [
+        ('name_uniq', 'unique(name)', 'This name already exists!'),
+        ('code_uniq', 'unique(code)', 'There is already a term with this code!')
+    ]
+    
+aun_term_term()
+
+
+class aun_level_term_defaults(osv.osv):
+    _name = "aun.level.term.defaults"
+    _description = "Level Term Defaults"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'term_term_id': fields.many2one('aun.term.term', 'Term', ondelete="cascade"),
+        'level_id': fields.many2one('aun.registrar.level', 'Level', required=True),
+        'minimum_hours': fields.float('Minimum Credit Hours', digits=(3,2), required=True),
+        'maximum_hours': fields.float('Maximum Credit Hours', digits=(3,2), required=True) 
+        }
+    
+    _sql_constraints = [
+        ('term_level_uniq', 'unique(term_term_id, level_id)', 'The default already exists for this term!')
+    ]
+    
+aun_level_term_defaults()
+
+
+class aun_faculty_section(osv.osv):
+    _name = "aun.faculty.section"
+    _description = "Faculty Section"
+    _inherit = ["mail.thread"]
+
+#     def _check_percentage(self, cr, uid, ids, context=None):
+#         faculty_section = self.browse(cr, uid, ids,context=context)[0]
+#         fs_ids = self.search(cr, uid, [('section_id','=',faculty_section.section_id.id)])
+#         print fs_ids
+#         percentages = [self.browse(cr, uid, i).percentage for i in fs_ids]
+#         print percentages
+#         if sum(percentages) != 100:
+#             raise osv.except_osv(_('Percentage Error!'), _('The total faculty percentage for this section must be equal to 100%'))           
+#         return True 
+    
+    _columns = {
+        'section_id': fields.many2one('aun.registrar.section', 'Section', ondelete='cascade'),
+        'faculty_id': fields.many2one('hr.employee', 'Faculty', required=True),
+        'lab': fields.boolean('Lab'),
+        'percentage': fields.float('Percentage', required=True) 
+        }
+    
+    _sql_constraints = [
+        ('faculty_section_uniq', 'unique(section_id, faculty_id)', 'There is a duplicate faculty in this section!')
+    ]
+    
+#     _constraints =[
+#         (_check_percentage, 'The total percentage of faculty work must be 100%',['percentage']),
+#     ]
+    
+aun_faculty_section()
+
+
+class aun_registrar_overload(osv.osv):
+    _name = "aun.registrar.overload"
+    _description = "Overload"
+    _inherit = ["mail.thread"]
+
+    def on_change_student_term_ids(self, cr, uid, ids, student_id, term_id, context=None):                    
+        return {'value': {'credits_allowed': self.get_limits(cr, uid, student_id, term_id)['maximum_hours']}}
+    
+    def check_limit(self, cr, uid, ids, context=None):
+        overload = self.browse(cr, uid, ids,context=context)[0]
+        if overload.credits_allowed <= self.get_limits(cr, uid, overload.student_id.id, overload.term_id.id)['maximum_hours']:
+            raise osv.except_osv(_('Credit Hour Limit!'), _("The overload amount should be greater than the student's current credit hour limit."))           
+        return True
+
+    def get_limits(self, cr, uid, student_id, term_id, context=None):
+        limits = {} 
+        if not student_id or not term_id:
+            limits['minimum_hours'] = 0.00
+            limits['maximum_hours'] = 0.00
+        else:
+            student = self.pool.get('res.partner').browse(cr, uid, student_id)
+            if not student.level:
+                raise osv.except_osv(_('Invalid action!'), _('This student has not been assigned a level.'))
+            term = self.pool.get('aun.registrar.term').browse(cr, uid, term_id)
+            ltd_obj = self.pool.get('aun.level.term.defaults')
+            ltd_id = ltd_obj.search(cr, uid, [('term_term_id','=',term.name.id), ('level_id','=',student.level.id)])
+            ltd = ltd_obj.browse(cr, uid, ltd_id)[0]
+            
+            if student.standing_id.minimum_hours == 0 or student.standing_id.minimum_hours < ltd.minimum_hours:
+                limits['minimum_hours'] = ltd.minimum_hours
+            else: 
+                limits['minimum_hours'] = student.standing_id.minimum_hours
+            
+            if student.standing_id.maximum_hours == 0 or student.standing_id.maximum_hours > ltd.maximum_hours:
+                limits['maximum_hours'] = ltd.maximum_hours
+            else: 
+                limits['maximum_hours'] = student.standing_id.maximum_hours
+        return limits
+   
+    _columns = {
+        'student_id': fields.many2one('res.partner', 'Student', required=True, domain=[('student','=',True)]),
+        'term_id': fields.many2one('aun.registrar.term', 'Term', required=True),
+        'credits_allowed': fields.float('Credit Hours Allowed', digits=(3,2), required=True),
+        }
+    
+    _sql_constraints = [
+        ('name_uniq', 'unique(student_id, term_id)', 'You cannot create multiple overloads for a student in the same term!')
+    ]
+
+    _constraints =[
+        (check_limit, "Please enter an amount greater than the student's current limit",['student_id']),
+    ]
+    
+
+#     def name_get(self, cr, uid, ids, context=None):
+#         if not ids:
+#             return []
+#         reads = self.read(cr, uid, ids, ['name', 'term_id'], context=context)
+#         res = []
+#         for record in reads:
+#             name = 'Allow ' + str(record['name']) + ' Credit Hours'
+#             res.append((record['id'], name))
+#         return res
+    
+aun_registrar_overload()
+
+
+
+class aun_registrar_course(osv.osv):
+    _name = "aun.registrar.course"
+    _description = "Course"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Course Code', size=16, required=True),
+        'create_date': fields.date('Date Created', readonly=True, select=True),   
+        'end_date': fields.date('Date Ended', readonly=True, select=True),
+        'is_active': fields.boolean('Active'),
+	    'course_name': fields.char('Course Name', size=128, required=True),
+        'description': fields.text('Description'),
+        'repeat_limits': fields.one2many('aun.registrar.repeat', 'course_id', 'Repeat Limit'),
+        'status': fields.selection((('1','Freshman'), ('2','Sophomore'), ('3','Junior'), ('4', 'Senior')),'Standing Required'),
+        'level': fields.many2one('aun.registrar.level', 'Level'),
+        'grade_mode': fields.many2one('aun.registrar.grademode', 'Grade Mode'),
+        'type': fields.selection((('1','Lecture'), ('2','Lab'), ('3','Lecture/Lab'), ('4','Internship')),'Type'),
+	    'section_ids': fields.one2many('aun.registrar.section', 'course_id', 'Sections'),
+        'prerequisite_ids': fields.one2many('aun.registrar.cat.prerequisite', 'course_id', 'Prerequisites'),
+        'corequisite_ids': fields.many2many('aun.registrar.course.corequisite','rel_course_corequisite','corequisite_ids','course_id', 'Co-Requisites'),
+        'equivalent_ids': fields.many2many('aun.registrar.course.equivalent','rel_course_equivalent','equivalent_ids','course_id', 'Equivalent Courses'),
+        'major_id': fields.many2many('aun.registrar.major','rel_concentration_major','course_id','major_id', 'Majors'),
+        'credit': fields.selection((('0','0 Credit Hours'), ('1','1 Credit Hour'), ('2','2 Credit Hours'), ('3','3 Credit Hours'), ('4','4 Credit Hours'), ('5','5 Credit Hours'), ('6','6 Credit Hours'), ('7','7 Credit Hours'), ('8','8 Credit Hours')),'Credit Hours'),
+		'billing': fields.selection((('0','0 Billing Hours'), ('1','1 Billing Hour'), ('2','2 Billing Hours'), ('3','3 Billing Hours'), ('4','4 Billing Hours'), ('5','5 Billing Hours'), ('6','6 Billing Hours'), ('7','7 Billing Hours'), ('8','8 Billing Hours')),'Billing Hours'),
+        }
+    _defaults={
+        'is_active': True,
+        'level': '1',
+        'grade_mode': '1',
+        'credit': '3',
+        'billing': '3',
+        'type': '1',
+        'status': '1'
+         }
+aun_registrar_course()
+
+class aun_registrar_repeat(osv.osv):
+    _name = "aun.registrar.repeat"
+    _description = "Repeat Limit"
+    
+    def _populate_limit(self, cr, uid, context=None):
+        return [(str(i), str(i)) for i in range(100)]
+    
+    _columns = {
+        'limit': fields.selection(_populate_limit,'Limit'),
+        'catalogue_id': fields.many2one('aun.registrar.catalogue', 'Catalogue', ondelete="cascade"),
+        'course_id': fields.many2one('aun.registrar.course', 'Courses', ondelete="cascade")        
+    }
+    
+aun_registrar_repeat()
+
+class gpa_info(osv.osv):
+    _name = "aun.registrar.gpa"
+    _description = "GPA info"
+    
+    def unlink(self, cr, uid, ids, context=None):
+        raise osv.except_osv(_('Invalid action !'), _('GPA information cannot be deleted.'))
+        return True    
+
+    def get_term_attempted_hours(self, cr, uid, ids, term_id, student_id, context=None):
+        ids = self.pool.get('aun.registrar.enrollment').search(cr, uid, [('student_id','=',student_id), ('term_id','=',term_id), ('state','=','registered')])
+        enrollments = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids)
+        total_hrs = 0
+        for enrollment in enrollments:
+            #if(not(enrollment.grade == 'ip')):
+            if(enrollment.grade.attempted):
+                total_hrs = total_hrs + float(enrollment.course_id.credit)
+               
+        return '{0:.2f}'.format(total_hrs)
+    
+    def get_term_quality_points(self, cr, uid, ids, term_id, student_id, context=None):
+        ids = self.pool.get('aun.registrar.enrollment').search(cr, uid, [('student_id','=',student_id), ('term_id','=',term_id), ('state','=','registered')])
+        enrollments = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids)
+        points = 0.00
+        for enrollment in enrollments:
+            try:
+                if(not(enrollment.repeat == 'E')):
+                    points = points + float('{0:.2f}'.format(float(enrollment.grade.quality_points) * float(enrollment.course_id.credit)))
+            except Exception:
+                points = points
+        if(points == 0.00):
+            return '0.00'
+        return '{0:.2f}'.format(points)    
+    
+    def get_term_passed_hours(self, cr, uid, ids, term_id, student_id, context=None):
+        ids = self.pool.get('aun.registrar.enrollment').search(cr, uid, [('student_id','=',student_id), ('term_id','=',term_id), ('state','=','registered')])
+        enrollments = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids)
+        total_hrs = 0
+        for enrollment in enrollments:
+            #if(not(enrollment.grade == 'wp' or enrollment.grade == 'w' or enrollment.grade == 'nc' or enrollment.grade == 'na' or enrollment.grade == 'ip' or enrollment.grade == '0.00' or enrollment.grade == 'i' or enrollment.grade == 'wf' or enrollment.grade=='pf' or enrollment.repeat=='E')):
+            if(not(enrollment.repeat) == 'E' and enrollment.grade.passed):     
+                total_hrs = total_hrs + float(enrollment.course_id.credit)
+        if(total_hrs == 0):
+            return '0.00'
+        return '{0:.2f}'.format(total_hrs)
+    
+    def get_term_earned_hours(self, cr, uid, ids, term_id, student_id, context=None):
+        ids = self.pool.get('aun.registrar.enrollment').search(cr, uid, [('student_id','=',student_id), ('term_id','=',term_id), ('state','=','registered')])
+        enrollments = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids)
+        total_hrs = 0
+        for enrollment in enrollments:
+            #if(not(enrollment.grade == 'wp' or enrollment.grade == 'w' or enrollment.grade == 'nc' or enrollment.grade == 'na' or enrollment.grade == 'ip' or enrollment.grade == '0.00' or enrollment.grade == 'i' or enrollment.grade == 'wf' or enrollment.grade=='pf' or enrollment.repeat=='E')):
+            if(not(enrollment.repeat) == 'E' and enrollment.grade.earned):     
+                total_hrs = total_hrs + float(enrollment.course_id.credit)
+        if(total_hrs == 0):
+            return '0.00'
+        return '{0:.2f}'.format(total_hrs)
+
+    def get_term_gpa_hours(self, cr, uid, ids, term_id, student_id, context=None):
+        ids = self.pool.get('aun.registrar.enrollment').search(cr, uid, [('student_id','=',student_id), ('term_id','=',term_id), ('state','=','registered')])
+        enrollments = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids)
+        total_hrs = 0
+        for enrollment in enrollments:
+            #if(not(enrollment.grade == 'wp' or enrollment.grade == 'w' or enrollment.grade == 'nc' or enrollment.grade == 'na' or enrollment.grade == 'ip' or enrollment.grade=='i' or enrollment.grade=='p' or enrollment.repeat=='E')):
+            if(not(enrollment.repeat) == 'E' and enrollment.grade.gpa):     
+                total_hrs = total_hrs + float(enrollment.course_id.credit)
+        if(total_hrs == 0):
+            return '0.00'
+        return '{0:.2f}'.format(total_hrs)
+    
+    def get_term_gpa(self, cr, uid, ids, quality_points, gpa_hours, context=None):              
+        value = 0
+        if('{0:.2f}'.format(float(gpa_hours)) == '0.00'):
+            return gpa_hours
+        else:
+            value = float(quality_points)/float(gpa_hours)
+        if(value == 0):
+            return '0.00'
+        return '{0:.2f}'.format(value) 
+        
+    
+    def get_terms_cgpa(self, cr, uid, ids, student_id, context=None):
+        term_ids = []
+        enr_ids = self.pool.get('aun.registrar.enrollment').search(cr, uid, [('student_id', '=', student_id), ('state','=','registered')])
+        enrollments = self.pool.get('aun.registrar.enrollment').browse(cr, uid, enr_ids)
+        for enrollment in enrollments:
+            if enrollment.section_id.term_id not in term_ids:
+                term_ids.append(enrollment.section_id.term_id)
+         
+        attempted_hours = 0.00
+        passed_hours = 0.00
+        earned_hours = 0.00
+        quality_points = 0.00
+        gpa_hours = 0.00
+        cgpa = 0.00  
+        gpa_info_object = self.pool.get('aun.registrar.gpa')  
+        for term_id in term_ids:
+            ids = gpa_info_object.search(cr, uid, [('term_id', '=', term_id.id), ('student_id','=',student_id)])
+            if ids: 
+                gpa_info = gpa_info_object.browse(cr, uid, ids)[0]
+                quality_points = float(gpa_info.quality_points) + float(quality_points)
+                gpa_hours = float(gpa_info.gpa_hours) + float(gpa_hours)
+                attempted_hours = float(gpa_info.attempted_hours) + float(attempted_hours)
+                passed_hours = float(gpa_info.passed_hours) + float(passed_hours)
+                earned_hours = float(gpa_info.earned_hours) + float(earned_hours)    
+                cgpa = gpa_info_object.get_term_gpa(cr, uid, ids, quality_points, gpa_hours)
+                gpa_info_object.write(cr, uid, ids[0],{'c_attempted_hours': attempted_hours}, context=context)
+                gpa_info_object.write(cr, uid, ids[0],{'c_passed_hours': passed_hours}, context=context)
+                gpa_info_object.write(cr, uid, ids[0],{'c_earned_hours': earned_hours}, context=context)
+                gpa_info_object.write(cr, uid, ids[0],{'c_quality_points': quality_points}, context=context)
+                gpa_info_object.write(cr, uid, ids[0],{'c_gpa_hours': gpa_hours}, context=context)
+                gpa_info_object.write(cr, uid, ids[0],{'cgpa': cgpa}, context=context)
+        
+        
+        student_obj = self.pool.get("res.partner")      
+        student_obj.write(cr, uid, student_id, {'quality_points': quality_points, 'attempted_hours': attempted_hours, 
+                                          'passed_hours': passed_hours,'earned_hours': earned_hours,
+                                          'gpa_hours': gpa_hours, 'cgpa': cgpa}, 
+                                          context=context)
+            
+        return True
+      
+      
+    _columns = {
+        'term_id': fields.many2one('aun.registrar.term', 'Term', ondelete="cascade", select=False, readonly=True),
+        'student_id': fields.many2one('res.partner', 'Student Name', ondelete="cascade", select=False, readonly=True),
+        'attempted_hours':fields.float('Attempted Hours', digits=(3,2)),
+        'quality_points':fields.float('Quality Points', digits=(3,2)),
+        'passed_hours':fields.float('Passed Hours', digits=(3,2)),
+        'earned_hours':fields.float('Earned Hours', digits=(3,2)),
+        'gpa_hours':fields.float('GPA Hours', digits=(3,2)),
+        'gpa':fields.float('GPA', digits=(3,2)),   
+        'c_attempted_hours':fields.float('Cumulative Attempted Hours', digits=(3,2)),
+        'c_passed_hours': fields.float('Cumulative Passed Hours', digits=(3,2)),
+        'c_earned_hours': fields.float('Cumulative Earned Hours', digits=(3,2)),
+        'c_quality_points': fields.float('Cumulative Quality Points', digits=(3,2)),
+        'c_gpa_hours': fields.float('Cumulative GPA Hours', digits=(3,2)),
+        'cgpa':fields.float('CGPA', digits=(3,2)),
+        'standing_id':fields.many2one('aun.registrar.standing', 'Standing', select=False, readonly=True)
+    }
+gpa_info()
+
+class res_partner(osv.osv):
+    _inherit = 'res.partner'
+    
+    def _get_current_credit_hours(self, cr, uid, ids, enrolled_hours, arg, context=None):
+        res = {}
+        student = self.browse(cr, uid, ids)[0]
+        enrollment_obj = self.pool.get("aun.registrar.enrollment")
+        enrollment_ids = enrollment_obj.search(cr, uid, [('student_id','=',student.id), ('state','=','registered')]) 
+        count = 0
+        for enr_id in enrollment_ids:
+            enrollment = enrollment_obj.browse(cr, uid, enr_id, context)
+            if enrollment.term_id.start_date <= str(date.today()) <= enrollment.term_id.end_date:
+                count += float(enrollment.course_id.credit)               
+        res[student.id] = count
+        return res
+
+#        res = {}
+#        student = self.browse(cr, uid, ids)[0]
+#        cr.execute("""
+#        SELECT aun_registrar_course.credit FROM 
+#        res_partner,aun_registrar_enrollment,
+#        aun_registrar_term,aun_registrar_section,
+#        aun_registrar_course 
+#        WHERE 
+#        res_partner.id = aun_registrar_enrollment.student_id AND 
+#        aun_registrar_enrollment.section_id = aun_registrar_section.id AND 
+#        aun_registrar_section.term_id = aun_registrar_term.id AND 
+#        aun_registrar_section.course_id = aun_registrar_course.id AND 
+#        aun_registrar_term.state = 'active' AND
+#        aun_registrar_enrollment.state = 'registered' AND
+#        res_partner.id =(%s)""" % student.id)
+#        sql_res = cr.fetchall()
+#        a = 0
+#        for i in sql_res:
+#            a = a + int(i[0])
+#        res[student.id] = a
+#        return res
+    
+    def check_audit(self, cr, uid, ids, arg, context=None):
+        student = self.browse(cr, uid, ids,context=context)
+        student_catalogue = student[0].catalogue_id
+        student_catalogue_categories = student_catalogue.categories_course_id
+        for catalogue_category in student_catalogue_categories:
+            catalogue_category_courses = catalogue_category.course_ids
+            for catalogue_category_course in catalogue_category_courses:
+                print catalogue_category_course.name
+        student_majors = student[0].major_id
+        for student_major in student_majors:
+            student_major_courses = student_major.course_ids
+            for student_major_course in student_major_courses:
+                if student_major_course.catalogue_id == student_catalogue:
+                    courses = student_major_course.course_ids
+                    for course in courses:
+                        print course.name
+        return True
+
+    def check_catalogue(self, cr, uid, ids, context=None):
+        student = self.browse(cr, uid, ids,context=context)
+        catalogue_year = student[0].catalogue_id.start_year
+        enrolled_year = student[0].app_id.sem_id.year
+        enrolled_semester = student[0].app_id.sem_id.name
+        if enrolled_semester == 'Fall':
+            if int(catalogue_year) < int(enrolled_year):
+                return False
+        elif catalogue_year:
+            if int(catalogue_year) < (int(enrolled_year) - 1):
+                return False
+        return True
+           
+
+    #method to define the student's standing automatically based on his/her enrollments passed
+    def _get_status(self, cr, uid, ids, standing, arg, context=None):
+        res = {}
+        student = self.browse(cr, uid, ids)[0] 
+        enrollment_obj = self.pool.get('aun.registrar.enrollment')
+        enrollment_ids = enrollment_obj.search(cr,uid, [('student_id','=',student.id), ('state','=','registered')])
+        
+        total_hrs = 0
+        for enrollment_id in enrollment_ids:
+            enrollment = enrollment_obj.browse(cr, uid, enrollment_id, context=context)
+            #if(not(enrollment.grade == 'wp' or enrollment.grade == 'p' or enrollment.grade == '0.00' or enrollment.grade == 'i' or enrollment.grade == 'wf' or enrollment.grade == 'pf')):
+            if(enrollment.grade.passed):
+                total_hrs = total_hrs + float(enrollment.course_id.credit)
+
+        if(total_hrs <= 30):
+            res[student.id] = "Freshman"
+            return res
+        elif(total_hrs <= 60):
+            res[student.id] = "Sophomore"
+            return res
+        elif(total_hrs <= 90):
+            res[student.id] = "Junior"
+            return res
+        else:
+            res[student.id] = "Senior"
+                 
+        return res
+
+    def get_holds(self, cr, uid, student_id, context=None):
+        holds = {}     
+        holds['registration'] = False
+        holds['grades'] = False
+        holds['enr_ver'] = False
+        holds['graduation'] = False
+  
+        if not student_id:
+            return holds
+        student = self.browse(cr, uid, student_id, context=context)
+        for hold in student.holds:
+            if hold.start_date <= str(date.today()) < hold.end_date:
+                if not holds['registration']: 
+                    holds['registration'] = hold.hold.registration
+                if not holds['grades']: 
+                    holds['grades'] = hold.hold.grades
+                if not holds['enr_ver']: 
+                    holds['enr_ver'] = hold.hold.enr_ver
+                if not holds['graduation']: 
+                    holds['graduation'] = hold.hold.graduation
+                             
+        return holds
+
+    
+    def create_user(self, cr, uid, ids, context=None):
+        user_obj = self.pool.get('res.users')
+        student = self.browse(cr, uid, ids)[0]
+        if (student.user_ids == []):
+                group1 = self.pool.get('ir.model.data').get_object(cr, uid, 'academics', 'group_registrar_student')
+                group2 = self.pool.get('ir.model.data').get_object(cr, uid, 'portal', 'group_portal')
+                user = user_obj.create(cr,uid,{
+                                                     'name': student.name,
+                                                     'login': student.name,
+                                                     'email': student.email,
+                                                     'partner_id': student.id,
+                                                     'groups_id': [(6, 0, [group1.id,group2.id])],
+                                                     'tz': "Africa/Lagos"
+                                                         })
+                user_obj.write(cr,uid,user,{'login':student.name},context=context)
+                ctx = dict(context, create_user=True)
+                user_obj.action_reset_password(cr, uid, [user], context=ctx)
+        return True
+    
+    def create_users(self, cr, uid, ids, context=None):
+        idss = self.search(cr, uid, [('student','=','True')])
+        students = self.browse(cr, uid, idss)
+        for student in students:
+            self.create_user(cr, uid, [student.id], context)
+        return True
+    
+    def on_change_state(self, cr, uid, ids, context=None):            
+        return {'value': {'date_of_state': False}}    
+    
+    _columns = {
+        'student': fields.boolean('Student'),
+        'student_user':fields.many2one('res.users', 'User'),
+        'admission_date': fields.date('Date Admitted', readonly=True, select=True),
+        'app_id': fields.many2one('aun.applicant', 'Applicant', ondelete="cascade", required=True),
+        'fname': fields.char('First Name', size=64, track_visibility="onchange"),
+        'mname': fields.char('Middle Name', size=64),
+        'lname': fields.char('Surname', size=64),
+        'dob': fields.date('Date Of Birth'),
+        'aun_email': fields.char('AUN Email', size=64 ),
+        'sex': fields.selection([('M','Male'),('F','Female')],'Gender'),
+        'city_of_birth': fields.char('City Of Birth', size=64 ),
+        'state_of_origin': fields.char('State of Origin', size=64),
+        'sem_id': fields.many2one('aun.registrar.term', 'Application Term' ),        
+        'major_id': fields.many2many('aun.registrar.major', 'rel_major_student', 'student_id', 'major_id', 'Majors'),
+        'minor_id': fields.many2many('aun.registrar.major', 'rel_minor_student', 'student_id', 'major_id', 'Minors'),
+        'concentration_id': fields.many2many('aun.registrar.concentration', 'rel_concentration_student', 'student_id', 'concentration_id', 'Concentrations'),    
+        'guardians': fields.related('app_id','guardians',type = "one2many", relation="aun.guardian", string ="Guardians", store = False),
+        'enrollment_id': fields.one2many('aun.registrar.enrollment', 'student_id', 'Sections Enrolled'),
+        'enrolled_hours':fields.function(_get_current_credit_hours, type='integer', method=True, string = 'Enrolled Credit Hours'),
+        'status':fields.function(_get_status, type='char', method=True, string='Status'),
+        'student_state': fields.selection(STUDENT_STATES, 'State', size=16),
+        'date_of_state': fields.date('Date'),
+        'standing_id':fields.many2one('aun.registrar.standing', 'Current Standing', select=True),
+        'catalogue_id': fields.many2one('aun.registrar.catalogue', 'Current Catalogue'),
+        'attempted_hours':fields.float('Attempted Hours', digits=(3,2)),
+        'quality_points':fields.float('Quality Points', digits=(3,2)),
+        'passed_hours':fields.float('Passed Hours', digits=(3,2)),
+        'earned_hours':fields.float('Earned Hours', digits=(3,2)),
+        'gpa_hours':fields.float('GPA Hours', digits=(3,2)),
+        'gpa':fields.float('GPA', digits=(3,2)),   
+        'cgpa':fields.float('GPA', digits=(3,2)),       
+        'level': fields.many2one('aun.registrar.level', 'Level', readonly=True),
+        'holds': fields.many2many('aun.registrar.hold.assignment', 'rel_hold_student','student_id','hold_id','Holds',domain=[('state','=','active')]),
+        }
+    
+    _constraints =[
+#         (check_credit_hours, 'You cannot exceed your credit hour limit',['student_id']),
+#         (check_catalogue, 'You cannot use a catalogue that is older than the academic year you enrolled',['student_id']),
+                 ]
+    _defaults={
+            #'state': lambda *a: 'active',
+        }
+    
+res_partner()
+
+class aun_registrar_section(osv.osv):
+    _name = "aun.registrar.section"
+    _description = "Section"
+    _inherit = ["mail.thread"]
+    
+    def create(self, cr, uid, vals, context=None):
+        section_obj = self.pool.get('aun.registrar.section')
+        course_sections = section_obj.search(cr,uid, [('course_id','=', vals['course_id']),('term_id','=',vals['term_id'])])
+        term_sections = section_obj.search(cr,uid, [('term_id','=',vals['term_id'])])
+        section_count = len(course_sections)
+        section_count += 1
+        section_number = len(term_sections)
+        section_number += 1
+        vals['section_no'] = section_count
+        term = self.pool.get('aun.registrar.term').browse(cr, uid, vals['term_id'])
+        vals['name'] = str(term.code) + str(section_number)
+        vals['state'] = 'active'
+        res = super(aun_registrar_section, self).create(cr, uid, vals, context)
+        return res
+    
+    def unlink(self, cr, uid, ids, context=None):
+#        raise osv.except_osv(_('Invalid action!'), _('A section cannot be deleted. It can only be cancelled.'))
+        if context is None:
+            context = {}
+        
+        sections = self.browse(cr, uid, ids, context=context)
+        
+        for sec in sections:
+            if sec.state == "cancelled":    
+                raise osv.except_osv(_('Invalid action!'), _('You are attempting to cancel a section that has already been cancelled.'))        
+
+            self.write(cr, uid, ids, {'state': 'cancelled'}, context=context)
+        return True
+    
+    
+    def _get_enrolled(self, cr, uid, ids, enrolled, arg, context=None):
+        cr.execute("SELECT COUNT(id) FROM aun_registrar_enrollment WHERE state = 'registered' AND section_id = (%s)" %ids[0])
+        s = cr.fetchone()
+        res = {}
+        num = ids[0]
+        res[num] = s[0]
+        return res
+    
+    def on_change_term(self, cr, uid, ids, term_id, context=None):
+        if not term_id:
+            raise osv.except_osv(_('No time selected!'), _('Please select the term and time for the section'))
+            return {}
+            
+        result = {'value': {
+            'faculty_id': False,
+            'duration_id': False,
+            'location_id': False,
+            'lab_duration_id': False,
+            'lab_location_id': False
+            }
+        }
+            
+        return result
+    
+    def on_change_location(self, cr, uid, ids, term_id, duration_id, location_id, context=None):
+        result = {}
+        if not location_id:
+            return result
+        
+        if not term_id:
+            raise osv.except_osv(_('No term selected!'), _('Please select a term first'))
+            return result
+            
+        if not duration_id:
+#            raise osv.except_osv(_('No time selected!'), _('Please select time first'))
+            return {'value': {'term_id': False}}        
+        
+        return result
+    
+    # indicator is just a variable used to determine which of the two fields (duration or lab_duration) calls this on_change method
+    def on_change_duration_id(self, cr, uid, ids, duration_id, lab_duration_id, max_size, term_id, indicator, context=None):
+        unavail_rooms = []
+        section_obj = self.pool.get("aun.registrar.section")
+        duration_obj = self.pool.get("aun.registrar.duration")
+        duration = duration_obj.browse(cr, uid, duration_id, context=context)
+        lab_duration = duration_obj.browse(cr, uid, lab_duration_id, context=context)
+        if not term_id:
+            raise osv.except_osv(_('No term selected!'), _('Please select a term first'))
+        
+        #on_change_term causes duration_id to change to False which can cause errors below. Important check.
+        if not duration_id:
+            return {}       
+        
+        cr.execute("select id from aun_registrar_section WHERE term_id = (%s) AND location_id IS NOT NULL AND duration_id IS NOT NULL" % term_id)
+        s = cr.fetchall()
+        section_ids = []
+        for a in s:
+            section_ids.append(a[0])
+        sections = section_obj.browse(cr, uid, section_ids, context=context)
+        for section in sections:
+            oneS = (duration.starts)
+            oneE = (duration.ends)
+            twoS = (section.duration_id.starts)
+            twoE = (section.duration_id.ends)
+                      
+            if section.location_id.capacity < max_size:
+                unavail_rooms.append(section.location_id.id)
+            elif (duration.mon == True and section.duration_id.mon == True) or (duration.tue == True and section.duration_id.tue == True) or (duration.wed == True and section.duration_id.wed == True) or (duration.thur == True and section.duration_id.thur == True) or (duration.fri == True and section.duration_id.fri == True) or (duration.sat == True and section.duration_id.sat == True) or (duration.sun == True and section.duration_id.sun == True):
+                if(oneS >= twoS and oneS <= twoE) or (oneE >= twoS and oneE <= twoE):
+                    unavail_rooms.append(section.location_id.id)
+                    
+        cr.execute("select id from aun_registrar_section WHERE term_id = (%s) AND lab_location_id IS NOT NULL AND lab_duration_id IS NOT NULL" % term_id)
+        t = cr.fetchall()
+        lab_section_ids = []
+        for b in t:
+            lab_section_ids.append(b[0])
+        lab_sections = section_obj.browse(cr, uid, lab_section_ids, context=context)
+        for lab_section in lab_sections:
+            oneW = (lab_duration.starts)
+            oneN = (lab_duration.ends)
+            twoW = (section.lab_duration_id.starts)
+            twoN = (section.lab_duration_id.ends)
+                    
+            if lab_section.lab_location_id.capacity < max_size:
+                unavail_rooms.append(lab_section.lab_location_id.id)
+            elif (lab_duration.mon == True and lab_section.lab_duration_id.mon == True) or (lab_duration.tue == True and lab_section.lab_duration_id.tue == True) or (lab_duration.wed == True and lab_section.lab_duration_id.wed == True) or (lab_duration.thur == True and lab_section.lab_duration_id.thur == True) or (lab_duration.fri == True and lab_section.lab_duration_id.fri == True) or (lab_duration.sat == True and lab_section.lab_duration_id.sat == True) or (lab_duration.sun == True and lab_section.lab_duration_id.sun == True):
+                if(oneW >= twoW and oneW <= twoN) or (oneN >= twoW and oneN <= twoN):
+                    unavail_rooms.append(lab_section.lab_location_id.id)
+        
+        if not indicator:
+            return {'domain': {'location_id': [('id','not in',unavail_rooms),('capacity','>',max_size)]}, 'value': {'lab_location_id': False}}
+        
+        return {'domain': {'location_id': [('id','not in',unavail_rooms),('capacity','>',max_size)]}, 'value': {'location_id': False}}
+    
+    def check_location_time(self, cr, uid, ids, context=None):        
+        section = self.browse(cr, uid, ids, context=context)
+        return (section[0].location_id and section[0].duration_id)
+    
+    def _check_faculty_percentage(self, cr, uid, ids, context=None):
+        section = self.browse(cr, uid, ids, context=context)[0]
+        percentages = [f.percentage for f in section.faculty]
+        if sum(percentages) != 100:
+            raise osv.except_osv(_('Percentage Error!'), _('The total faculty percentage for this section must be equal to 100%'))           
+        return True
+      
+    _columns = {
+		'course_id': fields.many2one('aun.registrar.course', 'Course', ondelete="cascade", select=False, required=True, readonly=False),
+		'name': fields.char('CRN', size=16, readonly=True),
+        'section_no': fields.integer('Section', readonly=True, size=4),
+		'term_id': fields.many2one('aun.registrar.term', 'Term', ondelete="cascade", select=False, required=True),
+		'faculty_id': fields.many2one('hr.employee', 'Faculty', select=False, required=False, readonly=False),
+        'duration_id': fields.many2one('aun.registrar.duration', 'Time', select=False, readonly=False),
+		'location_id': fields.many2one('aun.registrar.location', 'Locations', select=False, readonly=False),
+        'lab': fields.boolean('Lab'),
+        'lab_duration_id': fields.many2one('aun.registrar.duration', 'Lab Time', select=False, readonly=False),
+        'lab_location_id': fields.many2one('aun.registrar.location', 'Lab Locations', select=False, readonly=False),
+        'override_locations': fields.boolean('Override Locations'),
+        'enrollment_id' : fields.one2many('aun.registrar.enrollment', 'section_id', 'Enrollees'),
+        'max_size': fields.integer('Capacity'),
+        'state': fields.selection(SECTION_STATES, 'State', size=16, readonly=True),
+		'enrolled': fields.function(_get_enrolled, type='integer', method=True, string = 'Number Enrolled'),
+        'add_drop': fields.many2many('aun.add.drop', 'rel_add_drop_section', 'section_id', 'add_drop_id', 'Add Drop'),
+        'faculty': fields.one2many('aun.faculty.section', 'section_id', 'Faculty'),
+    }
+
+    _defaults={
+        'state': lambda *a: 'draft',
+        #'name':  lambda obj, cr, uid, context: obj.pool.get('ir.sequence').get(cr, uid, 'aun.registrar.section'),
+	}
+    
+    _constraints =[
+        (check_location_time, 'Please include both location and duration.',['location', ' duration']),
+        (_check_faculty_percentage, 'The total percentage of faculty work must be 100%',['percentage']),
+    ]
+      
+aun_registrar_section()
+
+class aun_registrar_level(osv.osv):
+    _name = "aun.registrar.level"
+    _description = "Level"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Name', size=32),
+        'description': fields.text('Description'),
+        'grade_id' : fields.one2many('aun.registrar.grade', 'level_id', 'Grades'),
+        }
+
+aun_registrar_level()
+
+class aun_registrar_grademode(osv.osv):
+    _name = "aun.registrar.grademode"
+    _description = "Grade Mode"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Name', size=32),
+        'description': fields.text('Description'),
+        'grade_id' : fields.one2many('aun.registrar.grade', 'grademode_id', 'Grades'),
+        }
+
+aun_registrar_grademode()
+
+class aun_registrar_grade(osv.osv):
+    _name = "aun.registrar.grade"
+    _description = "Grade"
+    _inherit = ["mail.thread"]
+
+    _columns = {
+        'name': fields.char('Grade Code', size=16, required=True),
+        'level_id': fields.many2one('aun.registrar.level', 'Level', ondelete="cascade", select=False, required=True),
+        'grademode_id': fields.many2one('aun.registrar.grademode', 'Grade Mode', ondelete="cascade", select=False, required=True),
+        #'abbreviation': fields.char('Abbreviation', size=16),
+        'quality_points': fields.float('Quality Points'),
+        'attempted': fields.boolean('Attempted'),
+        'passed': fields.boolean('Passed'),
+        'earned': fields.boolean('Earned'),
+        'gpa': fields.boolean('GPA'),
+        'default_grade': fields.char('Default', size=16),
+        'status_indicator': fields.boolean('Active'),
+        'numeric_value': fields.integer('Numeric Value'),
+        'repeat_indicator': fields.boolean('Repeat Indicator'),
+        'web_indicator': fields.boolean('Web Indicator')
+        }
+    
+    _sql_constraints = [
+        ('name_uniq', 'unique(name, level_id)', 'This combination of Grade Code and Level already exists!')
+    ]
+
+aun_registrar_grade()
+    
+
+class aun_transfer_course(osv.osv):
+    _name = "aun.transfer.course"
+    _description = "Transfer Course Detail"
+    _inherit = ["mail.thread"]
+
+    def onchange_equiv_course(self, cr, uid, ids, equiv_course):
+        equiv_level = False
+        equiv_hours = False
+        equiv_title = False
+
+        if equiv_course:
+            res = self.pool.get('aun.registrar.course').browse(cr, uid, equiv_course)
+            equiv_level = res.level.name
+            equiv_hours = float(res.credit)
+            equiv_title = res.course_name
+
+        result = {'value': {
+            'equiv_level': equiv_level,
+            'equiv_hours': equiv_hours,
+            'equiv_title': equiv_title
+            }
+        }
+
+        return result
+    
+    def onchange_grade(self, cr, uid, ids, equiv_grade):
+        equiv_grademode = False
+
+        if equiv_grade:
+            res = self.pool.get('aun.registrar.grade').browse(cr, uid, equiv_grade)
+            equiv_grademode = res.grademode_id.name
+
+        result = {'value': {
+            'equiv_grademode': equiv_grademode
+            }
+        }
+
+        return result        
+    
+    _columns = {
+        'name': fields.char('Subject', size=32),
+        'course_no': fields.char('Course Number(s)', size=32),
+        'hours': fields.float('Hours', digits=(3,2)),
+        'transfer_grade' : fields.many2one('aun.registrar.grade', 'Transfer Course Grade'),
+        'title': fields.char('Title', size=32),
+        'equiv_course': fields.many2one('aun.registrar.course', 'Equivalent Course'),
+        'equiv_level': fields.char('Equivalent Course Level', size=32, readonly=True),
+        'equiv_hours': fields.float('Equivalent Hours', digits=(3,2), readonly=True),
+        'equiv_grade': fields.many2one('aun.registrar.grade', 'Equivalent Course Grade'),
+        'equiv_grademode' : fields.char('Equivalent Grademode', size=32, readonly=True),
+        'equiv_title': fields.char('Equivalent Title', size=32, readonly=True),
+        'count_in_gpa': fields.boolean('Count in GPA'),
+        }
+
+aun_transfer_course()
+
+
+class aun_add_drop(osv.osv):
+    _name='aun.add.drop'
+    _description='Add Drop Form'
+    _inherit = ["mail.thread"]
+
+    def fields_get(self, cr, uid, fields=None, context=None):
+        res = super(aun_add_drop, self).fields_get(cr, uid, fields, context) 
+        user = self.pool.get('res.users').browse(cr, uid, uid, context=context)
+        student_obj = self.pool.get('res.partner')
+        student_id = student_obj.search(cr, uid, [('user_ids','in',user.id),('student','=',True)])
+         
+        if student_id:
+            student = student_obj.browse(cr, uid, student_id, context)[0]
+            for hold in student.holds:
+                if hold.start_date <= str(date.today()) < hold.end_date:
+                    if hold.hold.registration:
+                        raise osv.except_osv(_('Hold Restriction!'), _('You have a registration hold on your record!'))                    
+        return res
+
+    def create(self, cr, uid, vals, context=None):
+        enrollment_obj = self.pool.get('aun.registrar.enrollment')      
+            
+        if vals['sections']:
+            section_ids = vals['sections'][0][2]
+            self.check_multiple_courses(cr, uid, vals['student_id'], vals['term_id'], section_ids)
+            
+            for section_id in section_ids:
+                enrollment_obj.create(cr, uid, {
+                       'section_id': section_id,
+                       'student_id': vals['student_id']                
+                       })
+        vals['state'] = 'done'
+        return super(aun_add_drop, self).create(cr, uid, vals, context)
+
+
+    def write(self, cr, uid, ids, vals, context=None):    
+        add_drop = self.browse(cr, uid, ids, context=context)[0]
+        enrollment_obj = self.pool.get('aun.registrar.enrollment')
+        original_sections = add_drop.sections
+        original_sections = [s.id for s in original_sections]       
+        
+        if 'sections' in vals:
+            updated_sections = vals['sections'][0][2]
+            self.check_multiple_courses(cr, uid, add_drop.student_id.id, add_drop.term_id.id, updated_sections)
+            
+            sections_dropped = list(set(original_sections) - set(updated_sections))
+            sections_added = list(set(updated_sections) - set(original_sections))
+                  
+            if sections_dropped:
+                for section_id in sections_dropped:
+                    enr_id = enrollment_obj.search(cr, uid, [('section_id','=',section_id), ('student_id','=',add_drop.student_id.id), ('state','=','registered')], context=context)
+                    enrollment_obj.unlink(cr, uid, enr_id, context=context)
+            if sections_added:
+                
+                for section_id in sections_added:
+                    enrollment_obj.create(cr, uid, {'section_id': section_id,'student_id': add_drop.student_id.id}, context=context)
+                                                
+        return super(aun_add_drop, self).write(cr, uid, ids, vals, context=context)
+
+
+    def unlink(self, cr, uid, ids, context=None):
+        add_drops = self.browse(cr, uid, ids, context=context)
+        
+        for ad in add_drops:
+            if ad.sections:
+                raise osv.except_osv(_('Invalid action!'), _('You have to drop the enrollment(s) in ' + ad.term_id.name.name + ' ' + ad.term_id.year + ' before you can delete the add/drop record for the term.'))
+       
+        osv.osv.unlink(self, cr, uid, ids, context=context)
+        return True
+                        
+
+    def get_student_id(self, cr, uid, context=None):
+        user_obj = self.pool.get('res.users')
+        student_obj = self.pool.get('res.partner')
+        user = user_obj.browse(cr, uid, uid, context=context)
+        res = ""
+        for group in user.groups_id:
+            if group.name == 'Student':
+                student_id = student_obj.search(cr,uid, [('student_user','=',uid)])
+                if student_id:
+                    student = student_obj.browse(cr, uid, student_id[0], context=context)
+                    res = student.id
+        return res
+
+    def on_change_student(self, cr, uid, ids, student_id, context=None):            
+        res = {}
+        print student_id
+        if not student_id:
+            return res
+        registration_hold = self.pool.get('res.partner').get_holds(cr, uid, student_id)['registration']
+        print registration_hold
+        if registration_hold:
+            raise osv.except_osv(_('Hold Restriction!'), _('This student has a registration hold!'))
+        return res
+    
+    def on_change_term(self, cr, uid, ids, context=None):            
+        return {'value': {'sections': False}}
+
+    def check_multiple_courses(self, cr, uid, student_id, term_id, section_ids, context=None):
+#         enrollment_obj = self.pool.get('aun.registrar.enrollment')
+        section_obj = self.pool.get('aun.registrar.section') 
+#         course_ids = [section_obj.browse(cr, uid, s).course_id.id for s in section_ids]
+        courses = [section_obj.browse(cr, uid, s).course_id.name for s in section_ids]
+        if len(courses) != len(set(courses)):
+            courses = collections.Counter(courses)
+            duplicate_courses = [i for i in courses if courses[i] > 1]
+            raise osv.except_osv(_('Course Restriction!'), _('These courses are duplicated in your add/drop: ' + ', '.join(duplicate_courses)))
+                              
+#         enr_ids = enrollment_obj.search(cr, uid, [('student_id', '=', student_id), ('term_id','=',term_id), ('course_id', 'in', course_ids), ('state', '=', 'registered')], context=context)
+#         if enr_ids:
+#             course_names = [enrollment_obj.browse(cr, uid, s).course_id.name for s in enr_ids]               
+#             raise osv.except_osv(_('Course Restriction!'), _('You are already enrolled in the following course(s): ' + ', '.join(course_names)))
+        return {}
+
+                 
+    _columns={
+          'student_id': fields.many2one('res.partner', 'Student ID', required=True),
+          'term_id': fields.many2one('aun.registrar.term', 'Term ID', required=True),
+          'sections': fields.many2many('aun.registrar.section', 'rel_add_drop_section','add_drop_id','section_id','Section(s)'),
+          'state': fields.selection(ADD_DROP_STATES, 'State', readonly=True)
+        }
+    _defaults={
+        'student_id': get_student_id,
+        'state': 'draft'
+        }
+    
+    _sql_constraints = [
+        ('name_uniq', 'unique(student_id, term_id)', 'You cannot create multiple add/drop in the same term!')
+    ]
+    
+aun_add_drop
+
+
+class aun_student_finalgrades(osv.osv):
+    _name = "aun.student.finalgrades"
+    _description = "Final Grades"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'enrollment_id':fields.many2one('aun.registrar.enrollment', 'Enrollment', required=True),
+        'section_id': fields.related('enrollment_id', 'section_id', type='many2one', relation="aun.registrar.section", string="Section", store=True, readonly=True),
+        'course_id': fields.related('enrollment_id', 'course_id', type='many2one', relation="aun.registrar.course", string="Course", store=True, readonly=True),
+        'term_id': fields.related('enrollment_id', 'term_id', type='many2one', relation="aun.registrar.term", string="Term", store=True, readonly=True),
+        'faculty_id': fields.related('enrollment_id', 'faculty_id', type='many2one', relation="hr.employee", string="Faculty", store=True, readonly=True),
+        'student_id': fields.related('enrollment_id', 'student_id', type='many2one', relation="res.partner", string="Student ID", store=True, readonly=True),
+        'grade': fields.related('enrollment_id', 'grade', type='many2one', relation="aun.registrar.grade", string="Grade", store=True, readonly=True),
+        'duration_id': fields.related('enrollment_id', 'duration_id', type='many2one', relation="aun.registrar.duration", string="Time", store=True)
+    }
+    
+    def fields_get(self, cr, uid, fields=None, context=None):
+        res = super(aun_student_finalgrades, self).fields_get(cr, uid, fields, context) 
+        user = self.pool.get('res.users').browse(cr, uid, uid, context=context)
+        student_obj = self.pool.get('res.partner')
+        student_id = student_obj.search(cr, uid, [('user_ids','in',user.id),('student','=',True)])
+        
+        if student_id:
+            term_obj = self.pool.get('aun.registrar.term')
+            student = student_obj.browse(cr, uid, student_id, context)[0]
+            term_ids = term_obj.search(cr, uid, [], context=None)
+            terms = term_obj.browse(cr, uid, term_ids, context=None)
+            for term in terms:
+                if term.finalgrades_open:
+                    finalgrade_id = self.search(cr, uid, [('term_id','=',term.id), ('student_id', 'in', student_id)], context=None)
+                    if finalgrade_id:
+                        grade_hold = self.pool.get('res.partner').get_holds(cr, uid, student_id[0])['grades']
+                        if grade_hold:
+                            raise osv.except_osv(_('Hold Restriction!'), _('You have a grade hold on your record!'))                    
+        return res
+
+aun_student_finalgrades()
+
+class aun_registrar_enrollment(osv.osv):
+    _name = "aun.registrar.enrollment"
+    _description = "Enrollment"
+    _inherit = ["mail.thread"] 
+    _drop = False
+    
+    def unlink(self, cr, uid, ids, context=None):
+        enrollments = self.browse(cr, uid, ids, context=context)
+        permanent_delete = False
+        
+        for enr in enrollments:
+            self._drop = True         
+            if context.get('delete') and enr.grade:
+                raise osv.except_osv(_('Invalid action!'), _('You cannot delete an enrollment that has already been assigned a grade.'))
+            if context.get('delete') and enr.grade != False:
+                osv.osv.unlink(self, cr, uid, ids, context=context)
+                permanent_delete = True          
+            if (enr.state == "dropped" or enr.grade) and not permanent_delete:    
+                raise osv.except_osv(_('Invalid action!'), _('You are attempting to drop a course that has already been dropped or assigned a grade.'))        
+            
+
+            add_drop_obj = self.pool.get('aun.add.drop')
+            add_drop_id = add_drop_obj.search(cr, uid, [('term_id','=',enr.term_id.id),('student_id','=',enr.student_id.id)], context=context)
+            super(aun_add_drop, add_drop_obj).write(cr, uid, add_drop_id, {'sections': [(3, enr.section_id.id)]})
+            
+            if permanent_delete:
+                return True          
+#        invoice_obj = self.pool.get('account.invoice')
+#        invoice_line_obj = self.pool.get('account.invoice.line')
+#        product_obj = self.pool.get('product.product')
+#        address_obj = self.pool.get('res.partner.address')
+#        product = product_obj.browse(cr, uid, product_obj.search(cr,uid, [('default_code','=',"TUIU")])[0])
+#        
+#        for enr in enrollments:
+#            student = enr.student_id   
+#            invoice_name = enr.term_id.name + enr.term_id.year + "Inv" + student.name
+#            term_invoice_draft = invoice_obj.search(cr, uid, [('name','=',invoice_name), ('state', '=', 'draft')])
+#               
+#            if term_invoice_draft:        
+#                invoice_line_id = invoice_line_obj.search(cr, uid, [('invoice_id','=',term_invoice_draft[0]), ('product_id','=',product.id)])  
+#                invoice_line = invoice_line_obj.browse(cr, uid, invoice_line_id[0])
+#                quantity = invoice_line.quantity - float(enr.course_id.billing)
+#                invoice_line_obj.write(cr, uid, invoice_line_id, {'quantity': quantity}, context=context)    
+#            else:
+#                #term_invoice_open_or_paid = invoice_obj.search(cr, uid, [('name','=',invoice_name), ('enrollment_number','=',enr.enrollment_invoice_count)])
+#                refund_name = enr.term_id.name + enr.term_id.year + "Refund" + student.name
+#                term_draft_refund_exists = invoice_obj.search(cr, uid, [('name','=',refund_name), ('state', '=', 'draft')])
+#                
+#                if term_draft_refund_exists:
+#                    tuition_refund_line_id = invoice_line_obj.search(cr, uid, [('invoice_id','=',term_draft_refund_exists[0]), ('product_id','=',product.id)])  
+#                    
+#                    if tuition_refund_line_id:
+#                        refund_line = invoice_line_obj.browse(cr, uid, tuition_refund_line_id[0])
+#                        quantity = refund_line.quantity + float(enr.course_id.billing)
+#                        invoice_line_obj.write(cr, uid, tuition_refund_line_id, {'quantity': quantity}, context=context)
+#                    else:
+#                        invoice_line_obj.create(cr,uid,{
+#                               'invoice_id': term_draft_refund_exists[0],
+#                               'product_id': product.id,
+#                               'quantity': enr.course_id.billing,
+#                               'account_id': "19",
+#                               'name': product.name,
+#                               'price_unit': product.list_price
+#                               })                         
+#                else:
+#                    refund = invoice_obj.create(cr,uid,{
+#                           'name': refund_name,
+#                           'partner_id': student.id,
+#                           'type': 'out_refund',
+#                           'address_invoice_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0],
+#                           'account_id': student.property_account_receivable.id,
+#                           'address_contact_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0]
+#                           })
+#                    invoice_line_obj.create(cr,uid,{
+#                           'invoice_id': refund,
+#                           'product_id': product.id,
+#                           'quantity': enr.course_id.billing,
+#                           'account_id': "19",
+#                           'name': product.name,
+#                           'price_unit': product.list_price
+#                           })
+                
+            self.write(cr, uid, ids, {'state': 'dropped'}, context=context)
+        return True
+    
+    def write(self, cr, uid, ids, vals, context=None):
+        enrollment = self.browse(cr, uid, ids, context=context)[0]
+        student = self.pool.get('res.partner').browse(cr, uid, enrollment.student_id.id, context=context)
+        section = self.pool.get('aun.registrar.section').browse(cr, uid, enrollment.section_id.id, context=context)
+        other_enrollment_ids = self.search(cr, uid, [('course_id','=',section.course_id.id),('student_id','=',student.id),('state','=','registered')])
+        other_enrollment_ids = [i for i in other_enrollment_ids if i != enrollment.id]
+        
+        if 'repeat' in vals:
+            repeat = vals['repeat']               
+            if repeat == 'I':
+                if not other_enrollment_ids:
+                    raise osv.except_osv(_('Invalid'), _('There is only one enrollment for this course. It is included automatically.'))
+                super(aun_registrar_enrollment, self).write(cr, uid, other_enrollment_ids, {'repeat': 'E'})
+                return super(aun_registrar_enrollment, self).write(cr, uid, ids, vals, context=context)              
+        else:
+            repeat = enrollment.repeat
+            
+        if not repeat:
+            if not enrollment.grade.name and 'grade' in vals:         
+                latest_enrollment = True
+                if other_enrollment_ids:                
+                    enrollments = self.browse(cr, uid, other_enrollment_ids, context=context)
+                    for enr in enrollments:
+                        if enr.term_id.code > enrollment.term_id.code:
+                            latest_enrollment = False
+                    if latest_enrollment:
+                        super(aun_registrar_enrollment, self).write(cr, uid, other_enrollment_ids, {'repeat': 'E'})
+                        vals['repeat'] = 'I'          
+            
+        return super(aun_registrar_enrollment, self).write(cr, uid, ids, vals, context=context)
+    
+    def get_student_id(self, cr, uid, context=None):
+        user_obj = self.pool.get('res.users')
+        student_obj = self.pool.get('res.partner')
+        user = user_obj.browse(cr, uid, uid, context=context)
+        res = ""
+        for group in user.groups_id:
+            if group.name == "Student":
+                student_id = student_obj.search(cr,uid, [('student_user','=',uid)])
+                if student_id:
+                    student = student_obj.browse(cr, uid, student_id[0], context=context)
+                    res = student.id
+        return res
+ 
+
+    def permanent_delete(self, cr, uid, ids, context=None):
+        enrollment = self.browse(cr, uid, ids, context = context)[0]
+        ctx = dict(context, delete = True)
+        self.unlink(cr, uid, [enrollment.id], context=ctx)
+                    
+        return True
+        
+    _columns = {
+        'section_id': fields.many2one('aun.registrar.section', 'CRN', ondelete="cascade", select=False, required=True, readonly=False),
+        'section_no': fields.related('section_id', 'section_no', type='integer', relation="aun.registrar.section", string="No.", store=False, readonly=True, help="Section Number"),
+        'course_id': fields.related('section_id', 'course_id', type='many2one', relation="aun.registrar.course", string="Course", store=True, readonly=True),
+        'term_id': fields.related('section_id', 'term_id', type='many2one', relation="aun.registrar.term", string="Term", store=True, readonly=True),
+        'faculty_id': fields.related('section_id', 'faculty_id', type='many2one', relation="hr.employee", string="Faculty", store=False, readonly=True),
+        'student_id': fields.many2one('res.partner', 'Student ID', ondelete="cascade", select=False, readonly=False),
+        'grade': fields.many2one('aun.registrar.grade', 'Grade'),
+        'duration_id': fields.related('section_id', 'duration_id', type='many2one', relation="aun.registrar.duration", string="Time", store=False),
+        'location_id': fields.related('section_id', 'location_id', 'name', type='char', relation="aun.registrar.location", string="Location", store=False),
+        'repeat': fields.selection((('I','I'), ('E','E')),'Repeat'),
+        'state': fields.selection(ENROLLMENT_STATES, 'State', size=16, readonly=True)
+        }
+    _defaults={
+        'student_id' : get_student_id,
+        'state': lambda *a: 'draft'
+		}
+       
+    def _update_gpa_info(self, cr, uid, ids, context=None):
+        enrollment = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids, context=context)[0]
+        student = enrollment.student_id
+        student_obj = self.pool.get("res.partner")
+        gpa_info_obj = self.pool.get("aun.registrar.gpa")
+#        s = student_obj.browse(cr, uid, student.id, context=context)
+#        quality_points = s.get_quality_points
+#        attempted_hours = s.get_attempted_hours
+#        passed_hours = s.get_passed_hours
+#        earned_hours = s.get_earned_hours
+#        gpa_hours = s.get_gpa_hours
+#        cgpa = s.get_cgpa
+        latest_term = 0
+        latest_info = False
+        info_ids = gpa_info_obj.search(cr, uid, [('student_id','=',student.id)])
+        for i in info_ids:
+            info = gpa_info_obj.browse(cr, uid, i, context=context)
+            if latest_term < info.term_id.code: 
+                latest_term = info.term_id.code
+                latest_info = info 
+                
+        if latest_info:
+            student_obj.write(cr, uid, student.id, {'quality_points': latest_info.c_quality_points, 'attempted_hours': latest_info.c_attempted_hours, 
+                                          'passed_hours': latest_info.c_passed_hours, 'earned_hours': latest_info.c_earned_hours,
+                                          'gpa_hours': latest_info.c_gpa_hours, 'cgpa': latest_info.cgpa}, 
+                                          context=context)
+        
+        return True
+    
+    def update_all_students_gpa_info(self, cr, uid, ids, context=None):        
+        student_obj = self.pool.get("res.partner")
+        gpa_info_obj = self.pool.get("aun.registrar.gpa")
+        ids = student_obj.search(cr, uid, [])
+        students = student_obj.browse(cr, uid, ids, context=context)
+        for s in students:
+            latest_term = 0
+            latest_info = []
+            info_ids = gpa_info_obj.search(cr, uid, [('student_id','=',s.id)])
+            for i in info_ids:
+                info = gpa_info_obj.browse(cr, uid, i, context=context)
+                
+                if latest_term < info.term_id.code:
+                    latest_term = info.term_id.code
+                    latest_info = info 
+                    
+            if(latest_info):
+                student_obj.write(cr, uid, s.id, {'quality_points': latest_info.c_quality_points, 'attempted_hours': latest_info.c_attempted_hours, 
+                                                  'passed_hours': latest_info.c_passed_hours,'earned_hours': latest_info.c_earned_hours,
+                                                  'gpa_hours': latest_info.c_gpa_hours, 'cgpa': latest_info.cgpa}, 
+                                                  context=context)            
+        return True
+       
+    def _update_term_gpa_info(self, cr, uid, ids, context=None):
+        enrollment = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids, context=context)[0]       
+        gpa_info_obj = self.pool.get("aun.registrar.gpa")
+        term_id = enrollment.term_id.id
+        student_id = enrollment.student_id.id
+        
+        attempted_hours = gpa_info_obj.get_term_attempted_hours(cr, uid, ids, term_id, student_id)
+        quality_points = gpa_info_obj.get_term_quality_points(cr, uid, ids, term_id, student_id)
+        passed_hours = gpa_info_obj.get_term_passed_hours(cr, uid, ids, term_id, student_id)
+        earned_hours = gpa_info_obj.get_term_earned_hours(cr, uid, ids, term_id, student_id)
+        gpa_hours = gpa_info_obj.get_term_gpa_hours(cr, uid, ids, term_id, student_id)
+        gpa = gpa_info_obj.get_term_gpa(cr, uid, ids, quality_points, gpa_hours)
+        
+        student_term_info_exists = gpa_info_obj.search(cr, uid, [('term_id','=',term_id),('student_id','=',student_id)])
+        
+        if student_term_info_exists:
+            gpa_info_obj.write(cr, uid, student_term_info_exists[0],{
+                   'attempted_hours': attempted_hours,                   
+                   'quality_points': quality_points,
+                   'passed_hours': passed_hours,
+                   'earned_hours': earned_hours,
+                   'gpa_hours': gpa_hours,
+                   'gpa': gpa}, 
+                    context=context
+                    )
+        else:
+            if term_id and student_id:
+                gpa_info_obj.create(cr,uid,{
+                       'term_id': term_id,
+                       'student_id': student_id,
+                       'attempted_hours': attempted_hours,
+                       'quality_points': quality_points,
+                       'passed_hours': passed_hours,
+                       'earned_hours': earned_hours,
+                       'gpa_hours': gpa_hours,
+                       'gpa': gpa
+                       })
+        gpa_info_obj.get_terms_cgpa(cr, uid, ids, student_id)
+        return True
+    
+    def update_all_students_term_gpa_info(self, cr, uid, ids, context=None):
+        student_obj = self.pool.get("res.partner")
+        student_ids = student_obj.search(cr, uid, [])
+        students = student_obj.browse(cr, uid, student_ids, context=context)
+        
+        term_obj = self.pool.get("aun.registrar.term")
+        term_ids = term_obj.search(cr, uid, [])
+        terms = term_obj.browse(cr, uid, term_ids, context=context)
+        
+        enrollment_obj = self.pool.get('aun.registrar.enrollment')
+        gpa_info_obj = self.pool.get("aun.registrar.gpa")
+              
+        for s in students:
+            for t in terms:
+                student_did_term = enrollment_obj.search(cr, uid, [('term_id','=',t.id),('student_id','=',s.id),('state','=','registered')])
+                if student_did_term:
+                    attempted_hours = gpa_info_obj.get_term_attempted_hours(cr, uid, ids, t.id, s.id)
+                    quality_points = gpa_info_obj.get_term_quality_points(cr, uid, ids, t.id, s.id)
+                    passed_hours = gpa_info_obj.get_term_passed_hours(cr, uid, ids, t.id, s.id)
+                    earned_hours = gpa_info_obj.get_term_earned_hours(cr, uid, ids, t.id, s.id)
+                    gpa_hours = gpa_info_obj.get_term_gpa_hours(cr, uid, ids, t.id, s.id)
+                    gpa = gpa_info_obj.get_term_gpa(cr, uid, ids, quality_points, gpa_hours)
+                                       
+                    student_term_info_exists = gpa_info_obj.search(cr, uid, [('term_id','=',t.id),('student_id','=',s.id)])
+        
+                    if student_term_info_exists:
+                        gpa_info_obj.write(cr, uid, student_term_info_exists[0],{
+                               'attempted_hours': attempted_hours,                   
+                               'quality_points': quality_points,
+                               'passed_hours': passed_hours,
+                               'earned_hours': earned_hours,
+                               'gpa_hours': gpa_hours,
+                               'gpa': gpa}, 
+                                context=context
+                                )
+                    else:
+                        gpa_info_obj.create(cr,uid,{
+                               'term_id': t.id,
+                               'student_id': s.id,
+                               'attempted_hours': attempted_hours,
+                               'quality_points': quality_points,
+                               'passed_hours': passed_hours,
+                               'earned_hours': earned_hours,
+                               'gpa_hours': gpa_hours,
+                               'gpa': gpa
+                               })
+            gpa_info_obj.get_terms_cgpa(cr, uid, ids, s.id)
+                    
+        return True
+   
+    def _check_term(self, cr, uid, ids, context=None):
+        term = self.browse(cr, uid, ids,context=context)[0].term_id
+        if term.open_for_registration == False:
+            return False
+        return True
+
+    def check_prerequisite(self, cr, uid, ids, context=None):
+        if self._drop:  
+            self._drop = False
+            return True
+          
+        enrollment = self.browse(cr, uid, ids,context=context)      
+        student = enrollment[0].student_id
+        term = enrollment[0].section_id.term_id
+        course = enrollment[0].section_id.course_id        
+        override_prerequisite = self.pool.get('aun.registrar.override').search(cr, uid, [('override_prerequisite','=',True),('student_id','=',student.id),('term_id','=',term.id),('course_id','=',course.id)])
+        if override_prerequisite:
+            return True
+        
+        student_catalogue = student.catalogue_id
+        prerequisites = enrollment[0].course_id.prerequisite_ids
+        if prerequisites:
+            if student_catalogue:
+                latest_code = 0
+                latest_prerequisite = []
+                for prerequisite in prerequisites:
+                    if latest_code < prerequisite.catalogue_id.code <= student_catalogue.code:
+                        latest_prerequisite = prerequisite
+                        latest_code = prerequisite.catalogue_id.code
+                if latest_prerequisite:        
+                    statements = latest_prerequisite.prerequisite_ids
+                    expr = ''
+                    reqs = ''
+                    for line in statements:
+                        value = False
+                        enrollment_id = self.search(cr, uid, [('course_id','=',line.prerequisite_id.id),('student_id','=',student.id),('grade','!=',False),('repeat','!=','E')])                  
+                        if enrollment_id:
+                            prereq_enrollment = self.browse(cr, uid, enrollment_id)[0]
+                            if float(prereq_enrollment.grade.numeric_value) >= float(line.grade_requirement.numeric_value):
+                                value = True
+                        reqs += '\n'
+                        if line.andor:
+                            expr += str(line.andor)
+                            reqs += str(line.andor)
+                            reqs += '\n'
+                        if line.open:
+                            expr += str(line.open)
+                            reqs += str(line.open)
+                        expr += str(value)
+                         
+                        done = ' \n*NOT SATISFIED*'
+                        if value:
+                            done = ' \n*SATISFIED*'          
+                        reqs = reqs + line.prerequisite_id.name + ' Grade Requirement: ' + line.grade_requirement.name + done
+                                                    
+                        if line.close:
+                            expr += str(line.close)
+                            reqs += str(line.close)
+                                                  
+                    expr = expr.replace('&', ' and ')
+                    expr = expr.replace('|', ' or ')
+                    reqs = reqs.replace('&', ' and ')
+                    reqs = reqs.replace('|', ' or ')
+                         
+                    if not eval(expr):
+                        raise osv.except_osv(_('Prerequisite Restriction'), _('You have not met the prerequisite requirement for this course (' + enrollment[0].course_id.name +  '): '  + reqs))
+            else:
+                raise osv.except_osv(_('Catalogue Restriction!'), _('You have not been assigned a catalogue.'))
+                        
+        return True
+
+    def check_credit_hours(self, cr, uid, ids, context=None):
+        if self._drop:  
+            self._drop = False
+            return True
+          
+        overload_obj = self.pool.get('aun.registrar.overload')
+        enrollment = self.browse(cr, uid, ids,context=context)[0]      
+        student = enrollment.student_id
+        term = enrollment.section_id.term_id
+        course = enrollment.section_id.course_id
+                
+#         student_standing = student.standing_id
+        term_enrollment_ids = self.search(cr, uid, [('term_id','=',term.id),('student_id','=',student.id),('state','=','registered')])
+        
+        if term_enrollment_ids:
+            course_credits = [int(self.browse(cr, uid, t).course_id.credit) for t in term_enrollment_ids]
+            total_credits = sum(course_credits)
+        else:
+            total_credits = int(course.credit)
+        
+        overload_id = overload_obj.search(cr, uid, [('term_id','=',term.id),('student_id','=',student.id)])
+        if overload_id:
+            overload = overload_obj.browse(cr, uid, overload_id)[0]
+            if total_credits > overload.credits_allowed:
+                raise osv.except_osv(_('Overload Limit!'), _('You cannot exceed the credit hours on your overload: ' + '{0:.2f}'.format(overload.credits_allowed) + ' Credit Hours'))                  
+        else:
+            limit_max = overload_obj.get_limits(cr, uid, student.id, term.id)['maximum_hours']
+            limit_min = overload_obj.get_limits(cr, uid, student.id, term.id)['minimum_hours']
+            if total_credits > limit_max:
+                raise osv.except_osv(_('Credit Hour Limit!'), _('You cannot exceed the credit hour limit: ' + '{0:.2f}'.format(limit_max) + ' Credit Hours'))
+            if total_credits < limit_min:
+                raise osv.except_osv(_('Credit Hour Limit!'), _('You cannot take less than the credit hour limit: ' + '{0:.2f}'.format(limit_min) + ' Credit Hours'))
+        
+#         elif student_standing.minimum_hours == 0 and student_standing.maximum_hours == 0:
+#             ltd_obj = self.pool.get('aun.level.term.defaults')
+#             ltd_id = ltd_obj.search(cr, uid, [('term_term_id','=',term.name.id), ('level_id','=',student.level.id)])          
+#             ltd = ltd_obj.browse(cr, uid, ltd_id)[0]
+#             max = overload_obj.get_limits(cr, uid, student.id, term.id)['maximum_hours']
+#             min = overload_obj.get_limits(cr, uid, student.id, term.id)['minimum_hours']
+#             if total_credits > max:
+#                 raise osv.except_osv(_('Credit Hour Limit!'), _('You cannot exceed the credit hour limit: ' + '{0:.2f}'.format(max) + ' Credit Hours'))
+#             if total_credits < min:
+#                 raise osv.except_osv(_('Credit Hour Limit!'), _('You cannot take less than the credit hour limit: ' + '{0:.2f}'.format(min) + ' Credit Hours'))
+#         elif total_credits < student_standing.minimum_hours:
+#             raise osv.except_osv(_('Standing Restriction!'), _('You cannot take less than the minimum credits required for your current academic standing: ' + '{0:.2f}'.format(student_standing.minimum_hours) + ' Credit Hours'))
+#         elif total_credits > student_standing.maximum_hours:
+#             raise osv.except_osv(_('Standing Restriction!'), _('You cannot exceed the maximum credits required for your current academic standing: ' + '{0:.2f}'.format(student_standing.maximum_hours) + ' Credit Hours'))
+                        
+        return True
+
+
+    def check_class_size(self, cr, uid, ids, context=None):
+        enrollment = self.browse(cr, uid, ids, context=context)[0]
+        enrolled = enrollment.section_id.enrolled
+        max_size = enrollment.section_id.max_size
+        if enrolled <= max_size:
+            return True
+        return False
+
+    def check_status(self, cr, uid, ids, context=None):
+        enrollment = self.browse(cr, uid, ids,context=context)    
+        student = enrollment[0].student_id
+        term = enrollment[0].section_id.term_id
+        course = enrollment[0].section_id.course_id        
+        override_status = self.pool.get('aun.registrar.override').search(cr, uid, [('override_status','=',True),('student_id','=',student.id),('term_id','=',term.id),('course_id','=',course.id)])
+        if override_status:
+            return True
+
+        student_status = student.status
+        course_status = course.status
+        if course_status > student_status:
+            return False
+        return True
+    
+    def _finalgrade(self, cr, uid, ids, context=None):
+        enrollment = self.pool.get('aun.registrar.enrollment').browse(cr, uid, ids, context=context)[0]
+        finalgrades_obj = self.pool.get('aun.student.finalgrades')
+        if enrollment.grade:
+            finalgrade_id = finalgrades_obj.search(cr, uid, [('term_id','=',enrollment.term_id.id), ('student_id', '=', enrollment.student_id.id),('course_id', '=', enrollment.course_id.id)], context=None)
+            if not finalgrade_id:          
+                finalgrade_id = finalgrades_obj.create(cr, uid, {'enrollment_id': enrollment.id}, context=context)
+                if not finalgrade_id:
+                    return False
+        else:
+            finalgrade_id = finalgrades_obj.search(cr, uid, [('term_id','=',enrollment.term_id.id), ('student_id', '=', enrollment.student_id.id),('course_id', '=', enrollment.course_id.id)], context=None)
+            if finalgrade_id:          
+                finalgrades_obj.unlink(cr, uid, finalgrade_id, context=context)        
+        return True
+    
+    def create(self, cr, uid, vals, context=None):
+        student_obj = self.pool.get('res.partner')     
+        registration_hold = student_obj.get_holds(cr, uid, vals['student_id'])['registration']
+        if registration_hold:
+            raise osv.except_osv(_('Hold Restriction!'), _('This student has a registration hold!')) 
+         
+        section_obj = self.pool.get('aun.registrar.section')
+        student = student_obj.browse(cr, uid, vals['student_id'], context=context)
+        section = section_obj.browse(cr, uid, vals['section_id'], context=context)
+        student_catalogue = student.catalogue_id
+        repeat_limits = section.course_id.repeat_limits
+                      
+        override_repeat_limit = self.pool.get('aun.registrar.override').search(cr, uid, [('override_repeat_limit','=',True),('student_id','=',student.id),('term_id','=',section.term_id.id),('course_id','=',section.course_id.id)])
+               
+        if repeat_limits and not override_repeat_limit:
+            if student_catalogue:
+                latest_code = 0
+                latest_repeat_limit = []
+                for repeat_limit in repeat_limits:
+                    if latest_code < repeat_limit.catalogue_id.code <= student_catalogue.code:
+                        latest_repeat_limit = repeat_limit
+                        latest_code = repeat_limit.catalogue_id.code
+                if latest_repeat_limit:
+                    if latest_repeat_limit.limit:
+                        course_repeat_limit = latest_repeat_limit.limit
+                        course_enrollment_ids = self.search(cr, uid, [('course_id','=',section.course_id.id),('student_id','=',student.id),('state','=','registered')])
+                       
+                        if len(course_enrollment_ids) > int(course_repeat_limit):
+                            raise osv.except_osv(_('Repeat Limit Restriction!'), _('You have reached the repeat limit for this course.'))
+        
+        vals['state'] = 'registered'               
+        res = super(aun_registrar_enrollment, self).create(cr, uid, vals, context)
+        return res
+                          
+                                         
+#        enrollment = self.pool.get('aun.registrar.enrollment').browse(cr, uid, res, context=context)
+#        student = enrollment.student_id
+#        invoice_name = enrollment.term_id.name + enrollment.term_id.year + "Inv" + student.name
+#        course_billing = enrollment.course_id.billing
+#        invoice_obj = self.pool.get('account.invoice')
+#        invoice_line_obj = self.pool.get('account.invoice.line')
+#        address_obj = self.pool.get('res.partner.address')
+#        product_obj = self.pool.get('product.product')
+#        product = product_obj.browse(cr, uid, product_obj.search(cr,uid, [('default_code','=',"TUIU")])[0])
+#     
+#        term_invoice_draft = invoice_obj.search(cr, uid, [('name','=',invoice_name), ('state', '=', 'draft')])
+#               
+#        if term_invoice_draft:
+#            invoice_line_id = invoice_line_obj.search(cr, uid, [('invoice_id','=',term_invoice_draft[0]), ('product_id','=',product.id)])
+#            
+#            if invoice_line_id:
+#                invoice_line = invoice_line_obj.browse(cr, uid, invoice_line_id[0])
+#                quantity = invoice_line.quantity + float(course_billing)
+#                invoice_line_obj.write(cr, uid, invoice_line_id[0], {'quantity': quantity}, context=context)    
+#            else:
+#                invoice_line_obj.create(cr,uid,{
+#                               'invoice_id': term_invoice_draft[0],
+#                               'product_id': product.id,
+#                               'quantity': course_billing,
+#                               'account_id': "19",
+#                               'name': product.name,
+#                               'price_unit': product.list_price
+#                               })
+#            
+#            invoice = invoice_obj.browse(cr, uid, term_invoice_draft[0])
+#            #self.write(cr, uid, res, {'enrollment_invoice_count': invoice.enrollment_number}, context=context)                  
+#        else:
+#            invoice = invoice_obj.create(cr,uid,{
+#                           'name': invoice_name,
+#                           'partner_id': student.id,
+#                           'state': "draft",
+#                           'address_invoice_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0],
+#                           'account_id': student.property_account_receivable.id,
+#                           'address_contact_id': address_obj.search(cr,uid, [('partner_id','=',student.id)])[0],
+#                           
+#                           })
+#            invoice_line_obj.create(cr,uid,{
+#                           'invoice_id': invoice,
+#                           'product_id': product.id,
+#                           'quantity': course_billing,
+#                           'account_id': "19",
+#                           'name': product.name,
+#                           'price_unit': product.list_price
+#                           })   
+#            student_obj.write(cr, uid, student.id, {'term_invoice_count': count}, context=context)
+#            self.write(cr, uid, res, {'enrollment_invoice_count': count}, context=context)
+#                 
+#         self.write(cr, uid, res, {'state': 'registered'}, context=context)
+#         
+#         return res
+
+
+    _constraints =[
+#        (_check_term, 'You cannot add courses at this time',['term_id']),
+#        (check_class_size, 'This class is full!',['section_id']),
+#         (check_repeat_limit, 'You have reached the repeat limit for this course!',['course_id']),
+        (check_prerequisite, 'You have not met the prerequisite requirement for this course!',['prerequisites']),
+        (check_credit_hours, 'You cannot exceed your credit hour limit',['student_id']),
+#         (check_previous_section_enrollment, 'You have already enrolled for this course!',['course']),
+#        (check_status, 'You Require a Higher Standing to Enroll for this Course!',['course_id']),
+        (_update_term_gpa_info, 'Term GPA info could not be updated',['student_id']),
+        (_update_gpa_info, 'GPA info could not be updated',['student_id']),
+        (_finalgrade, 'Final Grade object could not be created',['student_id']),
+        #(update_all_students_term_gpa_info, 'GPA info could not be updated',['term_id']),
+        #(update_all_students_gpa_info, 'GPA info could not be updated',['student_id']),
+    ]
+
+aun_registrar_enrollment()
+
+class aun_registrar_cat_prerequisite(osv.osv):
+    _name = "aun.registrar.cat.prerequisite"
+    _description = "Prerequisites"
+    _columns = {
+        'course_id': fields.many2one('aun.registrar.course', 'Course', ondelete="cascade"),
+        'catalogue_id': fields.many2one('aun.registrar.catalogue', 'Catalogue', ondelete="cascade", required=True),
+        'prerequisite_ids': fields.one2many('aun.registrar.course.prerequisite', 'cat_id', 'Prerequisites')
+    }
+    
+    _sql_constraints = [
+        ('name_uniq', 'unique(course_id, catalogue_id)', 'You have a duplicate catalogue in the prerequisites for this course!'),
+    ]
+  
+    def validate_prerequisite(self, cr, uid, ids, context=None):
+        prerequisite = self.browse(cr, uid, ids, context=context)[0]
+        statements = prerequisite.prerequisite_ids
+        expr = ''
+        for line in statements:
+            if line.andor:
+                expr += str(line.andor)
+            if line.open:
+                expr += str(line.open)
+            expr += str(True)           
+            if line.close:
+                expr += str(line.close)
+                
+        expr = expr.replace('&', ' and ')
+        expr = expr.replace('|', ' or ')
+        expr2 = expr.replace('True', 'False')
+        start_year = prerequisite.catalogue_id.start_year
+        end_year = prerequisite.catalogue_id.end_year
+        
+        try:
+            eval(expr)
+            eval(expr2)
+        except:
+            raise osv.except_osv(_('Check Prerequisites'), _('Invalid prerequisite expression for the '+start_year+"/"+end_year+" catalogue."))        
+        return True         
+          
+    
+    _constraints=[
+        (validate_prerequisite, 'The prerequisite expression is invalid.', ['prerequisite_id']),
+    ]
+
+aun_registrar_cat_prerequisite()
+
+class aun_registrar_course_prerequisite(osv.osv):
+    _name = "aun.registrar.course.prerequisite"
+    _description = "Prerequisites"
+    _columns = {
+        'andor': fields.selection([('&','AND'), ('|','OR')],'And/Or'),
+        'open': fields.selection([('(','(')], '('),
+        'close': fields.selection([(')',')')], ')'),
+        'cat_id': fields.many2one('aun.registrar.cat.prerequisite', 'Course', ondelete="cascade"),
+        'prerequisite_id': fields.many2one('aun.registrar.course', 'Prerequisites', ondelete="cascade",required=True),
+        'grade_requirement': fields.many2one('aun.registrar.grade', 'Grade Requirement',required=True)
+    }
+    
+    _sql_constraints = [
+        ('name_uniq', 'unique(cat_id, prerequisite_id)', 'You have a duplicate course in one of your prerequisites!'),
+    ]
+    
+    
+aun_registrar_course_prerequisite()
+
+class aun_registrar_course_corequisite(osv.osv):
+    _name = "aun.registrar.course.corequisite"
+    _description = "Co-Requisites"
+    _columns = {
+        'catalogue_id': fields.many2one('aun.registrar.catalogue', 'Catalogue', ondelete="cascade"),
+        'corequisite_ids': fields.many2many('aun.registrar.course', 'rel_cat_course_corequisite','corequisite_ids','course_id', 'Co-Requisites')
+    }
+aun_registrar_course_corequisite()
+
+class aun_registrar_course_equivalent(osv.osv):
+    _name = "aun.registrar.course.equivalent"
+    _description = "Equivalent Courses"
+    _columns = {
+        'catalogue_id': fields.many2one('aun.registrar.catalogue', 'Catalogue', ondelete="cascade"),
+        'equivalent_ids': fields.many2many('aun.registrar.course', 'rel_cat_course_equivalent','equivalent_ids','course_id', 'Equivalent Courses')
+    }
+aun_registrar_course_equivalent()
+
+class aun_registrar_categories(osv.osv):
+    _name = "aun.registrar.categories"
+    _description = ""
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Course Category', size=256),
+        'description': fields.text('Description'),
+    }
+aun_registrar_categories()
+
+class aun_registrar_categories_course(osv.osv):
+    _name = "aun.registrar.categories.course"
+    _description = "Category Courses"
+    _columns = {
+        'catalogue_id': fields.many2one('aun.registrar.catalogue', 'Catalogue', ondelete="cascade"),
+        'category_id': fields.many2one('aun.registrar.categories', 'Category'),
+        'course_ids': fields.many2many('aun.registrar.course', 'rel_cat_catalogue_course','course_ids','course_id', 'Courses'),        
+        'req_credit_hrs': fields.integer('Required Credit Hours', required=True),    
+        }
+aun_registrar_categories_course()
+
+class aun_registrar_major(osv.osv):
+    _name = "aun.registrar.major"
+    _description = "Programs"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Program', size=256),
+        'description': fields.text('Description'),
+	    #'course_ids': fields.many2many('aun.registrar.major.course','rel_major_course','course_ids','course_id', 'Courses'),
+        'student_id': fields.many2many('res.partner', 'rel_major_student', 'major_id', 'student_id', 'Students'),
+    }
+aun_registrar_major()
+
+class aun_registrar_major_course(osv.osv):
+    _name = "aun.registrar.major.course"
+    _description = "Course"
+    _columns = {
+        'catalogue_id': fields.many2one('aun.registrar.catalogue', 'Catalogue', ondelete="cascade"),
+        'major_id': fields.many2one('aun.registrar.major', 'Majors', ondelete="cascade"),
+        'course_ids': fields.many2many('aun.registrar.course', 'rel_maj_catalogue_course','course_ids','course_id', 'Major Courses'),
+        'minor_course_ids': fields.many2many('aun.registrar.course', 'rel_min_catalogue_course','course_ids','course_id', 'Minor Courses'),
+        'concentrations_course_id': fields.one2many('aun.registrar.concentration.course', 'major_id', 'Concentrations'),
+        'school_id': fields.many2one('aun.registrar.school', 'Schools', ondelete="cascade"),
+    }
+aun_registrar_major_course()
+
+
+class aun_registrar_concentration(osv.osv):
+    _name = "aun.registrar.concentration"
+    _description = "Concentration"
+    _inherit = ["mail.thread"]
+    _columns = {
+        'name': fields.char('Concentration', size=256, required=True),
+        'description': fields.text('Description'),
+        'student_id': fields.many2many('res.partner', 'rel_concentration_student', 'concentration_id', 'student_id', 'Students'),
+    }
+    
+    def check_conc(self, cr, uid, ids, context=None):
+        conc = self.browse(cr, uid, ids,context=context)
+        return True
+    
+aun_registrar_concentration()
+
+class aun_registrar_concentration_course(osv.osv):
+    _name = "aun.registrar.concentration.course"
+    _description = "Concentration Courses"
+    _columns = {
+        'major_id': fields.many2one('aun.registrar.major.course', 'Major', ondelete="cascade"),
+        'concentration_id': fields.many2one('aun.registrar.concentration', 'Concentration'),
+        'course_ids': fields.many2many('aun.registrar.course', 'rel_cat_concentration_course','course_ids','course_id', 'Courses'),        
+        }
+aun_registrar_concentration_course()
+
+class aun_registrar_catalogue(osv.osv):
+    _name = "aun.registrar.catalogue"
+    _description = "Catalogue Management"
+    _inherit = ["mail.thread"]
+
+    def compute_catalogue_code(self, cr, uid, ids, passed_hrs, arg, context=None):
+        res={}
+        catalogue = self.browse(cr, uid, ids)[0]
+        end_year = str(int(catalogue.end_year))
+        code = str(int(catalogue.start_year)) + end_year[2:]
+        res[catalogue.id] = code
+        
+        return res
+
+
+    _columns = {
+        'code':fields.function(compute_catalogue_code, type='char', method=True, string = 'Code', store=True),
+        'start_year': fields.selection([('2005','2005'),('2006','2006'),('2007','2007'),('2008','2008'),('2009','2009'),('2010','2010'),('2011','2011'),('2012','2012'),('2013','2013'),('2014','2014'),('2015','2015'),('2016','2016'),('2017','2017'),('2018','2018'),('2019','2019'),('2020','2020'),('2021','2021'),('2022','2022'),('2023','2023'),('2024','2024'),('2025','2025'),('2026','2026'),],'Catalogue Begins'),
+        'end_year': fields.selection([('2006','2006'),('2007','2007'),('2008','2008'),('2009','2009'),('2010','2010'),('2011','2011'),('2012','2012'),('2013','2013'),('2014','2014'),('2015','2015'),('2016','2016'),('2017','2017'),('2018','2018'),('2019','2019'),('2020','2020'),('2021','2021'),('2022','2022'),('2023','2023'),('2024','2024'),('2025','2025'),('2026','2026'),],'Catalogue Ends'),
+        'school_ids': fields.many2many('aun.registrar.school','rel_catalogue_school','school_id','catalogue_id', 'Schools'),
+        'categories_course_id': fields.one2many('aun.registrar.categories.course', 'catalogue_id', 'Categories'),
+        'majors_course_id': fields.one2many('aun.registrar.major.course', 'catalogue_id', 'Majors'),
+        'student_id': fields.many2one('res.partner', 'Student', readonly=True),
+    }
+
+    def name_get(self, cr, uid, ids, context=None):
+        if not ids:
+            return []
+        reads = self.read(cr, uid, ids, ['start_year', 'end_year'], context=context)
+        res = []
+        for record in reads:
+            name = record['start_year']
+            name = name + '/' + record['end_year']
+            name = name + ' Catalogue'
+            res.append((record['id'], name))
+        return res
+aun_registrar_catalogue()
+
+class aun_registrar_school(osv.osv):
+    _name = 'aun.registrar.school'
+    _table = 'aun_registrar_school'
+    _inherit = ["mail.thread"]
+    _description = 'AUN Schools'
+    _columns = {
+            'name': fields.char('School', size=250),
+            'description': fields.text('Description'),
+            #'major_ids': fields.one2many('aun.registrar.major.course', 'school_id', 'Majors')
+        }
+aun_registrar_school()
+
+
+class aun_registrar_standing(osv.osv):
+    _name='aun.registrar.standing'
+    _description='Academic Standing Code Validation'
+    _inherit = ["mail.thread"]
+    _columns={
+              'name': fields.char('Standing', size=32, required=True),
+              'description':fields.text('Description'),
+              'dean_list':fields.boolean('Dean List'),
+              'prob_ind':fields.boolean('Probation Indicator'),
+              'proh_reg':fields.boolean('Prohibit Registration'),
+              'minimum_hours':fields.float('Minimum Hours'),
+              'maximum_hours': fields.float('Maximum Hours'), 
+              'sys_req': fields.boolean('Sys Req'),
+        }
+    
+aun_registrar_standing    
+
+class aun_registrar_standing_rules(osv.osv):
+    _name='aun.registrar.standing.rules'
+    _description='Academic Standing Rules'
+    _inherit = ["mail.thread"]
+
+    def update_students_standing(self, cr, uid, ids, context=None):
+        student_obj = self.pool.get("res.partner")
+        student_ids = student_obj.search(cr, uid, [])
+        students = student_obj.browse(cr, uid, student_ids, context=context)
+        
+        term_obj = self.pool.get("aun.registrar.term")
+        cr.execute("SELECT id FROM aun_registrar_term ORDER BY code ASC")
+        s = cr.fetchall()
+        term_ids = []
+        for term_id in s:
+            term_ids.append(term_id[0])
+        terms = term_obj.browse(cr, uid, term_ids, context=context)
+        
+        term_hours = 0.00
+        term_gpa = 0.00
+        cumulative_hours = 0.00
+        cumulative_gpa = 0.00
+        overall_gpa = 0.00
+        sentinel = 1
+        term_length = 1
+        for student in students:
+            for term in terms:
+                # get student hours and gpas
+                gpa_info_object = self.pool.get('aun.registrar.gpa') 
+                ids = gpa_info_object.search(cr, uid, [('term_id', '=', term.id), ('student_id','=',student.id)])
+                if(ids):
+                    gpa = gpa_info_object.browse(cr, uid, ids, context=context)[0]
+                    term_hours = gpa.earned_hours
+                    term_gpa = gpa.gpa
+                    gpa_ids = gpa_info_object.search(cr, uid, [('student_id','=',student.id)])
+                    gpas = gpa_info_object.browse(cr, uid, gpa_ids, context=context)
+                    for g in gpas:
+                        if(sentinel == len(gpas)-1):
+                            cumulative_gpa = g.cgpa
+                        if(sentinel != len(gpas)):    
+                            cumulative_hours = cumulative_hours + float(g.earned_hours)
+                        if(sentinel == len(gpas)):
+                            overall_gpa = g.cgpa
+                        sentinel = sentinel + 1
+                        
+                        
+                    # calculate the standing for the student
+                    standing_rules_obj = self.pool.get("aun.registrar.standing.rules")
+                    standing_rules_ids = standing_rules_obj.search(cr, uid, [])
+                    standing_rules_terms = standing_rules_obj.browse(cr, uid, standing_rules_ids)
+                    use_term = ''
+                    for standing_rules_term in standing_rules_terms:
+                        if(standing_rules_term.term_id.code <= term.code):
+                            use_term = standing_rules_term.term_id
+                                    
+                    standing_rules_ids = standing_rules_obj.search(cr, uid, [('term_id','=',use_term.id), ('old_standing','=',student.standing_id.id),
+                                        ('min_term_hours','<=',term_hours), ('max_term_hours','>=',term_hours), ('min_term_gpa','<=',term_gpa),
+                                        ('max_term_gpa','>=',term_gpa),('min_cumulative_hours','<=',cumulative_hours),('max_cumulative_hours','>=',cumulative_hours),
+                                        ('min_cumulative_gpa','<=',cumulative_gpa),('max_cumulative_gpa','>=',cumulative_gpa),
+                                        ('min_overall_gpa','<=',overall_gpa),('max_overall_gpa','>=',overall_gpa)])
+                    if(standing_rules_ids):
+                        student_standing = standing_rules_obj.browse(cr, uid, standing_rules_ids, context=context)[0]
+                        gpa_info_object.write(cr, uid, ids[0],{'standing_id': student_standing.new_standing.id}, context=context)
+                        if(term_length == len(terms) and student_standing):
+                            student_obj.write(cr, uid, student.id,{'standing_id': student_standing.new_standing.id}, context=context)                        
+                            
+                    term_length = term_length + 1              
+        
+    _columns={
+              'old_standing': fields.many2one('aun.registrar.standing', 'Old Standing', required=True),
+              'term_id':fields.many2one('aun.registrar.term', 'Term', required=True),
+              'min_term_hours':fields.float('Minimum Term Hours', required=True),
+              'max_term_hours':fields.float('Maximum Term Hours', required=True),  
+              'min_term_gpa':fields.float('Minimum Term GPA', required=True),
+              'max_term_gpa':fields.float('Maximum Term GPA', required=True), 
+              'min_cumulative_hours':fields.float('Minimum Cumulative Hours', required=True),
+              'max_cumulative_hours':fields.float('Maximum Cumulative Hours', required=True),
+              'min_cumulative_gpa':fields.float('Minimum Cumulative GPA', required=True),  
+              'max_cumulative_gpa':fields.float('Maximum Cumulative GPA', required=True),
+              'min_overall_gpa':fields.float('Minimum Overall GPA',required=True),  
+              'max_overall_gpa':fields.float('Maximum Overall GPA',required=True),
+              'new_standing': fields.many2one('aun.registrar.standing', 'New Standing', required=True),             
+        }
+    
+    _defaults={
+#               'min_term_hours': 0.00,
+#               'min_term_gpa': 0.00,
+#               'min_cumulative_hours': 0.00,
+#               'min_cumulative_gpa': 0.00,
+#               'min_overall_gpa': 0.00,
+               'max_term_hours': 999.00,
+               'max_term_gpa': 4.00,
+               'max_cumulative_hours': 999.00,
+               'max_cumulative_gpa': 4.00,
+               'max_overall_gpa': 4.00
+        }
+aun_registrar_standing_rules
+
+
+class aun_registrar_hold(osv.osv):
+    _name='aun.registrar.hold'
+    _description='Academic Holds'
+    _inherit = ["mail.thread"]
+    _columns={
+              'name': fields.char('Description', size=64, required=True),
+              'registration':fields.boolean('Registration'),
+              'enr_ver':fields.boolean('Enrollment Verification'),
+              'transcript':fields.boolean('Transcript'),
+              'graduation':fields.boolean('Graduation'),
+              'grades':fields.boolean('Grades'),
+              'ar':fields.boolean('A/R'),
+              'application':fields.boolean('Application'),
+              'compliance':fields.boolean('Compliance') 
+        }
+    
+aun_registrar_hold
+
+class aun_registrar_hold_assignment(osv.osv):
+    _name='aun.registrar.hold.assignment'
+    _description='Academic Hold Assignment'
+    _inherit = ["mail.thread"]      
+    
+    def create(self, cr, uid, vals, context=None):        
+        if vals['start_date'] < str(date.today()):
+            raise osv.except_osv(_('Invalid action!'), _('Please enter a start date greater than or equal to today\'s date!'))
+        ids = vals['students'][0][2]
+        students = self.pool.get('res.partner').browse(cr, uid, ids, context)
+        for student in students:
+            for hold in student.holds:
+                if (hold.hold.id == vals['hold'] and ((hold.start_date <= vals['start_date'] < hold.end_date) or (hold.start_date < vals['end_date'] <= hold.end_date) or
+                    (vals['start_date'] < hold.start_date and vals['end_date'] > hold.end_date))):
+                    raise osv.except_osv(_(hold.hold.name), _('For the time period specified, this hold is on the following student\'s record: '+student.fname+' '+student.lname))
+                
+        if vals['end_date'] > vals['start_date']:
+            vals['state'] = 'active'
+        else:
+            raise osv.except_osv(_('Invalid action!'), _('The end date should be greater than the start date!'))    
+        
+        res = super(aun_registrar_hold_assignment, self).create(cr, uid, vals, context)
+        return res
+    
+    _columns={
+              'name': fields.char('Description', size=64, required=True),
+              'students': fields.many2many('res.partner', 'rel_hold_student','hold_id','student_id','Student(s)'),
+              'hold': fields.many2one('aun.registrar.hold', 'Hold Type', required=True),
+              'reason':fields.text('Reason'),
+              'rel_ind':fields.boolean('Release Indicator'),
+              'amount':fields.float('Amount'),
+              'start_date':fields.date('From', select=True, required=True),
+              'end_date':fields.date('To', select=True, required=True),
+              'end_date_view':fields.date('To', readonly=True),
+              #'orig_code':fields.char('Origination Code', size=16),
+              'create_uid':fields.many2one('res.users', 'User', readonly=True),
+              'state': fields.selection(SECTION_STATES, 'State', size=16),
+              'auto_update': fields.boolean('Auto Update')
+        }
+    
+    _defaults={
+        'state': lambda *a: 'draft',
+        'auto_update': False,
+        'rel_ind': True
+    }
+
+    def run_hold_check(self, cr, uid, automatic=False, use_new_cursor=False, context=None):
+        unupdated_hold_ids = self.search(cr, uid, [('end_date', '<=', str(date.today())), ('state', '=', 'active')])
+        for hold in self.browse(cr, uid, unupdated_hold_ids, context=context):
+            self.write(cr, uid, [hold.id], {'state': 'cancelled', 'end_date_view': hold.end_date, 'auto_update': True})
+        return True
+   
+#    def fields_get(self, cr, uid, fields=None, context=None):
+#        res = super(aun_registrar_hold_assignment, self).fields_get(cr, uid, fields, context)
+#        hold_assgnmt_obj = self.pool.get('aun.registrar.hold.assignment')
+#        unupdated_hold_ids = hold_assgnmt_obj.search(cr, uid, [('end_date', '<=', str(date.today())), ('state', '=', 'active')])
+#        if unupdated_hold_ids:
+#            unupdated_holds = hold_assgnmt_obj.browse(cr, uid, unupdated_hold_ids, context)
+#            for hold in unupdated_holds:
+#                hold_assgnmt_obj.write(cr, uid, hold.id, {'state': 'cancelled', 'end_date_view': hold.end_date, 'auto_update': True})
+#               
+#        return res
+
+    def on_change_end_date(self, cr, uid, ids, start_date, end_date, state, create_uid, rel_ind, context=None):
+        result = {}
+        if start_date > str(date.today()) and state == 'active':
+            if end_date == start_date:
+                if rel_ind and (uid != create_uid):
+                    return result
+                result = {'value': {'state': 'cancelled', 'end_date_view': end_date}}
+        elif start_date <= str(date.today()) and end_date == str(date.today()) and state == 'active':
+            if rel_ind and (uid != create_uid):
+                return result
+            result = {'value': {'state': 'cancelled', 'end_date_view': end_date}}
+        
+        self.write(cr, uid, ids, {'end_date_view': end_date}, context=context)               
+        return result
+    
+    def check_hold_end_date(self, cr, uid, ids, context=None):
+        hold_assgnmt = self.browse(cr, uid, ids, context=context)[0]       
+        if hold_assgnmt.end_date == str(date.today()) and hold_assgnmt.state == 'active' and not hold_assgnmt.auto_update:
+            if hold_assgnmt.rel_ind and (uid != hold_assgnmt.create_uid):
+                raise osv.except_osv(_('Release Indicator Active!'), _('Only the user who put the hold on the student\'s record can cancel it!'))
+        
+        if hold_assgnmt.start_date > str(date.today()) and hold_assgnmt.end_date < hold_assgnmt.start_date:
+            return False
+        
+        if hold_assgnmt.end_date < str(date.today()) and not hold_assgnmt.auto_update:
+            return False
+                
+        return True          
+
+    def check_students_holds(self, cr, uid, ids, context=None):
+        hold_assgnmt = self.browse(cr, uid, ids, context=context)[0]
+        students = hold_assgnmt.students
+        for student in students:
+            for hold in student.holds:
+                if (hold.id != hold_assgnmt.id and hold.hold.id == hold_assgnmt.hold.id and ((hold.start_date <= hold_assgnmt.start_date < hold.end_date) or (hold.start_date < hold_assgnmt.end_date <= hold.end_date) or
+                    (hold_assgnmt.start_date < hold.start_date and hold_assgnmt.end_date > hold.end_date))):
+                    raise osv.except_osv(_(hold.hold.name), _('For the time period specified, this hold is on the following student\'s record: '+student.fname+' '+student.lname))
+        return True
+    
+    _constraints=[
+        (check_hold_end_date, 'The end date cannot be less than today\'s date or the start date.', ['End Date']),
+        (check_students_holds, 'One or more students already have this hold on their record for the time period specified.', ['Student(s)']),
+    ]
+    
+aun_registrar_hold_assignment
+

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <record id="view_duplicate_term" model="ir.ui.view">
+            <field name="name">duplicate.term.form</field>
+            <field name="model">duplicate.term</field>
+            <field name="arch" type="xml">
+                <form string="Duplicate Term" version="7.0">
+                	<group col="2">
+						<group string="Term">
+							<field name="orig_term" on_change="on_change_orig_term(orig_term)" class="oe_inline" widget="selection"/>
+	                        <field name="copy_term" class="oe_inline" attrs="{'readonly':[('orig_term','=',False)]}" domain="[('id','!=',orig_term)]"/>
+	                    </group>
+	                    <group string="Transfer Values" col="4">
+	                        <field name="duration"/>
+	                        <field name="faculty"/>
+	                        <field name="location"/>
+	                        <field name="labs"/>
+	                        <field name="capacity" class="oe_inline"/>
+	                    </group>
+	                </group>
+                    <group string="Classes">
+                    	<field name="sections" attrs="{'readonly':[('orig_term','=',False)]}" domain="[('term_id','=',orig_term),('state','=','active'),('course_id.active','=',True)]" nolabel="1"/>
+                	</group>
+                    <footer>
+                        <button string="Duplicate" name="duplicate_term_open_window" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_duplicate_term" model="ir.actions.act_window">
+            <field name="name">Duplicate Classes</field>
+            <field name="res_model">duplicate.term</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_duplicate_term"/>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem action="action_duplicate_term"
+            id="menu_action_duplicate_term"
+            parent="academics.catalogue_main_menu" groups="group_registrar_ass_registrar"/>
+    </data>
+</openerp>

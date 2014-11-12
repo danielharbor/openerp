@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    	<record id="view_clearance" model="ir.ui.view">
+            <field name="name">clearance.form</field>
+            <field name="model">clearance</field>
+            <field name="arch" type="xml">
+                <form string="Student Clearance" version="7.0">
+					<group>
+						<field name="student_id" class="oe_inline" on_change="on_change_student_id()"/>
+                        <field name="term_id" class="oe_inline" on_change="on_change_term_id(student_id,term_id)"/>
+                        <field name="credit_hours" attrs="{'invisible':[('term_id', '=', False)]}"/>
+                        <field name="room" attrs="{'invisible':[('term_id', '=', False)]}"/>
+                        <field name="meal_plan" attrs="{'invisible':[('term_id', '=', False)]}"/>
+                        <field name="term_charge" attrs="{'invisible':[('term_id', '=', False)]}"/>
+                        <field name="min_balance" attrs="{'invisible':[('term_id', '=', False)]}"/>
+                        <field name="payment_plan" attrs="{'invisible':['|',('term_id', '=', False),('payment_plan', '=', False)]}"/>
+                        <field name="override_charges" attrs="{'invisible':['|',('term_id', '=', False),('payment_plan', '!=', False)]}" groups="academics.group_bursar"/>
+                        <field name="credit_limit" attrs="{'required':[('override_charges','=',True)],'invisible':['|',('term_id', '=', False),('override_charges', '=', False)]}"/>
+                    </group>
+                    <footer>
+                        <button string="Do Clearance" name="student_clearance" confirm = "Are you sure? After clearance, you will be assigned your room &amp; meal plan and this cannot be changed afterwards" type="object" class="oe_highlight"/>
+                        or
+                        <button string="Cancel" class="oe_link" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_clearance" model="ir.actions.act_window">
+            <field name="name">Student Clearance</field>
+            <field name="res_model">clearance</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_clearance"/>
+            <field name="target">new</field>
+        </record>
+
+        <menuitem action="action_clearance" id="menu_action_clearance" parent="academics.menu_bursar" groups="academics.group_bursary_staff,academics.group_registrar_student"/>
+    </data>
+</openerp>

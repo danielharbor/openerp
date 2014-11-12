@@ -1,0 +1,4488 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+        <!-- Campus views ========================= start-->
+
+		<record id="res_campus_form" model="ir.ui.view">
+			<field name="name">res.campus.form</field>
+			<field name="model">res.campus</field>
+			<field name="arch" type="xml">
+				<form string="Campus" version="7.0">
+				<sheet>
+				<group>
+					<field name="name"/>
+				</group>
+				</sheet>
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers" groups="[academics.group_housing_staff,academics.group_registrar_ass_registrar]"/>
+                	<field name="message_ids" widget="mail_thread" groups="[academics.group_housing_staff,academics.group_registrar_ass_registrar]"/>
+                </div>
+				</form>
+			</field>
+		</record>
+
+		<record id="res_campus_tree" model="ir.ui.view">
+			<field name="name">res.campus.tree</field>
+			<field name="model">res.campus</field>
+			<field name="arch" type="xml">
+				<tree string="Campus">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="res_campus_search" model="ir.ui.view">
+			<field name="name">res.campus.search</field>
+			<field name="model">res.campus</field>
+			<field name="arch" type="xml">
+				<search string="Campus">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+		
+		<!--
+			Campus Actions
+		-->
+
+		<record id="res_campus_action" model="ir.actions.act_window">
+			<field name="name">Campus</field>
+			<field name="res_model">res.campus</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a campus
+	           </p>
+	        </field>
+		</record>
+		
+		
+		<!-- Building views ========================= start-->
+
+		<record id="res_building_form" model="ir.ui.view">
+			<field name="name">res.building.form</field>
+			<field name="model">res.building</field>
+			<field name="arch" type="xml">
+				<form string="Buildings" version="7.0">
+				<sheet>
+				<group col ="4">
+					<field name="name"/>
+					<field name="campus_id"/>
+					<field name="gender" attrs="{'invisible':[('residence','=',False)]}"/>
+					<field name="unavailable" attrs="{'invisible':[('residence','=',False)]}"/>
+					<field name="residence" invisible = "1"/>
+				</group>
+				</sheet>	
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers" groups="[academics.group_housing_staff,academics.group_registrar_ass_registrar]"/>
+                	<field name="message_ids" widget="mail_thread" groups="[academics.group_housing_staff,academics.group_registrar_ass_registrar]"/>
+                </div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="res_building_tree" model="ir.ui.view">
+			<field name="name">res.building.tree</field>
+			<field name="model">res.building</field>
+			<field name="arch" type="xml">
+				<tree string="Buildings">
+					<field name="name"/>
+					<field name="gender" groups="academics.group_housing_staff"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="res_building_search" model="ir.ui.view">
+			<field name="name">res.building.search</field>
+			<field name="model">res.building</field>
+			<field name="arch" type="xml">
+				<search string="Building">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+		
+		<!--
+			Building Actions
+		-->
+
+		<record id="res_building_action" model="ir.actions.act_window">
+			<field name="name">Buildings</field>
+			<field name="res_model">res.building</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a building
+	           </p>
+	        </field>
+		</record>
+
+
+        <!--
+			Registrar Catalogue Views
+		-->
+
+		<record id="view_registrar_catalogue_form" model="ir.ui.view">
+	        <field name="name">registrar.catalogue.form</field>
+            <field name="model">aun.registrar.catalogue</field>
+            <field name="arch" type="xml">
+                <form string="Catalogue Information" version="7.0">
+                <sheet>
+               		<group>
+            			<group><field name="start_year" attrs="{'readonly':[('state','=','done')]}"/></group>
+                		<group><field name="end_year" attrs="{'readonly':[('state','=','done')]}"/></group>
+                	</group>
+	                <group><field name="category_ids"/></group>
+	                <group><field name="major_course_ids"/></group>
+	                <field name="state" invisible="1"/>
+                </sheet>
+                <div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+                </form>
+            </field>
+		</record>
+
+		<record id="view_registrar_catalogue_tree" model="ir.ui.view">
+	        <field name="name">registrar.catalogue.tree</field>
+            <field name="model">aun.registrar.catalogue</field>
+            
+            <field name="arch" type="xml">
+                <tree string="Catalogue Information">
+     				<field name="code"/>
+                    <field name="start_year"/>
+                    <field name="end_year"/>
+	            </tree>
+            </field>
+		</record>
+		
+		<record id="view_registrar_catalogue_search" model="ir.ui.view">
+	        <field name="name">registrar.catalogue.search</field>
+            <field name="model">aun.registrar.catalogue</field>
+            <field name="arch" type="xml">
+                <search string="Catalogue Information">
+                    <field name="start_year"/>
+                    <field name="end_year"/>
+                </search>
+            </field>
+		</record>
+
+ 		<!--
+			Registrar Catalogue Actions
+		-->
+
+		<record id="registrar_catalogue_action" model="ir.actions.act_window">
+			<field name="name">Catalogs</field>
+			<field name="res_model">aun.registrar.catalogue</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a catalog
+	           </p>
+	        </field>
+		</record>
+
+
+        <!--
+			Final Grades Views
+		-->
+		
+		<record id="view_finalgrades_form" model="ir.ui.view">
+	        <field name="name">finalgrades.form</field>
+            <field name="model">aun.student.finalgrades</field>
+            <field name="arch" type="xml">
+                <form string="Final Grade" version="7.0">
+                <sheet>
+               		<group col="4">
+	                	<field name="term_id"/>
+						<field name="course_id"/>
+						<field name="course_name"/>
+						<field name="section_id"/>
+						<field name="duration_id"/>
+						<field name="grade"/>
+						<field name="repeat"/>
+<!-- 						<field name="attempted"/> -->
+<!-- 						<field name="earned"/> -->
+<!-- 						<field name="gpa"/> -->
+<!-- 						<field name="quality_points"/> -->
+            		</group>
+                </sheet>
+                <div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+                </form>
+            </field>
+		</record>
+
+		<record id="view_student_finalgrades_tree" model="ir.ui.view">
+	        <field name="name">student.academic.history.tree</field>
+            <field name="model">aun.student.finalgrades</field>
+            <field name="arch" type="xml">
+                <tree string="Academic History" create="false">
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="grade"/>
+					<field name="credit"/>
+					<field name="repeat"/>
+	            </tree>
+            </field>
+		</record>
+		
+		<record id="view_student_finalgrades_search" model="ir.ui.view">
+			<field name="name">student.finalgrades.search</field>
+			<field name="model">aun.student.finalgrades</field>
+			<field name="arch" type="xml">
+				<search string="Enrollment Information">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="section_id"/>
+					<field name="faculty"/>
+					<field name="grade"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                        <filter string="Course" name="Course" domain="" context="{'group_by':'course_id'}"/>
+                        <filter string="Grade" domain="" context="{'group_by':'grade'}"/>              
+                    </group>
+				</search>
+			</field>
+		</record>
+
+
+ 		<!--
+			Final Grades Actions
+		-->
+
+		<!-- record id="student_finalgrades_action" model="ir.actions.act_window">
+			<field name="name">Final Grades</field>
+			<field name="res_model">aun.student.finalgrades</field>
+			<field name="view_mode">tree</field>
+			<field name="view_type">form</field>
+			<field name="context">{'search_default_Term': 1}</field>
+			<field name="domain">[('term_id.finalgrades_open','=',True)]</field>
+			<field name="view_id" ref="view_student_finalgrades_tree"/>
+			<field name="help">No grades on your record are available</field>
+		</record-->
+		
+<!-- 		<record id="student_academic_history_action" model="ir.actions.act_window"> -->
+<!-- 			<field name="name">Academic History</field> -->
+<!-- 			<field name="res_model">aun.student.finalgrades</field> -->
+<!-- 			<field name="view_mode">tree</field> -->
+<!-- 			<field name="view_type">form</field> -->
+<!-- 			<field name="context">{'search_default_Term': 1}</field> -->
+<!-- 			<field name="domain">[]</field> -->
+<!-- 			<field name="view_id" ref="view_student_academic_history_tree"/> -->
+<!-- 			<field name="help">no academic history to display</field> -->
+<!-- 		</record> -->
+	
+	
+        <!--
+			Add Drop Views
+		-->
+
+		<record id="view_add_drop_form" model="ir.ui.view">
+	        <field name="name">aun.adddrop.form</field>
+            <field name="model">aun.add.drop</field>     
+            <field name="arch" type="xml">
+                <form string="Add/Drop" version="7.0">
+               	<sheet>
+               		<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar"/>
+					<group>
+						<group>
+							<field name="term_id" on_change="on_change_student_term(student_id,term_id,'term_id')" style="width: 20%%" attrs="{'readonly':[('state','=','done')]}" class="oe_inline"/>
+							<field name="credits_allowed" attrs="{'invisible':['|',('student_id','=',False),('term_id','=',False)]}"/>
+							<field name="total_credits" attrs="{'invisible':[('sections','=',False)]}"/>
+						</group>					
+						<group>
+							<field name="student_id" on_change="on_change_student_term(student_id,term_id,'student_id')" attrs="{'readonly':[('state','=','done')]}" class="oe_inline" context="{'form_view_ref': 'academics.view_student_form','tree_view_ref': 'academics.view_student_tree','search_view_ref': 'academics.view_student_search'}" groups="academics.group_registrar_ass_registrar"/>
+							<label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar"/>
+							<div attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar">
+							<field name="fname" class="oe_inline"/> <field name="lname" class="oe_inline"/>
+							</div>
+						</group>
+					</group>
+					<group>
+						<field name="section_ids" attrs="{'invisible':['|','|','|',('is_active','=',False),('open_for_registration','=',True),('admin_reg','=',True),('term_id','=',False)]}" context="{'default_student_id': student_id, 'default_term_id': term_id, 'default_sections': sections[0][2], 'form_view_ref': 'academics.view_student_add_drop_application_form'}">
+							<tree>
+								<field name="action"/>
+								<field name="course_id"/>
+								<field name="section_id"/>
+								<field name="lab_ids"/>
+								<field name="state"/>
+							</tree>
+						</field>
+						<field name="sections_list" widget="many2many_tags" attrs="{'invisible':['|','|','|',('sections_bool','=',False),('is_active','=',False),('open_for_registration','=',True)]}" context="{'form_view_ref': 'academics.view_student_section_form'}"/>
+						<field name="labs_list" widget="many2many_tags" attrs="{'invisible':['|','|','|',('labs_bool','=',False),('is_active','=',False),('open_for_registration','=',True)]}" context="{'form_view_ref': 'academics.view_student_lab_form'}"/>
+						<field name="sections_bool" invisible="1"/>
+						<field name="labs_bool" invisible="1"/>
+						<field name="sections" on_change="on_change_sections(sections,labs)" attrs="{'invisible':[('open_for_registration','=',False),('admin_reg','=',False)]}" domain="[('term_id','=',term_id),('state','=','active')]" context="{'form_view_ref': 'academics.view_student_section_form'}">
+							<tree>
+								<field name="course_id"/>
+								<field name="course_name"/>
+								<field name="name"/>
+								<field name="credit_low" string="Credit"/>
+								<field name="section_no"/>
+								<field name="faculty_tree"/>
+								<field name="duration_id"/>
+								<field name="location_id"/>
+								<field name="enrolled"/>
+								<field name="max_size"/>
+							</tree>
+						</field>
+						<field name="labs" attrs="{'invisible':[('open_for_registration','=',False),('admin_reg','=',False)]}" domain="[('state','=','active'),('section_id','in',sections[0][2])]" context="{'form_view_ref': 'academics.view_student_lab_form'}">
+							<tree>
+								<field name="course_id"/>
+								<field name="name"/>
+								<field name="faculty_tree"/>
+								<field name="duration_id"/>
+								<field name="location_id"/>
+								<field name="mandatory"/>
+								<field name="enrolled"/>
+								<field name="capacity"/>
+							</tree>
+						</field>
+						<field name="open_for_registration" invisible="1"/>
+						<field name="is_active" invisible="1"/>
+						<field name="admin_reg" invisible="1"/>
+						<field name="state" invisible="1"/>
+						<field name="major_ids" invisible="1" widget="many2many_tags"/>
+						<field name="minor_ids" invisible="1" widget="many2many_tags"/>
+						<field name="concentration_ids" invisible="1" widget="many2many_tags"/>
+						<field name="school_ids" invisible="1" widget="many2many_tags"/>
+					</group>
+				</sheet>
+				<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+					<field name="message_follower_ids" widget="mail_followers"/>
+					<field name="message_ids" widget="mail_thread"/>
+				</div>
+	            </form>
+            </field>
+		</record>
+		
+		<record id="view_registrar_add_drop_tree" model="ir.ui.view">
+	        <field name="name">registrar.adddrop.tree</field>
+            <field name="model">aun.add.drop</field>  
+            <field name="priority">1</field>   
+            <field name="arch" type="xml">
+                <tree string="Add/Drop">
+					<field name="term_id"/>
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="create_date"/>
+	            </tree>
+            </field>
+		</record>
+		
+		<record id="view_student_add_drop_tree" model="ir.ui.view">
+			<field name="name">student.adddrop.tree</field>
+			<field name="model">aun.add.drop</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<tree string="Add/Drop">
+					<field name="term_id"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_add_drop_search" model="ir.ui.view">
+			<field name="name">add.drop.search</field>
+			<field name="model">aun.add.drop</field>
+			<field name="arch" type="xml">
+				<search string="Add/Drop">
+					<field name="term_id"/>
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="sections"/>
+					<field name="major_ids"/>
+					<field name="minor_ids"/>
+					<field name="concentration_ids"/>
+					<field name="school_ids"/>
+				</search>
+			</field>
+		</record>
+
+
+ 		<!--
+			Add Drop Actions
+		-->
+
+		<record id="student_add_drop_action" model="ir.actions.act_window">
+			<field name="name">Add/Drop</field>
+			<field name="res_model">aun.add.drop</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('term_id.admin_reg','=',False),('term_id.open_for_registration','=',True)]</field>   <!-- '|',('term_id.is_active','=',True), -->
+			<field name="context">{}</field>
+			<field name="view_id" ref="view_student_add_drop_tree"/>
+		</record>
+
+		<record id="registrar_add_drop_action" model="ir.actions.act_window">
+			<field name="name">Add/Drop</field>
+			<field name="res_model">aun.add.drop</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+		</record>	
+
+        <!--
+			Registrar Section Views
+		-->
+
+		<record id="view_registrar_section_form" model="ir.ui.view">
+			<field name="name">registrar.section.form</field>
+			<field name="model">aun.registrar.section</field>
+			<field name="priority">1</field>
+			<field name="arch" type="xml">
+				<form string="Section Information" version="7.0">
+					<sheet>
+						<h1>Section</h1>
+						<group col="4">
+							<field name="term_id" on_change="on_change_term(term_id)" attrs="{'readonly':[('state','in',['active','cancelled'])]}"/>
+							<field name="course_id" attrs="{'readonly':[('state','in',['active','cancelled'])]}" on_change="on_change_course(course_id)"/>
+							<field name="course_name" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+							<field name="section_no" string="Section No." attrs="{'invisible':[('state','IN','draft')]}"/>
+							<field name="credit_low" on_change="on_change_value(credit_low,course_id,'credit_low')" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+							<field name="billing_low" on_change="on_change_value(billing_low,course_id,'billing_low')" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+							<field name="credit_high" on_change="on_change_value(credit_high,course_id,'credit_high')" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+							<field name="billing_high" on_change="on_change_value(billing_high,course_id,'billing_high')" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+							<field name="grademode_id" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}" widget="selection"/>
+							<field name="level_id" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}" on_change="on_change_level(level_id,course_id,status_id)" widget="selection"/>
+							<field name="status_id" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+							<field name="duration_id" attrs="{'readonly':['|',('term_id','=',False),('state','=','cancelled')]}" on_change="on_change_duration(filter_rooms,duration_id,location_id,max_size,term_id)"/>
+							<field name="max_size" attrs="{'readonly':[('state','=','cancelled')]}"/> <!-- on_change="on_change_capacity()" -->
+							<field name="filter_rooms" on_change="on_change_duration(filter_rooms,duration_id,location_id,max_size,term_id)" attrs="{'readonly':['|','|',('max_size','=',False),('duration_id','=',False),('state','=','cancelled')]}" groups="academics.group_registrar_ass_registrar"/>
+							<field name="enrolled"/>
+							<field name="location_id" attrs="{'readonly':['|',('duration_id','=',False),'|',('term_id','=',False),('state','=','cancelled')]}" on_change="on_change_location(term_id,duration_id,location_id,max_size)"/>
+							<field name="no_of_labs" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+							<field name="state" attrs="{'invisible':[('state','IN','draft')]}" groups="academics.group_registrar_ass_registrar"/>
+							<field name="name" attrs="{'invisible':[('state','IN','draft')]}"/>
+							<field name="school_id" invisible="1"/>
+							<field name="has_enrollment" invisible="1"/>
+						</group>
+						<notebook colspan="4">
+							<page string="Faculty">
+								<field name="faculty" attrs="{'readonly':[('state','=','cancelled')]}"/>
+							</page>
+							<page string="Labs">
+								<field name="labs" attrs="{'readonly':[('state','=','cancelled')]}"/>
+							</page>
+							<page string="Grading">
+								<group>
+									<label for="grading_start" string="Grading Duration"/>
+									<div>
+										<field name="grading_start" on_change="on_change_grading_date(grading_start, grading_end)" attrs="{'readonly':[('state','=','cancelled')],'required':[('grading_end','!=',False)]}" class="oe_inline"/> - 
+										<field name="grading_end" on_change="on_change_grading_date(grading_start, grading_end)" attrs="{'readonly':[('state','=','cancelled')],'required':[('grading_start','!=',False)]}" class="oe_inline"/>
+									</div>
+									<field name="open_for_grading"/>
+								</group>
+							</page>
+							<page string="Enrollees">
+								<field name="enrollment_ids" domain="[('state','=','registered')]">
+									<tree colors="green:lab==True;black:lab==False">
+										<field name="student_id"/>
+										<field name="fname"/>
+										<field name="lname"/>
+										<field name="lab"/>
+										<field name="duration_id"/>
+										<field name="location_id"/>
+										<field name="grade"/>						
+									</tree>
+								</field>
+							</page>
+						</notebook>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="view_student_section_form" model="ir.ui.view">
+			<field name="name">student.section.form</field>
+			<field name="model">aun.registrar.section</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<form string="Section Information" version="7.0">
+					<sheet>
+						<h1>Section</h1>
+						<group col="4">
+							<field name="term_id" readonly="1"/>
+							<field name="course_id" readonly="1"/>
+							<field name="course_name" readonly="1"/>
+							<field name="credit_low" readonly="1"/>
+							<field name="billing_low" readonly="1"/>
+							<field name="credit_high" readonly="1"/>
+							<field name="billing_high" readonly="1"/>
+							<field name="level_id" readonly="1"/>
+							<field name="status_id" readonly="1"/>
+							<field name="duration_id" readonly="1"/>
+							<field name="max_size" readonly="1"/>
+							<field name="enrolled"/>
+							<field name="location_id" readonly="1"/>
+							<field name="no_of_labs" readonly="1"/>
+							<field name="state" invisible="1"/>
+							<field name="name"/>
+							<field name="section_no" string="Section No."/>
+							<field name="school_id" invisible="1"/>
+						</group>
+						<notebook colspan="4">
+							<page string="Faculty">
+								<field name="faculty_char"/>
+							</page>
+							<page string="Labs">
+								<field name="labs" readonly="1"/>
+							</page>
+						</notebook>
+					</sheet>
+				</form>
+			</field>
+		</record>		
+
+		<record id="view_registrar_section_tree" model="ir.ui.view">
+			<field name="name">registrar.section.tree</field>
+			<field name="model">aun.registrar.section</field>
+			<field name="priority">1</field>
+			<field name="arch" type="xml">
+				<tree string="Section Information">
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="term_id"/>
+					<field name="name"/>
+					<field name="credit_low" string="Credit"/>
+					<field name="section_no"/>
+					<field name="faculty_tree"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+					<field name="enrolled"/>
+					<field name="max_size"/>
+					<field name="state"/>
+					<field name="school_id" invisible="1"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="faculty_section_tree" model="ir.ui.view">
+			<field name="name">faculty.section.tree</field>
+			<field name="model">aun.registrar.section</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<tree string="Section Information">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="name"/>
+					<field name="section_no"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+					<field name="enrolled"/>
+					<field name="max_size"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_section_search" model="ir.ui.view">
+			<field name="name">registrar.section.search</field>
+			<field name="model">aun.registrar.section</field>
+			<field name="arch" type="xml">
+				<search string="Section Information">
+					<field name="name"/>
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="subject_id"/>
+					<field name="level_id"/>
+					<field name="term_id"/>
+					<field name="faculty"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+					<field name="max_size"/>
+					<field name="state"/>
+					<!--<field name="school_id"/>-->
+					<filter string="Active Term" name="Active" domain="[('term_id.is_active','=',True)]"/>
+					<filter string="Cancelled" domain="[('active','=',False)]" groups="academics.group_registrar_ass_registrar"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Section Actions
+		-->
+
+		<record id="registrar_section_action" model="ir.actions.act_window">
+			<field name="name">Sections</field>
+			<field name="res_model">aun.registrar.section</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a section
+	           </p>
+	        </field>
+		</record>
+
+		<record id="faculty_section_action" model="ir.actions.act_window">
+			<field name="name">My Classes</field>
+			<field name="res_model">aun.registrar.section</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('faculty.faculty_id.user_id.id','in',[uid])]</field>
+			<field name="context">{'search_default_Active': 1}</field>
+			<field name="view_id" ref="faculty_section_tree"/>
+		</record>
+
+		<record id="all_faculty_section_action" model="ir.actions.act_window">
+			<field name="name">All Classes</field>
+			<field name="res_model">aun.registrar.section</field>
+			<field name="view_mode">tree</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Active': 1}</field>
+			<field name="view_id" ref="view_registrar_section_tree"/>
+		</record>
+		
+		<record id="student_section_action" model="ir.actions.act_window">
+			<field name="name">Sections</field>
+			<field name="res_model">aun.registrar.section</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('term_id.is_active','=',True)]</field> <!-- ('term_id.open_for_registration','=',True) -->
+			<field name="context">{'search_default_Term': 0}</field>
+			<field name="help">This is the list of classes by semester</field>
+		</record>
+
+		<record id="action_student_section_tree" model="ir.actions.act_window.view">
+        	<field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_registrar_section_tree"/>
+            <field name="act_window_id" ref="student_section_action"/>
+		</record>
+
+		<record id="action_student_section_form" model="ir.actions.act_window.view">
+        	<field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_student_section_form"/>
+            <field name="act_window_id" ref="student_section_action"/>
+		</record>
+		
+
+
+        <!--
+			Registrar Settings Views
+		-->
+
+		<record id="view_registrar_settings_form" model="ir.ui.view">
+	        <field name="name">registrar.settings.form</field>
+            <field name="model">registrar.settings</field>       
+            <field name="arch" type="xml">
+                <form string="Registrar Settings" version="7.0" create="false" delete="false">
+	               	<sheet>
+						<group>
+							<field name="interval"/>
+							<field name="allow_prereq"/>
+							<field name="include_current_hrs" on_change="on_change_include_current_hrs()"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+	            </form>
+            </field>
+		</record>
+		
+		<record id="view_registrar_settings_tree" model="ir.ui.view">
+	        <field name="name">registrar.settings.tree</field>
+            <field name="model">registrar.settings</field>       
+            <field name="arch" type="xml">
+                <tree string="Registrar Settings" create="false" delete="false">
+					<field name="interval"/>
+					<field name="allow_prereq"/>
+					<field name="include_current_hrs"/>
+	            </tree>
+            </field>
+		</record>
+
+
+ 		<!--
+			Registrar Settings Action
+		-->
+
+		<record id="registrar_settings_action" model="ir.actions.act_window">
+			<field name="name">Settings</field>
+			<field name="res_model">registrar.settings</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+		</record>
+
+
+        <!--
+			Level GPA Views
+		-->
+
+		<record id="view_level_gpa_form" model="ir.ui.view">
+	        <field name="name">level.gpa.form</field>
+            <field name="model">level.gpa</field>       
+            <field name="arch" type="xml">
+                <form string="Level GPA Information" version="7.0" create="false" delete="false" edit="false">
+               	<sheet>
+               		<group col="4">
+	               		<field name="level_id"/>
+	               		<field name="catalogue_id"/>
+	               		<field name="major_ids" widget="many2many_tags"/>
+	               		<field name="minor_ids" widget="many2many_tags"/>
+	               		<field name="conc_ids" widget="many2many_tags"/>
+	               		<field name="program_ids" widget="many2many_tags"/>
+	               		<field name="school_ids" widget="many2many_tags"/>
+	               		<field name="admission_date"/>
+	               		<field name="student_state_id"/>
+	               		<field name="total_credits"/>
+	               		<field name="date_of_state" attrs="{'invisible':[('is_active','=',True)]}"/>
+	               		<field name="graduation_class" attrs="{'invisible':[('graduated','=',False)]}"/>
+	               		<field name="graduated" invisible="1"/>
+	               		<field name="is_active" invisible="1"/>
+	               	</group>
+					<group col="6" string="Institution" attrs="{'invisible':[('transfer','=',False)]}">
+						<field name="attempted_hours"/>
+						<field name="passed_hours"/>
+						<field name="earned_hours"/>
+						<field name="quality_points"/>
+						<field name="gpa_hours"/>
+						<field name="cgpa"/>
+					</group>
+					<group string="Transfer" col="6" attrs="{'invisible':[('transfer','=',False)]}">
+						<field name="t_attempted_hours"/>
+						<field name="t_passed_hours"/>
+						<field name="t_earned_hours"/>
+						<field name="t_quality_points"/>
+						<field name="t_gpa_hours"/>
+						<field name="t_cgpa"/>
+						<field name="transfer" invisible="1"/>
+					</group>
+					<group string="Overall" col="6">
+						<field name="o_attempted_hours"/>
+						<field name="o_passed_hours"/>
+						<field name="o_earned_hours"/>
+						<field name="o_quality_points"/>
+						<field name="o_gpa_hours"/>
+						<field name="o_cgpa"/>
+					</group>
+				</sheet>
+	            </form>
+            </field>
+		</record>
+		
+		<record id="view_level_gpa_tree" model="ir.ui.view">
+	        <field name="name">level.gpa.tree</field>
+            <field name="model">level.gpa</field>       
+            <field name="arch" type="xml">
+                <tree string="Level GPA Information" create="false" delete="false">
+					<field name="level_id"/>
+					<field name="current"/>
+					<field name="student_state_id"/>
+					<field name="total_credits"/>
+	            </tree>
+            </field>
+		</record>
+
+
+
+        <!--
+			Registrar Status Views
+		-->
+
+		<record id="view_registrar_status_form" model="ir.ui.view">
+	        <field name="name">registrar.status.form</field>
+            <field name="model">registrar.status</field>       
+            <field name="arch" type="xml">
+                <form string="Status" version="7.0">
+	               	<sheet>
+						<h3>
+							Create status from level
+						</h3>
+					</sheet>
+	            </form>
+            </field>
+		</record>
+		
+		<record id="view_registrar_status_tree" model="ir.ui.view">
+	        <field name="name">registrar.status.tree</field>
+            <field name="model">registrar.status</field>       
+            <field name="arch" type="xml">
+                <tree string="Status" editable="bottom">
+					<field name="name"/>
+					<field name="range_start" string="From(Credits)"/>
+					<field name="range_end" string="To(Credits)"/>
+	            </tree>
+            </field>
+		</record>
+
+
+
+		<!--
+			Term Term Views
+		-->
+
+		<record id="view_term_term_form" model="ir.ui.view">
+			<field name="name">term.term.form</field>
+			<field name="model">aun.term.term</field>
+			<field name="arch" type="xml">
+				<form string="Term" version="7.0">
+					<sheet>					
+						<group col="4">
+							<field name="name"/>
+							<field name="code"/>
+							<field name="year_adjustment"/>
+						</group>
+						<group><field name="defaults"/></group>					
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_term_term_tree" model="ir.ui.view">
+			<field name="name">term.term.tree</field>
+			<field name="model">aun.term.term</field>
+			<field name="arch" type="xml">
+				<tree string="Term">
+					<field name="name"/>
+					<field name="code"/>
+				</tree>
+			</field>
+		</record>
+
+		<!--
+			Term Term Actions
+		-->
+
+		<record id="term_term_action" model="ir.actions.act_window">
+			<field name="name">Term</field>
+			<field name="res_model">aun.term.term</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a term label e.g. Spring, Summer I, Summer II...
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+			Level Term Defaults
+		-->
+
+		<!--record id="view_level_term_form" model="ir.ui.view">
+			<field name="name">level.term.form</field>
+			<field name="model">aun.level.term.defaults</field>
+			<field name="arch" type="xml">
+				<form string="Level Term Defaults" version="7.0">					
+					<group>
+						<group><field name="level_id"/></group>
+						<group>
+							<field name="minimum_hours" string="Minimum Hours"/>
+							<field name="maximum_hours" string="Maximum Hours"/>
+						</group>
+					</group>				
+					<div class="oe_chatter">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record-->
+		
+		<record id="view_level_term_tree" model="ir.ui.view">
+			<field name="name">level.term.tree</field>
+			<field name="model">aun.level.term.defaults</field>
+			<field name="arch" type="xml">
+				<tree string="Level Term Defaults" editable="bottom">
+					<field name="level_id"/>
+					<field name="minimum_hours"/>
+					<field name="maximum_hours"/>
+				</tree>
+			</field>
+		</record>
+
+
+		<!--
+			Faculty Section Views
+		-->
+
+		<!-- record id="view_faculty_section_form" model="ir.ui.view">
+			<field name="name">faculty.section.form</field>
+			<field name="model">aun.faculty.section</field>
+			<field name="arch" type="xml">
+				<form string="Faculty" version="7.0">					
+					<group>
+						<group><field name="faculty_id"/></group>
+						<group>
+							<field name="percentage"/>
+							<field name="lab"/>
+						</group>
+					</group>				
+					<div class="oe_chatter">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record -->
+		
+		<record id="view_faculty_section_tree" model="ir.ui.view">
+			<field name="name">faculty.section.tree</field>
+			<field name="model">aun.faculty.section</field>
+			<field name="arch" type="xml">
+				<tree string="Faculty" editable="bottom">
+					<field name="faculty_id"/>
+					<!--field name="percentage"/-->
+					<field name="primary"/>
+				</tree>
+			</field>
+		</record>
+
+
+		<!--
+			Section Lab Views
+		-->
+
+		<record id="view_section_lab_form" model="ir.ui.view">
+			<field name="name">section.lab.form</field>
+			<field name="model">section.lab</field>
+			<field name="priority">1</field>
+			<field name="arch" type="xml">
+				<form string="Labs" version="7.0">					
+					<group col="4">
+						<field name="name" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}" class="oe_inline"/>
+						<field name="mandatory" attrs="{'readonly':['|',('state','=','cancelled'),('has_enrollment','!=',False)]}"/>
+						<field name="duration_id" attrs="{'readonly':[('state','=','cancelled')]}" class="oe_inline"/>
+						<field name="location_id" attrs="{'readonly':[('state','=','cancelled')]}" class="oe_inline"/>
+						<field name="capacity" attrs="{'readonly':[('state','=','cancelled')]}"/>
+						<field name="enrolled"/>
+						<field name="state" class="oe_save_only"/>
+						<field name="has_enrollment" invisible="1"/>
+					</group>
+					<field name="faculty" attrs="{'readonly':[('state','=','cancelled')]}"/>			
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="view_student_lab_form" model="ir.ui.view">
+			<field name="name">section.lab.form</field>
+			<field name="model">section.lab</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<form string="Labs" version="7.0">					
+					<group col="4">
+						<field name="name" class="oe_inline" readonly="1"/>
+						<field name="duration_id" class="oe_inline" readonly="1"/>
+						<field name="location_id" class="oe_inline" readonly="1"/>
+						<field name="mandatory" readonly="1"/>
+						<field name="enrolled"/>
+						<field name="capacity" readonly="1"/>
+						<field name="state" invisible="1"/>
+					</group>
+					<field name="faculty" readonly="1"/>
+				</form>
+			</field>
+		</record>
+		
+		<record id="view_section_lab_tree" model="ir.ui.view">
+			<field name="name">section.lab.tree</field>
+			<field name="model">section.lab</field>
+			<field name="priority">1</field>
+			<field name="arch" type="xml">
+				<tree string="Labs">
+					<field name="course_id"/>
+					<field name="name"/>
+					<field name="faculty_tree"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+					<field name="mandatory"/>
+					<field name="enrolled"/>
+					<field name="capacity"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_faculty_lab_tree" model="ir.ui.view">
+			<field name="name">section.lab.tree</field>
+			<field name="model">section.lab</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<tree string="Labs">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="name"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+					<field name="enrolled"/>
+					<field name="capacity"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_faculty_lab_search" model="ir.ui.view">
+			<field name="name">section.lab.tree</field>
+			<field name="model">section.lab</field>
+			<field name="arch" type="xml">
+				<search string="Labs">
+					<field name="term_id"/>
+					<field name="section_id"/>
+					<field name="course_id"/>
+					<field name="name"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+					<filter string="Active Term" name="Active" domain="[('term_id.is_active','=',True)]"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name = "Term" domain="" context="{'group_by':'term_id'}"/>              
+                    </group>
+				</search>
+			</field>
+		</record>
+
+		<record id="faculty_lab_action" model="ir.actions.act_window">
+			<field name="name">Labs</field>
+			<field name="res_model">section.lab</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('state','=','active')]</field>
+			<field name="context">{'search_default_Active': 1}</field>
+			<field name="view_id" ref="view_faculty_lab_tree"/>
+		</record>
+
+
+		<!--
+			Registrar Grade Views
+		-->
+
+		<record id="view_registrar_grade_form" model="ir.ui.view">
+			<field name="name">registrar.grade.form</field>
+			<field name="model">aun.registrar.grade</field>
+			<field name="arch" type="xml">
+				<form string="Grade Information" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="name"/>
+							<!--field name="abbreviation"/-->
+							<field name="level_id"/>
+							<field name="grademode_id"/>
+							<field name="quality_points"/>
+							<field name="default_grade"/>
+							<field name="numeric_value" groups="academics.group_registrar_ass_registrar"/>
+							<field name="attempted"/>
+							<field name="passed"/>
+							<field name="earned"/>
+							<field name="gpa"/>
+							<field name="status_indicator"/>
+							<field name="repeat_indicator"/>
+							<field name="web_indicator"/>
+							<field name="midterm"/>
+							<field name="refund"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_grade_tree" model="ir.ui.view">
+			<field name="name">registrar.grade.tree</field>
+			<field name="model">aun.registrar.grade</field>
+			<field name="arch" type="xml">
+				<tree string="Grade Information">
+					<field name="name"/>
+					<field name="level_id"/>
+					<field name="grademode_id"/>
+					<field name="status_indicator"/>
+					<field name="web_indicator"/>
+					<field name="quality_points"/>
+					<field name="attempted"/>
+					<field name="passed"/>
+					<field name="midterm"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_grade_search" model="ir.ui.view">
+			<field name="name">registrar.grade.search</field>
+			<field name="model">aun.registrar.grade</field>
+			<field name="arch" type="xml">
+				<search string="Grade Information">
+					<field name="name"/>
+					<field name="level_id"/>
+					<field name="grademode_id"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Grade Actions
+		-->
+
+
+		<record id="registrar_grade_action" model="ir.actions.act_window">
+			<field name="name">Grades</field>
+			<field name="res_model">aun.registrar.grade</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a grade
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+			Registrar Level Views
+		-->
+
+		<record id="view_registrar_level_form" model="ir.ui.view">
+			<field name="name">registrar.level.form</field>
+			<field name="model">aun.registrar.level</field>
+			<field name="arch" type="xml">
+				<form string="Level Information" version="7.0">
+					<sheet>
+						<group><field name="name" placeholder="E.g. Undergraduate, Graduate..."/></group>
+						<group><field name="status_ids"/></group>
+						<group><field name="honors_ids"/></group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_level_tree" model="ir.ui.view">
+			<field name="name">registrar.level.tree</field>
+			<field name="model">aun.registrar.level</field>
+			<field name="arch" type="xml">
+				<tree string="Level Information">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_level_search" model="ir.ui.view">
+			<field name="name">registrar.level.search</field>
+			<field name="model">aun.registrar.level</field>
+			<field name="arch" type="xml">
+				<search string="Level Information">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Level Actions
+		-->
+
+		<record id="registrar_level_action" model="ir.actions.act_window">
+			<field name="name">Levels</field>
+			<field name="res_model">aun.registrar.level</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a level
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Student State Views
+		-->
+
+		<record id="view_student_state_form" model="ir.ui.view">
+			<field name="name">student.state.form</field>
+			<field name="model">student.state</field>
+			<field name="arch" type="xml">
+				<form string="State Information" version="7.0">
+					<sheet>
+						<group><field name="name" placeholder="E.g. Active, Dismissed, Graduated..." style="width: 35%%"/></group>
+						<group col="4">
+							<field name="is_active"/>
+							<field name="proh_reg"/>
+							<field name="transcript"/>
+							<field name="graduated"/>
+							<field name="default_state" help="Students are placed on the default state upon admission"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_student_state_tree" model="ir.ui.view">
+			<field name="name">student.state.tree</field>
+			<field name="model">student.state</field>
+			<field name="arch" type="xml">
+				<tree string="State Information">
+				<field name="name"/>
+				<field name="is_active"/>
+				<field name="proh_reg"/>
+				<field name="transcript"/>
+				<field name="graduated"/>
+				<field name="default_state"/>			
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_student_state_search" model="ir.ui.view">
+			<field name="name">student.state.search</field>
+			<field name="model">student.state</field>
+			<field name="arch" type="xml">
+				<search string="State Information">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Student State Actions
+		-->
+
+		<record id="student_state_action" model="ir.actions.act_window">
+			<field name="name">Student States</field>
+			<field name="res_model">student.state</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a state
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Course Subject Views
+		-->
+
+		<record id="view_course_subject_form" model="ir.ui.view">
+			<field name="name">course.subject.form</field>
+			<field name="model">course.subject</field>
+			<field name="arch" type="xml">
+				<form string="Subject Information" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="name" placeholder="E.g. BIO"/>
+							<field name="title" placeholder="E.g. Biology"/>
+							<field name="school_id"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_course_subject_tree" model="ir.ui.view">
+			<field name="name">course.subject.tree</field>
+			<field name="model">course.subject</field>
+			<field name="arch" type="xml">
+				<tree string="Subjects">
+					<field name="name"/>
+					<field name="title"/>
+					<field name="school_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_course_subject_search" model="ir.ui.view">
+			<field name="name">course.subject.search</field>
+			<field name="model">course.subject</field>
+			<field name="arch" type="xml">
+				<search string="Subject">
+					<field name="name"/>
+					<field name="title"/>
+					<field name="school_id"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Course Subject Actions
+		-->
+
+		<record id="course_subject_action" model="ir.actions.act_window">
+			<field name="name">Subjects</field>
+			<field name="res_model">course.subject</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a subject
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Course Type Views
+		-->
+
+		<record id="view_course_type_form" model="ir.ui.view">
+			<field name="name">course.type.form</field>
+			<field name="model">course.type</field>
+			<field name="arch" type="xml">
+				<form string="Course Type Information" version="7.0">
+					<sheet>
+						<group>
+							<field name="name" placeholder="E.g. Lecture, Internship..." class="oe_inline"/>
+							<field name="description"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_course_type_tree" model="ir.ui.view">
+			<field name="name">course.type.tree</field>
+			<field name="model">course.type</field>
+			<field name="arch" type="xml">
+				<tree string="Course Types">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_course_type_search" model="ir.ui.view">
+			<field name="name">course.type.search</field>
+			<field name="model">course.type</field>
+			<field name="arch" type="xml">
+				<search string="Course Type">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Course Type Actions
+		-->
+
+		<record id="course_type_action" model="ir.actions.act_window">
+			<field name="name">Course Types</field>
+			<field name="res_model">course.type</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a course type
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+			Program Views
+		-->
+
+		<record id="view_registrar_program_form" model="ir.ui.view">
+			<field name="name">registrar.program.form</field>
+			<field name="model">registrar.program</field>
+			<field name="arch" type="xml">
+				<form string="Program Information" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="title" placeholder="E.g. Bachelor of Science" class="oe_inline"/>
+							<field name="name" placeholder="E.g. BSc" class="oe_inline"/>
+							<field name="level_id" class="oe_inline"/>
+						</group>
+						<group>
+							<field name="description"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_program_tree" model="ir.ui.view">
+			<field name="name">registrar.program.tree</field>
+			<field name="model">registrar.program</field>
+			<field name="arch" type="xml">
+				<tree string="Programs">
+					<field name="title"/>
+					<field name="name"/>
+					<field name="level_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_program_search" model="ir.ui.view">
+			<field name="name">registrar.program.search</field>
+			<field name="model">registrar.program</field>
+			<field name="arch" type="xml">
+				<search string="Program">
+					<field name="title"/>
+					<field name="name"/>
+					<field name="level_id"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Program Actions
+		-->
+
+		<record id="registrar_program_action" model="ir.actions.act_window">
+			<field name="name">Programs</field>
+			<field name="res_model">registrar.program</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a program
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Transfer Institution Views
+		-->
+
+		<record id="view_transfer_institution_form" model="ir.ui.view">
+			<field name="name">transfer.institution.form</field>
+			<field name="model">transfer.institution</field>
+			<field name="arch" type="xml">
+				<form string="Transfer Institutions" version="7.0">
+					<sheet>
+						<group>
+							<field name="name"/>
+							<field name="code" class="oe_inline"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_transfer_institution_tree" model="ir.ui.view">
+			<field name="name">transfer.institution.tree</field>
+			<field name="model">transfer.institution</field>
+			<field name="arch" type="xml">
+				<tree string="Transfer Institutions">
+					<field name="name"/>
+					<field name="code"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_transfer_institution_search" model="ir.ui.view">
+			<field name="name">transfer.institution.search</field>
+			<field name="model">transfer.institution</field>
+			<field name="arch" type="xml">
+				<search string="Transfer Institution">
+					<field name="name"/>
+					<field name="code"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Transfer Institution Action
+		-->
+
+		<record id="transfer_institution_action" model="ir.actions.act_window">
+			<field name="name">Transfer Institutions</field>
+			<field name="res_model">transfer.institution</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create an institution
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Transfer Course Equivalent View
+		-->
+		<record id="view_transfer_course_equivalent_form" model="ir.ui.view">
+			<field name="name">transfer.course.equivalent.form</field>
+			<field name="model">transfer.course.equivalent</field>
+			<field name="arch" type="xml">
+				<form string="Transfer Course Equivalent" version = "7.0">
+					<sheet>
+						<group col="4">
+							<field name="course_id" on_change="on_change_course(course_id)" attrs="{'readonly':[('state','=','done')]}"/>
+		                    <field name="name"/>
+		                    <field name="term_id" attrs="{'readonly':[('state','=','done')]}"/>
+		                    <field name="grademode_id" on_change="on_change_grademode(grademode_id, grade_id)"/>
+		                    <field name="grade_id" attrs="{'readonly':[('grademode_id','=',False)]}" domain="[('status_indicator','=',True),('grademode_id','=',grademode_id)]"/>
+		                    <field name="credit" on_change="on_change_credit(credit,course_id)" attrs="{'readonly':[('course_id','=',False)]}"/>
+		                    <field name="repeat"/>
+		                    <field name="state" invisible="1"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+				
+		<record id="view_transfer_course_equivalent_tree" model="ir.ui.view">
+	        <field name="name">transfer.course.equivalent.tree</field>
+            <field name="model">transfer.course.equivalent</field>
+            <field name="arch" type="xml">
+                <tree string="Transfer Course Equivalent" editable="bottom">
+                    <field name="course_id" on_change="on_change_course(course_id)"/>
+                    <field name="name"/>
+                    <field name="term_id"/>
+                    <field name="credit" on_change="on_change_credit(credit,course_id)"/>
+                    <field name="grademode_id" on_change="on_change_grademode(grademode_id, grade_id)"/>
+                    <field name="grade_id" domain="[('status_indicator','=',True),('grademode_id','=',grademode_id)]"/>
+                    <field name="repeat" on_change="on_change_repeat(repeat,student_id,course_id)"/>
+                    <field name="student_id" invisible="1"/>
+                    <!--field name="count_in_gpa"/-->
+                </tree>
+            </field>
+		</record>
+
+
+
+		<!--
+			Honors Views
+		-->
+
+		<record id="view_registrar_honors_form" model="ir.ui.view">
+			<field name="name">registrar.honors.form</field>
+			<field name="model">registrar.honors</field>
+			<field name="arch" type="xml">
+				<form string="Honors Information" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="name"/>
+							<label for="gpa_from" string="Range"/>
+							<div>
+							<field name="gpa_from" class="oe_inline"/> - <field name="gpa_to" class="oe_inline"/>
+							</div>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+
+		<record id="view_registrar_honors_tree" model="ir.ui.view">
+			<field name="name">registrar.honors.tree</field>
+			<field name="model">registrar.honors</field>
+			<field name="arch" type="xml">
+				<tree string="Honors" editable="bottom">
+					<field name="name" placeholder="E.g. President's List"/>
+					<field name="gpa_from"/>
+					<field name="gpa_to"/>
+				</tree>
+			</field>
+		</record>
+
+
+		<!--
+			Institutional Honors Views
+		-->
+
+		<record id="view_institutional_honors_form" model="ir.ui.view">
+			<field name="name">institutional.honors.form</field>
+			<field name="model">institutional.honors</field>
+			<field name="arch" type="xml">
+				<form string="Honors Information" version="7.0">
+					<sheet>
+						<group>
+							<field name="name" placeholder="E.g. Summa Cum Laude" style="width: 29%%"/>
+							<label for="gpa_from" string="GPA Range"/>
+							<div>
+							<field name="gpa_from" class="oe_inline"/> - <field name="gpa_to" class="oe_inline"/>
+							</div>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+
+		<record id="view_institutional_honors_tree" model="ir.ui.view">
+			<field name="name">institutional.honors.tree</field>
+			<field name="model">institutional.honors</field>
+			<field name="arch" type="xml">
+				<tree string="Institutional Honors">
+					<field name="name"/>
+					<field name="gpa_from"/>
+					<field name="gpa_to"/>
+				</tree>
+			</field>
+		</record>
+
+		<!--
+			Institutional Honors Action
+		-->
+
+		<record id="institutional_honors_action" model="ir.actions.act_window">
+			<field name="name">Institutional Honors</field>
+			<field name="res_model">institutional.honors</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create an institutional honor
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Registrar Grademode Views
+		-->
+
+		<record id="view_registrar_grademode_form" model="ir.ui.view">
+			<field name="name">registrar.grademode.form</field>
+			<field name="model">aun.registrar.grademode</field>
+			<field name="arch" type="xml">
+				<form string="Grademode Information" version="7.0">
+					<sheet>
+						<group>
+							<field name="name"/>
+							<field name="description"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_grademode_tree" model="ir.ui.view">
+			<field name="name">registrar.grademode.tree</field>
+			<field name="model">aun.registrar.grademode</field>
+			<field name="arch" type="xml">
+				<tree string="Grademode Information">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_grademode_search" model="ir.ui.view">
+			<field name="name">registrar.grademode.search</field>
+			<field name="model">aun.registrar.grademode</field>
+			<field name="arch" type="xml">
+				<search string="Grademode Information">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Grademode Action
+		-->
+
+		<record id="registrar_grademode_action" model="ir.actions.act_window">
+			<field name="name">Grade Modes</field>
+			<field name="res_model">aun.registrar.grademode</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a grademode
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+			Registrar Hold Views
+		-->
+
+		<record id="view_registrar_hold_form" model="ir.ui.view">
+			<field name="name">registrar.hold.form</field>
+			<field name="model">aun.registrar.hold</field>
+			<field name="arch" type="xml">
+				<form string="Hold Information" version="7.0">
+					<sheet>		
+						<h1>Hold Definition</h1>
+						<group>
+							<field name="name"/>
+						</group>
+						<group col="4">						
+							<field name="registration"/>
+							<field name="enr_ver"/>
+							<field name="transcript"/>
+							<field name="graduation"/>
+							<field name="grades"/>
+							<field name="ar"/>
+							<field name="application"/>
+							<field name="compliance"/>
+						</group>
+						<group>
+							<field name="group_ids" domain="[('category_id.name','=','Academics')]" groups="base.group_system"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>	
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_hold_tree" model="ir.ui.view">
+			<field name="name">registrar.hold.tree</field>
+			<field name="model">aun.registrar.hold</field>
+			<field name="arch" type="xml">
+				<tree string="Hold Information">
+					<field name="name"/>
+					<field name="registration"/>
+					<field name="enr_ver"/>
+					<field name="transcript"/>
+					<field name="graduation"/>
+					<field name="grades"/>
+					<field name="ar"/>
+					<field name="application"/>
+					<field name="compliance"/>	
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_hold_search" model="ir.ui.view">
+			<field name="name">registrar.hold.search</field>
+			<field name="model">aun.registrar.hold</field>
+			<field name="arch" type="xml">
+				<search string="Hold Information">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Hold Actions
+		-->
+
+		<record id="registrar_hold_action" model="ir.actions.act_window">
+			<field name="name">Holds</field>
+			<field name="res_model">aun.registrar.hold</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a hold e.g. Registration Hold
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+			Registrar Hold Assignment Views
+		-->
+
+        <record id="view_registrar_hold_assignment_form" model="ir.ui.view">
+            <field name="name">registrar.hold.assignment.form</field>
+            <field name="model">aun.registrar.hold.assignment</field>
+            <field name="arch" type="xml">
+                <form string="Hold Details" version="7.0">
+				<header>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                	<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor,academics.group_admis_staff"/>
+                	<group col="4">
+	                    <field name="student_id" on_change="on_change_student(student_id)" context="{'form_view_ref': 'academics.view_student_form','tree_view_ref': 'academics.view_student_tree','search_view_ref': 'academics.view_student_search'}"/>
+	                    <label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor,academics.group_admis_staff"/>
+						<div attrs="{'invisible':[('student_id','=',False)]}">
+						<field name="fname" class="oe_inline"/>  <field name="lname" class="oe_inline"/>
+						</div>
+	                    <field name="hold_id" on_change="on_change_hold(hold_id)"/>
+	                    <field name="start_date" on_change="on_change_date(start_date, end_date)"/>
+	                    <field name="end_date" on_change="on_change_date(start_date, end_date)"/>
+						<field name="is_active"/>
+						<field name="hold_run_id" attrs="{'invisible': [('hold_run_id','=',False)]}"/>
+					</group>
+					<field name="note" placeholder="Note"/>
+                </sheet>
+    			<div class="oe_chatter">
+                       <field name="message_follower_ids" widget="mail_followers"/>
+                       <field name="message_ids" widget="mail_thread"/>
+                   </div>
+                </form>
+            </field>
+        </record>
+
+		<record id="view_registrar_hold_assignment_tree" model="ir.ui.view">
+			<field name="name">registrar.hold.assignment.tree</field>
+			<field name="model">aun.registrar.hold.assignment</field>
+			<field name="arch" type="xml">
+				<tree string="Hold Assignments">
+					<field name="student_id"/>
+					<field name="hold_id"/>
+					<field name="start_date"/>
+					<field name="end_date"/>
+					<field name="is_active"/>
+					<field name="state" invisible="1"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_hold_assignment_search" model="ir.ui.view">
+			<field name="name">registrar.hold.assignment.search</field>
+			<field name="model">aun.registrar.hold.assignment</field>
+			<field name="arch" type="xml">
+				<search string="Hold Assignment">
+					<field name="student_id"/>
+					<field name="hold_id"/>
+					<field name="start_date"/>
+					<field name="end_date"/>
+					<field name="state"/>
+					<filter string="Cancelled" domain="[('active','=',False)]" context="{}"/>
+					<group expand="0" string="Group By...">
+	                    <filter string="Student" domain="[]" context="{'group_by':'student_id'}"/>
+	                    <filter string="Hold Type" domain="[]" context="{'group_by':'hold_id'}"/>
+	                </group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Hold Assignment Actions
+		-->
+
+
+		<record id="registrar_hold_assignment_action" model="ir.actions.act_window">
+			<field name="name">Student Holds</field>
+			<field name="res_model">aun.registrar.hold.assignment</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a hold assignment.
+	           </p><p>
+	           	 Multiple students can be placed on the same hold.
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+			Hold Run Views
+		-->
+
+		<record id="view_hold_run_form" model="ir.ui.view">
+			<field name="name">hold.run.form</field>
+			<field name="model">hold.run</field>
+			<field name="arch" type="xml">
+				<form string="Hold Information" version="7.0">
+					<header>
+	                    <button name="%(action_hold_run_students)d" type="action" states="done" string="Generate Holds" class="oe_highlight"/>
+	                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+	                </header>
+	              	<sheet>
+	                    <label for="name" class="oe_edit_only"/>
+	                    <h1>
+	                        <field name="name" style="width: 40%%"/>
+	                    </h1>
+	                    <label for="hold_id" class="oe_edit_only"/>
+	                    <h1>
+	                        <field name="hold_id" style="width: 40%%" on_change="on_change_hold(hold_id)"/>
+	                    </h1>
+	                    <h2>
+	                        <div>Period from <field name="start_date" class="oe_inline"/> to <field name="end_date" class="oe_inline"/></div>
+	                    </h2>
+	                    <field name="note" placeholder="Note"/>
+	                    <separator string="Students"/>
+	                    <field name="hold_ids">
+	                    	<tree editable="bottom">
+	                    		<field name="student_id"/>
+	                    		<field name="start_date"/>
+	                    		<field name="end_date"/>
+	                    		<field name="is_active"/>
+	                    		<field name="state" invisible="1"/>
+	                    	</tree>
+	                    </field>
+	                </sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>	
+				</form>
+			</field>
+		</record>
+
+		<record id="view_hold_run_tree" model="ir.ui.view">
+			<field name="name">hold.run.tree</field>
+			<field name="model">hold.run</field>
+			<field name="arch" type="xml">
+				<tree string="Hold Information">
+					<field name="name"/>
+					<field name="hold_id"/>
+					<field name="start_date"/>
+					<field name="end_date"/>
+					<field name="state" invisible="1"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_hold_run_search" model="ir.ui.view">
+			<field name="name">hold.run.search</field>
+			<field name="model">hold.run</field>
+			<field name="arch" type="xml">
+				<search string="Hold Information">
+					<field name="name"/>
+					<field name="hold_id"/>
+					<group expand="0" string="Group By...">
+	                    <filter string="Hold Type" domain="[]" context="{'group_by':'hold_id'}"/>
+	                </group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Hold Run Actions
+		-->
+
+		<record id="hold_run_action" model="ir.actions.act_window">
+			<field name="name">Batch Holds</field>
+			<field name="res_model">hold.run</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a batch hold
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+				Registrar Course Views
+		-->
+
+		<record id="view_registrar_course_form" model="ir.ui.view">
+			<field name="name">registrar.course.form</field>
+			<field name="model">aun.registrar.course</field>
+			<field name="arch" type="xml">
+				<form string="Course Information" version="7.0">
+					<sheet>
+						<group>
+							<group>
+								<field name="name" class="oe_save_only" readonly="1"/>
+                            	<field name="subject_id" class="oe_edit_only" attrs="{'readonly':[('has_section','!=',False)]}"/>
+								<field name="course_name" attrs="{'readonly':[('has_section','!=',False)]}"/>
+								<field name="status_id" attrs="{'readonly':['|',('level_id','=',False)]}"/>
+								<field name="credit_low"/>
+								<field name="credit_high"/>
+								<field name="active"/>
+								<field name="create_date" class="oe_save_only"/>
+							</group>
+							<group>
+								<field name="code" class="oe_edit_only" attrs="{'readonly':[('has_section','!=',False)]}"/>
+								<field name="level_id" on_change="on_change_level()"/>
+								<field name="grademode_id"/>
+								<field name="course_type_id"/>
+								<field name="billing_low"/>
+								<field name="billing_high"/>
+								<field name="exclude"/>
+								<field name="end_date" class="oe_save_only"/>
+							</group>
+						</group>
+						<notebook colspan="4">
+							<page string = "Description">
+								<field name="description" placeholder = "Enter course description here..."/>
+							</page>
+							<page string = "Sections" groups="academics.group_registrar_ass_registrar">
+								<field name="section_ids"/>
+							</page>
+							<page string = "Prerequisites">
+								<field name="prerequisite_ids" context="{'default_course_id': active_id}"/>
+							</page>
+							<page string = "Repeat Limit">
+								<field name="repeat_limits"/>
+							</page>
+							<page string = "Equivalent Courses">
+								<field name="equivalents" domain="[('id','!=',id)]"/>
+							</page>
+							<page string = "Corequisites">
+								<field name="corequisite_ids" context="{'default_course_id': active_id}"/>
+								<field name="has_section" invisible="1"/>
+							</page>
+						</notebook>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_course_tree" model="ir.ui.view">
+			<field name="name">registrar.course.tree</field>
+			<field name="model">aun.registrar.course</field>
+			<field name="arch" type="xml">
+				<tree string="Course Information">
+					<field name="name"/>
+					<field name="course_name"/>
+					<field name="credit_low"/>
+					<field name="credit_high"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_course_search" model="ir.ui.view">
+			<field name="name">registrar.course.search</field>
+			<field name="model">aun.registrar.course</field>
+			<field name="arch" type="xml">
+				<search string="Course Information">
+					<field name="name"/>
+					<field name="course_name"/>
+					<field name="credit_low"/>
+					<field name="credit_high"/>
+					<field name="school_id"/>
+					<filter string="Inactive" domain="[('active','=',False)]"/>
+				</search>
+			</field>
+		</record>
+
+
+		<!--
+			Registrar Course Actions
+		-->
+
+		<record id="registrar_course_action" model="ir.actions.act_window">
+			<field name="name">Courses</field>
+			<field name="res_model">aun.registrar.course</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a course.
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!--
+			Registrar Major Views
+		-->
+
+
+		<record id="view_registrar_major_form" model="ir.ui.view">
+			<field name="name">registrar.major.form</field>
+			<field name="model">aun.registrar.major</field>
+			<field name="arch" type="xml">
+				<form string="Major Information" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="name"/>
+							<field name="hod_id"/>
+							<field name="hod_ids" widget="many2many_tags" domain="[('id','!=',hod_id)]"/>
+							<field name="no_school"/>
+							<field name="major"/>
+							<field name="minor"/>
+							<field name="conc"/>
+						</group>
+						<field name="description" placeholder = "Enter Major Description Here..."/>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_major_tree" model="ir.ui.view">
+			<field name="name">registrar.major.tree</field>
+			<field name="model">aun.registrar.major</field>
+			<field name="arch" type="xml">
+				<tree string="Major Information">
+					<field name="name" string="Name"/>
+					<field name="major"/>
+					<field name="minor"/>
+					<field name="conc"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_major_search" model="ir.ui.view">
+			<field name="name">registrar.major.search</field>
+			<field name="model">aun.registrar.major</field>
+			<field name="arch" type="xml">
+				<search string="Major Information">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Major Actions
+		-->
+
+		<record id="registrar_major_action" model="ir.actions.act_window">
+			<field name="name">Majors/Minors</field>
+			<field name="res_model">aun.registrar.major</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a major
+	           </p>
+	        </field>
+		</record>
+
+
+		<!--
+			Registrar Major-Course Views
+		-->
+
+		<record id="view_registrar_major_course_form" model="ir.ui.view">
+			<field name="name">registrar.major.course.form</field>
+			<field name="model">aun.registrar.major.course</field>
+			<field name="arch" type="xml">
+				<form string="Majors" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="major_id" on_change="on_change_major(major_id)" domain="['|',('major','=',True),('minor','=',True)]"/>
+							<field name="school_id" attrs="{'required':[('no_school','=',False)],'invisible':[('no_school','=',True)]}"/>
+							<field name="grade_requirement" attrs="{'required':[('no_school','=',False)],'invisible':[('no_school','=',True)]}"/>
+							<field name="program_id" on_change="on_change_program(program_id)" attrs="{'required':[('minor_only','=',False),('no_school','=',False)],'invisible':['|',('minor_only','=',True),('no_school','=',True)]}"/>
+							<field name="level_id" attrs="{'invisible':['|','|',('minor_only','=',True),('no_school','=',True),('level_id','=',False)]}"/>
+							<field name="major_only" invisible="1"/>
+							<field name="minor_only" invisible="1"/>
+							<field name="no_school" invisible="1"/>
+						</group>
+						<group>
+							<field name="category_ids" attrs="{'invisible':['|',('minor_only','=',True),('no_school','=',True)]}"/>
+							<field name="course_ids" attrs="{'invisible':['|',('minor_only','=',True),('no_school','=',True)]}"/>
+							<field name="minor_course_ids" attrs="{'invisible':['|',('major_only','=',True),('no_school','=',True)]}"/>
+							<field name="concentration_ids" attrs="{'invisible':['|',('minor_only','=',True),('no_school','=',True)]}"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_major_course_tree" model="ir.ui.view">
+			<field name="name">registrar.major.course.tree</field>
+			<field name="model">aun.registrar.major.course</field>
+			<field name="arch" type="xml">
+				<tree string="Majors">
+					<field name="major_id"/>
+					<field name="school_id"/>
+					<field name="program_id"/>
+				</tree>
+			</field>
+		</record>
+
+
+		<!--
+			Concentration Views
+		-->
+
+		<record id="view_registrar_concentration_form" model="ir.ui.view">
+	        <field name="name">registrar.concentration.form</field>
+            <field name="model">registrar.concentration</field>
+            <field name="arch" type="xml">
+                <form string="Concentration" version="7.0">
+                	<sheet>
+		                <group col="6">
+		                	<field name="conc_major_id" on_change="on_change_conc(conc_major_id)"/>
+		                	<field name="req_credit_hrs"/>
+		                	<field name="grade_requirement"/>
+		                	<field name="name" invisible="1"/>
+						</group>
+						<group>
+							<field name="description"/>
+							<field name="category_ids"/>
+							<field name="course_ids"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+                </form>
+            </field>
+		</record>
+		
+		<record id="view_registrar_concentration_tree" model="ir.ui.view">
+	        <field name="name">registrar.concentration.tree</field>
+            <field name="model">registrar.concentration</field>
+            <field name="arch" type="xml">
+                <tree string="Concentrations">
+                    <field name="name"/>
+                </tree>
+            </field>
+		</record>
+				
+		
+		<!--
+			Registrar Cat-Prerequisite Views
+		-->
+
+		<record id="view_registrar_cat_prerequisite_form" model="ir.ui.view">
+	        <field name="name">registrar.cat.prerequisite.form</field>
+            <field name="model">aun.registrar.cat.prerequisite</field>
+            <field name="arch" type="xml">
+                <form string="Prerequisites" version="7.0">
+					<group>
+						<field name="course_id" invisible="1"/>
+						<field name="catalogue_id" widget="selection" style="width: 25%%"/>
+						<field name="prerequisite_ids" context="{'default_course_id': course_id}"/>
+					</group>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+                </form>
+            </field>
+		</record>
+		
+		<record id="view_registrar_cat_prerequisite_tree" model="ir.ui.view">
+	        <field name="name">registrar.cat.prerequisite.tree</field>
+            <field name="model">aun.registrar.cat.prerequisite</field>
+            <field name="arch" type="xml">
+                <tree string="Prerequisites">
+					<field name="catalogue_id"/>
+                </tree>
+            </field>
+		</record>
+		
+		<!--
+			Registrar Course-Prerequisite Views
+		-->
+		
+		<record id="view_registrar_course_prerequisite_form" model="ir.ui.view">
+	        <field name="name">registrar.course.prerequisite.form</field>
+            <field name="model">aun.registrar.course.prerequisite</field>
+            <field name="arch" type="xml">
+                <form string="Prerequisites" version="7.0">
+					<group col="4">
+						<field name="prerequisite_id" attrs="{'invisible':[('prerequisite_id','=',False)]}"/>
+	                    <field name="grade_requirement" attrs="{'invisible':[('prerequisite_id','=',False)]}"/>
+						<field name="test_id" attrs="{'invisible':[('test_id','=',False)]}"/>
+	                    <field name="score" attrs="{'invisible':[('test_id','=',False)]}"/>
+	                    <field name="concurrency"/>
+					</group>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+                </form>
+            </field>
+		</record>
+			
+		<record id="view_registrar_course_prerequisite_tree" model="ir.ui.view">
+	        <field name="name">registrar.course.prerequisite.tree</field>
+            <field name="model">aun.registrar.course.prerequisite</field>
+            <field name="arch" type="xml">
+                <tree string="Prerequisites" editable="bottom">
+                	<field name="course_id" invisible="1"/>
+                    <field name="andor"/>
+                    <field name="open"/>
+                    <field name="test_id" on_change="on_change_test(test_id)" attrs="{'readonly':[('prerequisite_id','!=',False)],'required':[('prerequisite_id','=',False)]}"/>
+                    <field name="score" attrs="{'readonly':[('prerequisite_id','!=',False)],'required':[('test_id','!=',False)]}"/>
+                    <field name="prerequisite_id" on_change="on_change_prerequisite(prerequisite_id)" attrs="{'readonly':[('test_id','!=',False)],'required':[('test_id','=',False)]}" domain="[('id','!=',course_id)]"/>
+                    <field name="grade_requirement" attrs="{'readonly':[('test_id','!=',False)],'required':[('prerequisite_id','!=',False)]}"/>
+                    <field name="close"/>
+                    <field name="concurrency"/>
+                </tree>
+            </field>
+		</record>
+		
+
+		
+		<!--
+			Category Course View
+		-->
+
+		<record id="view_category_course_form" model="ir.ui.view">
+	        <field name="name">category.course.form</field>
+            <field name="model">category.course</field>
+            <field name="arch" type="xml">
+                <form string="Courses" version="7.0">
+					<group>
+	                    <field name="andor" attrs="{'invisible':[('andor','=',False)]}"/>
+	                    <field name="subject_id"/>
+	                    <field name="course_id" attrs="{'invisible':['|',('level_from','!=',False),('level_to','!=',False)]}"/>
+	                    <field name="level_from" attrs="{'invisible':[('course_id','!=',False)]}"/>
+	                    <field name="level_to" attrs="{'invisible':[('course_id','!=',False)]}"/>
+	                    <field name="grade_requirement" attrs="{'invisible':[('grade_requirement','=',False)]}"/>
+	                    <field name="credit" attrs="{'invisible':[('course_id','!=',False)]}"/>
+					</group>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+                </form>
+            </field>
+		</record>
+				
+		<record id="view_category_course_tree" model="ir.ui.view">
+	        <field name="name">category.course.tree</field>
+            <field name="model">category.course</field>
+            <field name="arch" type="xml">
+                <tree string="Courses" editable="bottom">
+                    <field name="andor"/>
+                    <field name="subject_id" on_change="on_change_subject(subject_id, course_id)"/>
+                    <field name="course_id" on_change="on_change_course(course_id)" attrs="{'readonly':['|',('level_from','!=',False),('level_to','!=',False)]}"/>
+                    <field name="level_from" attrs="{'readonly':[('course_id','!=',False)]}"/>
+                    <field name="level_to" attrs="{'readonly':[('course_id','!=',False)]}"/>
+                    <field name="grade_requirement"/>
+                    <field name="credit" attrs="{'readonly':[('course_id','!=',False)]}"/>
+                </tree>
+            </field>
+		</record>
+		
+		
+
+        <!--
+			Course Equivalent Views
+		-->
+
+		<!--record id="view_course_equivalent_form" model="ir.ui.view">
+			<field name="name">course.equivalent.form</field>
+			<field name="model">aun.course.equivalent</field>
+
+			<field name="arch" type="xml">
+				<form string="Equivalent Courses">
+					<group>
+						<field name="catalogue_id"/>
+						<field name="equivalent_ids">
+							<tree>
+								<field name="name" string = "Courses"/>	
+							</tree>
+						</field>
+					</group>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_course_equivalent_tree" model="ir.ui.view">
+			<field name="name">course.equivalent.tree</field>
+			<field name="model">aun.course.equivalent</field>
+
+			<field name="arch" type="xml">
+				<tree string="Equivalent Courses">
+					<field name="catalogue_id"/>
+					<field name="equivalent_ids"/>
+				</tree>
+			</field>
+		</record-->
+
+		<!--
+			Registrar Course-Corequisite Views
+		-->
+
+		<record id="view_registrar_corequisite_form" model="ir.ui.view">
+			<field name="name">registrar.corequisite.form</field>
+			<field name="model">registrar.corequisite</field>
+			<field name="arch" type="xml">
+				<form string="Co-Requisites" version="7.0">
+					<group>
+						<field name="catalogue_id" class="oe_inline"/>
+						<field name="corequisites" domain="[('id','!=',course_id)]"/>
+						<field name="course_id" invisible="1"/>
+					</group>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_corequisite_tree" model="ir.ui.view">
+			<field name="name">registrar.corequisite.tree</field>
+			<field name="model">registrar.corequisite</field>
+			<field name="arch" type="xml">
+				<tree string="Co-Requisites">
+					<field name="catalogue_id"/>
+					<field name="corequisites"/>
+				</tree>
+			</field>
+		</record>
+
+
+		<!--
+			Category Views
+		-->
+
+		<record id="view_registrar_cat_category_form" model="ir.ui.view">
+			<field name="name">registrar.cat.category.form</field>
+			<field name="model">registrar.cat.category</field>
+			<field name="arch" type="xml">
+				<form string="Category" version="7.0">
+					<group col="4">
+						<field name="name"/>
+						<field name="level_id"/>
+						<field name="grade_requirement"/>
+						<field name="req_credit_hrs"/>
+					</group>
+					<group>
+						<field name="course_ids"/>
+					</group>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_cat_category_tree" model="ir.ui.view">
+			<field name="name">registrar.cat.category.tree</field>
+			<field name="model">registrar.cat.category</field>
+
+			<field name="arch" type="xml">
+				<tree string="Course Category">
+					<field name="name"/>
+					<field name="level_id"/>
+					<field name="req_credit_hrs"/>
+				</tree>
+			</field>
+		</record>
+
+
+		<!--
+			Registrar Category Views
+		-->
+
+		<record id="view_registrar_category_form" model="ir.ui.view">
+			<field name="name">registrar.category.form</field>
+			<field name="model">registrar.category</field>
+			<field name="arch" type="xml">
+				<form string="Category Information" version="7.0">
+					<group>
+						<field name="name"/>
+						<field name="description"/>
+					</group>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_category_tree" model="ir.ui.view">
+			<field name="name">registrar.category.tree</field>
+			<field name="model">registrar.category</field>
+			<field name="arch" type="xml">
+				<tree string="Category Information">
+					<field name="name"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_category_search" model="ir.ui.view">
+			<field name="name">registrar.category.search</field>
+			<field name="model">registrar.category</field>
+
+			<field name="arch" type="xml">
+				<search string="Category Information">
+					<field name="name"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Category Action
+		-->
+
+		<record id="registrar_category_action" model="ir.actions.act_window">
+			<field name="name">Categories</field>
+			<field name="res_model">registrar.category</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a course category
+	           </p>
+	        </field>
+		</record>
+		
+
+
+		<!--
+			Registrar GPA info Views
+		-->
+		
+		<record id="view_gpa_info_form" model="ir.ui.view">
+	        <field name="name">gpa.info.form</field>
+            <field name="model">gpa.info</field>
+            <field name="arch" type="xml">
+                <form string="Final Grades" version="7.0" create="false" delete="false" edit="false">
+                <sheet>
+                	<div class="oe_right oe_button_box">
+						<button name="repair_gpa_info" string="Update GPA" type="object" groups="academics.group_registrar_ass_registrar"/>
+					</div>
+                	<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_academic_advisor"/>
+               		<group col="4">
+               			<field name="student_id" context="{'form_view_ref': 'academics.view_student_form'}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_academic_advisor"/>
+						<label for="fname" string="Student Name" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_academic_advisor"/>
+						<div groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_academic_advisor">
+						<field name="fname" readonly="1" class="oe_inline"/>  <field name="lname" readonly="1" class="oe_inline"/>
+						</div>
+						<field name="term_id"/>
+						<field name="level_id"/>
+						<field name="major_ids" widget="many2many_tags"/>
+						<field name="program_ids" widget="many2many_tags"/>
+						<field name="minor_ids" widget="many2many_tags"/>
+						<field name="conc_ids" widget="many2many_tags"/>
+						<field name="school_ids" widget="many2many_tags"/>
+						<field name="standing_id"/>
+						<field name="honors_id" attrs="{'invisible':[('honors_id','=',False)]}"/>
+					</group>
+					<h4><label string="TRANSFER CREDIT" attrs="{'invisible':[('transfer','=',False)]}"/></h4>
+					<field name="institution_ids" widget="many2many_tags" nolabel="1" attrs="{'invisible':[('transfer','=',False)]}"/>
+					<field name="transfer_course_ids" nolabel="1" attrs="{'invisible':[('transfer','=',False)]}">
+					<tree>
+						<field name="course_id"/>
+						<field name="name"/>
+						<field name="grade_id"/>
+						<field name="credit"/>
+						<field name="repeat"/>
+					</tree>
+					</field>
+					<h4><label string="INSTITUTION CREDIT" attrs="{'invisible':[('institution','=',False)]}"/></h4>
+					<field name="finalgrade_ids" nolabel="1" attrs="{'invisible':[('institution','=',False)]}"/>
+					<group string="Current Term" col="6" attrs="{'invisible':[('institution','=',False)]}">
+						<field name="attempted_hours"/>
+						<field name="quality_points"/>
+						<field name="passed_hours"/>
+						<field name="earned_hours"/>
+						<field name="gpa_hours"/>
+						<field name="gpa"/>
+					</group>
+					<group string="Cumulative" col="6" attrs="{'invisible':[('institution','=',False)]}">	
+						<field name="c_attempted_hours"/>
+						<field name="c_quality_points"/>
+						<field name="c_passed_hours"/>
+						<field name="c_earned_hours"/>
+						<field name="c_gpa_hours"/>
+						<field name="cgpa"/>
+					</group>
+					<group string="Term Transfer" col="6" attrs="{'invisible':[('transfer','=',False)]}">	
+						<field name="t_attempted_hours"/>
+						<field name="t_quality_points"/>
+						<field name="t_passed_hours"/>
+						<field name="t_earned_hours"/>
+						<field name="t_gpa_hours"/>
+						<field name="t_gpa"/>
+					</group>
+					<group string="Cumulative Transfer" col="6" attrs="{'invisible':[('latest_info','=',False)]}">	
+						<field name="tc_attempted_hours"/>
+						<field name="tc_quality_points"/>
+						<field name="tc_passed_hours"/>
+						<field name="tc_earned_hours"/>
+						<field name="tc_gpa_hours"/>
+						<field name="tcgpa"/>
+					</group>
+					<group string="Overall" col="6" attrs="{'invisible':[('latest_info','=',False)]}">	
+						<field name="o_attempted_hours"/>
+						<field name="o_quality_points"/>
+						<field name="o_passed_hours"/>
+						<field name="o_earned_hours"/>
+						<field name="o_gpa_hours"/>
+						<field name="o_cgpa"/>
+					</group>
+					<field name="institution" invisible="1"/>
+					<field name="transfer" invisible="1"/>
+					<field name="latest_info" invisible="1"/>
+                </sheet>
+                </form>
+            </field>
+		</record>
+
+		<record id="view_gpa_info_tree" model="ir.ui.view">
+			<field name="name">gpa.info.tree</field>
+			<field name="model">gpa.info</field>
+			<field name="arch" type="xml">
+				<tree string="Student GPA Information by Term" create="false" delete="false">
+					<field name="term_id"/>
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="attempted_hours"/>
+					<field name="quality_points"/>
+					<field name="passed_hours"/>
+					<field name="earned_hours"/>
+					<field name="gpa_hours"/>
+					<field name="gpa"/>
+					<field name="cgpa"/>
+					<field name="standing_id"/>
+				</tree>
+			</field>
+		</record>
+	
+		<record id="view_student_gpa_info_tree" model="ir.ui.view">
+			<field name="name">student.gpa.info.tree</field>
+			<field name="model">gpa.info</field>
+			<field name="arch" type="xml">
+				<tree string="Final Grades" create="false" delete="false">
+					<field name="term_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_gpa_info_search" model="ir.ui.view">
+			<field name="name">gpa.info.search</field>
+			<field name="model">gpa.info</field>
+			<field name="arch" type="xml">
+				<search string="Student GPA Information by term">
+					<field name="term_id"/>
+					<field name="student_id"/>
+					<field name="attempted_hours"/>
+					<field name="passed_hours"/>
+					<field name="gpa"/>
+					<field name="cgpa"/>
+					<field name="honors_id"/>
+					<field name="standing_id"/>
+					<filter string="Active Students" name="Active" domain="[('graduated','=',False)]" groups="academics.group_registrar_ass_registrar"/>
+					<group expand="1" string="Group By...">
+						<filter string="Term" name="Term" context="{'group_by':'term_id'}"/>
+						<filter string="Student" name="Student" context="{'group_by':'student_id'}"/>
+					</group>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar GPA info Actions
+		-->
+
+		<record id="gpa_info_action" model="ir.actions.act_window">
+			<field name="name">Student GPA Information</field>
+			<field name="res_model">gpa.info</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{'search_default_Active': 1}</field>
+			<field name="view_id" ref="view_gpa_info_tree"/>
+			<field name="help">Student GPA Information by term</field>
+		</record>
+
+		<record id="student_gpa_info_action" model="ir.actions.act_window">
+			<field name="name">Final Grades</field>
+			<field name="res_model">gpa.info</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('term_id.finalgrades_open','=',True)]</field>
+			<field name="context">{}</field>
+			<field name="view_id" ref="view_student_gpa_info_tree"/>
+			<field name="help">No grades on your record are available</field>
+		</record>
+		
+		<record id="student_gpa_academic_history_action" model="ir.actions.act_window">
+			<field name="name">Academic History</field>
+			<field name="res_model">gpa.info</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('term_id.history_open','=',True)]</field>
+			<field name="context">{}</field>
+			<field name="view_id" ref="view_student_gpa_info_tree"/>
+			<field name="help">No grades on your record are available</field>
+		</record>
+
+
+		<!--
+			Registrar Location Views
+		-->
+
+		<record id="view_registrar_location_form" model="ir.ui.view">
+	        <field name="name">registrar.location.form</field>
+            <field name="model">aun.registrar.location</field>
+            <field name="arch" type="xml">
+                <form string="Location Information" version="7.0">
+                <sheet>
+                <group col="4">
+                    <field name="name"/>
+                    <field name="location_type" groups="academics.group_registrar_ass_registrar"/>
+                    <field name="building_id"/>
+                    <field name="floor"/>
+                    <field name="res_room_type" attrs="{'invisible':[('location_type','!=','4')],'required':[('location_type','=','4')]}"/>
+                    <field name="capacity" attrs="{'invisible':[('location_type','==','4')]}"/>
+                    <field name="isactive"/>
+                </group>
+                </sheet>
+                <div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+                	<field name="message_follower_ids" widget="mail_followers" groups="[academics.group_housing_staff,academics.group_registrar_ass_registrar]"/>
+                	<field name="message_ids" widget="mail_thread" groups="[academics.group_housing_staff,academics.group_registrar_ass_registrar]"/>
+                </div>
+                </form>
+            </field>
+		</record>
+
+		<record id="view_registrar_location_tree" model="ir.ui.view">
+	        <field name="name">registrar.location.tree</field>
+            <field name="model">aun.registrar.location</field>
+            <field name="arch" type="xml">
+                <tree string="Location Information">
+                    <field name="name"/>
+                    <field name="building_id"/>
+                    <field name="location_type" groups="academics.group_registrar_ass_registrar"/>
+                    <field name="floor"/>
+					<field name="res_room_type" groups="academics.group_housing_staff"/>
+                </tree>
+            </field>
+		</record>
+		
+		<record id="view_registrar_location_search" model="ir.ui.view">
+	        <field name="name">registrar.location.search</field>
+            <field name="model">aun.registrar.location</field>
+            <field name="arch" type="xml">
+                <search string="Location Information">
+                <group expand="0" string="Group By...">
+                	<filter string="Building" name ="Building" domain="[]" context="{'group_by':'building_id'}"/>
+                	<filter string="Floor" domain="[]" context="{'group_by':'floor'}"/>
+                </group>
+                    <field name="name"/>
+                    <field name="building_id"/>
+                    <field name="location_type" groups="academics.group_registrar_ass_registrar"/>
+                    
+                </search>
+            </field>
+		</record>
+
+ 		<!--
+			Registrar location Actions
+		-->
+
+
+		<record id="registrar_location_action" model="ir.actions.act_window">
+			<field name="name">Rooms</field>
+			<field name="res_model">aun.registrar.location</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a room
+	           </p>
+	        </field>
+		</record>
+
+
+
+        <!--
+			Transfer Info Views
+		-->
+
+		<record id="view_transfer_info_form" model="ir.ui.view">
+			<field name="name">transfer.info.form</field>
+			<field name="model">transfer.info</field>
+			<field name="arch" type="xml">
+				<form string="Transfer Course Information" version = "7.0">
+					<sheet>
+						<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor"/>
+						<group col="4">
+							<field name="institution_id"/>
+							<field name="student_id" on_change="on_change_student(student_id)" context="{'form_view_ref': 'academics.view_student_form'}"/>
+							<field name="transcript_date"/>
+							<label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar"/>
+							<div attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar">
+							<field name="fname" class="oe_inline"/> <field name="lname" class="oe_inline"/>
+							</div>
+							<field name="official"/>
+						</group>
+						<group string="Transfer Information" col="4">
+							<field name="attendance_terms"/>
+							<field name="acceptance_date"/>
+							<field name="effective_term_ids" widget="many2many_tags"/>
+							<field name="level_id"/>
+							<field name="attendance_date_from"/>
+							<field name="degree"/>
+							<field name="attendance_date_to"/>
+						</group>
+						<group string="Transfer Course(s)">
+							<field name="transfer_course_ids" nolabel="1" context="{'default_student_id': student_id}"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_transfer_info_tree" model="ir.ui.view">
+			<field name="name">transfer.info.tree</field>
+			<field name="model">transfer.info</field>
+			<field name="arch" type="xml">
+				<tree string="Transfers">
+					<field name="student_id"/>
+					<field name="institution_id"/>
+					<field name="attendance_date_from"/>
+					<field name="attendance_date_to"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_transfer_info_search" model="ir.ui.view">
+			<field name="name">transfer.info.search</field>
+			<field name="model">transfer.info</field>
+			<field name="arch" type="xml">
+				<search string="Transfers">
+					<field name="student_id"/>
+					<field name="institution_id"/>
+					<field name="transcript_date"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Transfer Information Actions
+		-->
+
+		<record id="transfer_info_action" model="ir.actions.act_window">
+			<field name="name">Transfers</field>
+			<field name="res_model">transfer.info</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a transfer course
+	           </p>
+	        </field>
+		</record>
+
+
+		
+        <!--
+			Transfer Course Views
+		-->
+
+		<record id="view_transfer_course_form" model="ir.ui.view">
+			<field name="name">transfer.course.form</field>
+			<field name="model">transfer.course</field>
+			<field name="arch" type="xml">
+				<form string="Transfer Course Detail" version = "7.0">
+					<sheet>
+						<group col="4">
+							<field name="name"/>
+							<field name="subject"/>
+							<field name="course_no"/>
+							<field name="grade_ids" widget="many2many_tags"/>
+							<field name="credit"/>
+							<field name="student_id" invisible="1"/>
+						</group>
+						<h2>Equivalent Course(s)</h2>
+						<field name="equiv_course_ids" nolabel="1" context="{'default_student_id': student_id}"/>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_transfer_course_tree" model="ir.ui.view">
+			<field name="name">transfer.course.tree</field>
+			<field name="model">transfer.course</field>
+			<field name="arch" type="xml">
+				<tree string="Transfer Courses">
+					<field name="name"/>
+					<field name="subject"/>
+					<field name="course_no"/>
+					<field name="credit"/>
+					<field name="grade_ids"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_transfer_course_search" model="ir.ui.view">
+			<field name="name">transfer.course.search</field>
+			<field name="model">transfer.course</field>
+			<field name="arch" type="xml">
+				<search string="Transfer Course Detail">
+					<field name="name"/>
+					<field name="course_no"/>
+					<field name="credit"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Transfer Course Actions
+		-->
+
+		<record id="transfer_course_action" model="ir.actions.act_window">
+			<field name="name">Transfer Courses</field>
+			<field name="res_model">transfer.course</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+		</record>
+
+
+
+		<!--
+			Registrar Term Views
+		-->
+
+		<record id="view_registrar_term_form" model="ir.ui.view">
+			<field name="name">registrar.term.form</field>
+			<field name="model">aun.registrar.term</field>
+			<field name="arch" type="xml">
+				<form string="Term Information" version="7.0">
+					<sheet>
+						<h1>
+                 		Term Information
+                		</h1>
+						<group col="4">
+							<field name="name" attrs="{'readonly':[('state','=','done')]}" widget="selection"/>
+							<field name="year" attrs="{'readonly':[('state','=','done')]}"/>
+							<field name="start_date" on_change="on_change_date('is_active', start_date, end_date)" attrs="{'required':[('end_date','!=',False)]}"/>
+							<field name="end_date" on_change="on_change_date('is_active', start_date, end_date)" attrs="{'required':[('start_date','!=',False)]}"/>
+							<field name="is_active"/>
+							<field name="open_for_registration" groups="academics.group_registrar_ass_registrar,academics.group_registrar_student,academics.group_registrar_dean,academics.group_academic_advisor,academics.group_registrar_faculty"/>
+							<field name="open_for_midterm_grading" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_registrar_faculty,academics.group_academic_advisor"/>
+							<field name="open_for_grading" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_registrar_faculty,academics.group_academic_advisor"/>
+							<field name="finalgrades_open" groups="academics.group_registrar_ass_registrar,academics.group_registrar_student,academics.group_registrar_dean,academics.group_registrar_faculty,academics.group_academic_advisor"/>
+							<field name="open_for_admission" groups="academics.group_regional_reps"/>
+							<field name="open_for_reservation" groups="academics.group_housing_staff,academics.group_registrar_student"/>
+							<field name="open_for_clearance" groups="academics.group_bursar,academics.group_registrar_student"/>
+							<field name="admin_reg" groups="academics.group_registrar_registrar"/>
+						</group>
+						<group>
+							<group string="Registration" groups="academics.group_registrar_ass_registrar">
+								<field name="reg_start" string="Start Date" on_change="on_change_date('open_for_registration', reg_start, reg_end)" attrs="{'required':[('reg_end','!=',False)]}"/>
+								<field name="reg_end" string="End Date" on_change="on_change_date('open_for_registration', reg_start, reg_end)" attrs="{'required':[('reg_start','!=',False)]}"/>
+							</group>
+							<group string="Add &amp; Drop" groups="academics.group_registrar_ass_registrar">
+								<field name="add_drop_start" string="Start Date" on_change="on_change_date('open_for_registration', add_drop_start, add_drop_end)" attrs="{'required':[('add_drop_end','!=',False)]}"/>
+								<field name="add_drop_end" string="End Date" on_change="on_change_date('open_for_registration', add_drop_start, add_drop_end)" attrs="{'required':[('add_drop_start','!=',False)]}"/>
+							</group>
+							<group string="Midterm Grade Entry" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty">
+								<field name="faculty_midterm_start" string="Start Date" on_change="on_change_date('open_for_midterm_grading', faculty_midterm_start, faculty_midterm_end)" attrs="{'required':[('faculty_midterm_end','!=',False)]}"/>
+								<field name="faculty_midterm_end" string="End Date" on_change="on_change_date('open_for_midterm_grading', faculty_midterm_start, faculty_midterm_end)" attrs="{'required':[('faculty_midterm_start','!=',False)]}"/>
+							</group>
+							<group string="Final Grade Entry" groups="academics.group_registrar_ass_registrar,academics.group_registrar_faculty">
+								<field name="faculty_start" string="Start Date" on_change="on_change_date('open_for_grading', faculty_start, faculty_end)" attrs="{'required':[('faculty_end','!=',False)]}"/>
+								<field name="faculty_end" string="End Date" on_change="on_change_date('open_for_grading', faculty_start, faculty_end)" attrs="{'required':[('faculty_start','!=',False)]}"/>
+							</group>
+							<group string="View Final Grades" groups="academics.group_registrar_ass_registrar">
+								<field name="finalgrades_start" string="Start Date" on_change="on_change_date('finalgrades_open', finalgrades_start, finalgrades_end)" attrs="{'required':[('finalgrades_end','!=',False)]}"/>
+								<field name="finalgrades_end" string="End Date" on_change="on_change_date('finalgrades_open', finalgrades_start, finalgrades_end)" attrs="{'required':[('finalgrades_start','!=',False)]}"/>
+							</group>
+							<separator/>
+							<group string="Admission" groups="academics.group_regional_reps">
+								<field name="admission_start" string="Start Date" on_change="on_change_date('open_for_admission', admission_start, admission_end)" attrs="{'required':[('admission_end','!=',False)]}"/>
+								<field name="admission_end" string="End Date" on_change="on_change_date('open_for_admission', admission_start, admission_end)" attrs="{'required':[('admission_start','!=',False)]}"/>
+							</group>
+							<separator/>	
+							<group string="Housing Reservation" groups="academics.group_housing_staff">
+								<field name="reservation_start" string="Start Date" on_change="on_change_date('open_for_reservation', reservation_start, reservation_end)" attrs="{'required':[('reservation_end','!=',False)]}"/>
+								<field name="reservation_end" string="End Date" on_change="on_change_date('open_for_reservation', reservation_start, reservation_end)" attrs="{'required':[('reservation_start','!=',False)]}"/>
+							</group>
+							<separator/>
+							<group string="Clearance" groups="academics.group_bursar">
+								<field name="clearance_start" string="Start Date" on_change="on_change_date('open_for_clearance', clearance_start, clearance_end)" attrs="{'required':[('clearance_end','!=',False)]}"/>
+								<field name="clearance_end" string="End Date" on_change="on_change_date('open_for_clearance', clearance_start, clearance_end)" attrs="{'required':[('clearance_start','!=',False)]}"/>
+							</group>
+						</group>
+						<field name="state" invisible="1"/>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_term_tree" model="ir.ui.view">
+			<field name="name">registrar.term.tree</field>
+			<field name="model">aun.registrar.term</field>
+			<field name="arch" type="xml">
+				<tree string="Term Information">
+					<field name="name"/>
+					<field name="year"/>
+					<field name="start_date"/>
+					<field name="end_date"/>
+					<field name="is_active"/>
+					<field name="open_for_registration" string="Registration"/>
+					<field name="open_for_reservation" string="Reservation"/>
+					<field name="open_for_grading" string="Grading"/>
+					<field name="finalgrades_open" string="Final Grades"/>
+					<field name="open_for_admission"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_term_search" model="ir.ui.view">
+			<field name="name">registrar.term.search</field>
+			<field name="model">aun.registrar.term</field>
+			<field name="arch" type="xml">
+				<search string="Term Information">
+					<field name="name"/>
+					<field name="year"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Term Actions
+		-->
+
+		<record id="registrar_term_action" model="ir.actions.act_window">
+			<field name="name">Terms</field>
+			<field name="res_model">aun.registrar.term</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+		</record>
+
+
+
+		<!--
+			Registrar Course Repeat Views
+		-->
+
+		<record id="view_registrar_repeat_form" model="ir.ui.view">
+			<field name="name">registrar.repeat.form</field>
+			<field name="model">aun.registrar.repeat</field>
+
+			<field name="arch" type="xml">
+				<form string="Course Repeat Information">
+					<field name="catalogue_id"/>
+					<field name="limit"/>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_repeat_tree" model="ir.ui.view">
+			<field name="name">registrar.repeat.tree</field>
+			<field name="model">aun.registrar.repeat</field>
+			<field name="arch" type="xml">
+				<tree string="Course Repeat Information" editable="bottom">
+					<field name="catalogue_id"/>
+					<field name="limit"/>
+				</tree>
+			</field>
+		</record>
+
+
+
+		<!--
+			Registrar Duration Views
+		-->
+
+		<record id="view_registrar_duration_form" model="ir.ui.view">
+			<field name="name">registrar.duration.form</field>
+			<field name="model">aun.registrar.duration</field>
+			<field name="arch" type="xml">
+				<form string="Registration Information" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="start_time" placeholder="E.g. 2:00"/>
+							<field name="end_time" placeholder="E.g. 13:00"/>
+							<field name="mon"/>
+							<field name="tue"/>
+							<field name="wed"/>
+							<field name="thur"/>
+							<field name="fri"/>
+							<field name="sat"/>
+							<field name="sun"/>
+							<field name="active"/>
+							<field name="name" class="oe_save_only"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_duration_tree" model="ir.ui.view">
+			<field name="name">registrar.duration.tree</field>
+			<field name="model">aun.registrar.duration</field>
+			<field name="arch" type="xml">
+				<tree string="Registration Information">
+					<field name="name"/>
+					<field name="mon"/>
+					<field name="tue"/>
+					<field name="wed"/>
+					<field name="thur"/>
+					<field name="fri"/>
+					<field name="sat"/>
+					<field name="sun"/>
+					<field name="start_time"/>
+					<field name="end_time"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_duration_search" model="ir.ui.view">
+			<field name="name">registrar.duration.search</field>
+			<field name="model">aun.registrar.duration</field>
+			<field name="arch" type="xml">
+				<search string="Registration Information">
+					<field name="name"/>
+					<field name="start_time"/>
+					<field name="end_time"/>
+					<field name="active"/>
+				</search>
+			</field>
+		</record>
+
+
+ 		<!--
+			Registrar Duration Actions
+		-->
+
+
+		<record id="registrar_duration_action" model="ir.actions.act_window">
+			<field name="name">Duration</field>
+			<field name="res_model">aun.registrar.duration</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a class duration
+	           </p>
+	        </field>
+		</record>
+
+		<!--
+			Registrar Enrollment Views
+		-->
+
+		<record id="view_registrar_enrollment_form" model="ir.ui.view">
+			<field name="name">registrar.enrollment.form</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="arch" type="xml">
+				<form string="Enrollment Information" version="7.0" create="false">
+					<header>
+<!-- 						<button name="update_all_students_gpa_info" string="Compute GPA" class="oe_save_only" type="object" groups="base.group_system"/> -->
+						<button name="permanent_delete" states="registered,dropped" string="Delete Permanently" class="oe_save_only" type="object" confirm="Are you sure you want to delete this enrollment permanently?" groups="academics.group_registrar_registrar"/>
+						<button name="charge_students" string="Test" class="oe_save_only" type="object" groups="base.group_no_one"/>
+						<field name="state" widget="statusbar" statusbar_visible="registered"/>
+					</header>
+					<sheet string = "Enrollment">
+						<h1>
+	                		Enrollment
+	                	</h1>
+	                	<field name="image_medium" widget='image' options='{"preview_image": "image_medium", "size": [90, 90]}' groups="academics.group_registrar_ass_registrar"/>
+						<group col="4">
+							<field name="student_id" context="{'form_view_ref': 'academics.view_student_form'}"/>
+							<label for="fname" string="Student Name"/>
+							<div>
+							<field name="fname" class="oe_inline"/> <field name="lname" class="oe_inline"/>
+							</div>
+							<field name="course_id"/>
+							<field name="course_name" attrs="{'readonly':[('state','IN',['dropped','deleted'])]}"/>
+							<field name="section_id"/>
+							<field name="faculty" widget="many2many_tags"/>
+							<field name="duration_id"/>
+							<field name="location_id"/>
+							<field name="credit" attrs="{'invisible':[('lab','=',True)],'readonly':[('state','IN',['dropped','deleted'])]}" on_change="on_change_value(credit,section_id,'credit')"/>
+							<field name="billing" attrs="{'invisible':[('lab','=',True)],'readonly':[('state','IN',['dropped','deleted'])]}" on_change="on_change_value(billing,section_id,'billing')"/>
+							<field name="term_id"/>
+							<field name="grademode_id" on_change="on_change_grademode(grademode_id,grade,midterm_grade)" attrs="{'invisible':[('lab','=',True)], 'readonly':[('state','IN',['dropped','deleted'])]}" widget="selection"/>							
+							<field name="midterm_grade" attrs="{'invisible':[('lab','=',True)], 'readonly':[('state','IN',['dropped','deleted'])]}" domain="[('status_indicator',
+								'=',True),('midterm','=',True),('grademode_id','=',grademode_id),('level_id','=',level_id)]" groups="academics.group_registrar_ass_registrar"/>
+							<field name="grade" on_change="on_change_grade(grade)" attrs="{'invisible':[('lab','=',True)], 'readonly':[('state','IN',['dropped','deleted'])]}" domain="[('status_indicator',
+								'=',True),('midterm','=',False),('grademode_id','=',grademode_id),('level_id','=',level_id)]" groups="academics.group_registrar_ass_registrar"/>
+							<field name="repeat" attrs="{'invisible':[('lab','=',True)], 'readonly':[('state','IN',['dropped','deleted'])]}" on_change="on_change_repeat(repeat,course_id,grade)" groups="academics.group_registrar_ass_registrar"/>
+							<field name="parent_id" attrs="{'invisible':[('lab','=',False)]}"/>
+							<field name="lab" attrs="{'invisible':[('lab','=',False)]}"/>
+						</group>
+						<group>
+							<field name="child_ids" attrs="{'invisible':['|',('lab','=',True),('has_lab','=',False)]}">
+							<tree>
+								<field name="course_name"/>
+								<field name="faculty"/>
+								<field name="duration_id"/>
+								<field name="location_id"/>
+							</tree>
+							</field>
+						</group>
+						<field name="has_lab" invisible="1"/>
+						<field name="level_id" invisible="1"/>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_enrollment_tree" model="ir.ui.view">
+			<field name="name">registrar.enrollment.tree</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="priority">1</field>
+			<field name="arch" type="xml">
+				<tree string="Registration Information" colors="green:lab==True;black:lab==False" create="false">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="section_id"/>
+					<field name="section_no"/>
+					<field name="credit" sum="Total Credits"/>
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="faculty"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+					<field name="lab"/>
+					<field name="midterm_grade"/>
+					<field name="grade"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_faculty_enrollment_grade_tree" model="ir.ui.view">
+			<field name="name">faculty.enrollment.grade.tree</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="priority">2</field>
+			<field name="arch" type="xml">
+				<tree string="Enter Final Grades" create="true" editable="bottom">
+					<field name="term_id"/>
+					<field name="student_id" readonly="1"/>
+					<field name="fname" readonly="1"/>
+					<field name="lname" readonly="1"/>
+					<field name="course_id"/>
+					<field name="section_id" readonly="1"/>
+					<field name="duration_id" readonly="1"/>
+					<field name="grademode_id" readonly="1"/>
+					<field name="grade" domain="[('status_indicator','=',True),('web_indicator','=',True),('midterm','=',False),('grademode_id','=',grademode_id),('level_id','=',level_id)]"/>
+					<field name="level_id" invisible="1"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="view_faculty_midterm_grade_tree" model="ir.ui.view">
+			<field name="name">faculty.midterm.grade.tree</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="priority">3</field>
+			<field name="arch" type="xml">
+				<tree string="Enter Midterm Grades" create="true" editable="bottom">
+					<field name="term_id"/>
+					<field name="student_id" readonly="1"/>
+					<field name="fname" readonly="1"/>
+					<field name="lname" readonly="1"/>
+					<field name="course_id"/>
+					<field name="section_id" readonly="1"/>
+					<field name="duration_id" readonly="1"/>
+					<field name="grademode_id" readonly="1"/>
+					<field name="midterm_grade" domain="[('status_indicator','=',True),('web_indicator','=',True),('midterm','=',True),('grademode_id','=',grademode_id),('level_id','=',level_id)]"/>
+					<field name="level_id" invisible="1"/>
+				</tree>
+			</field>
+		</record>
+
+        <!-- Enrollment Kanban View -->
+
+        <record model="ir.ui.view" id="roster_kanban_view">
+            <field name="name">roster.kanban</field>
+            <field name="model">aun.registrar.enrollment</field>
+            <field name="arch" type="xml">
+                <kanban create="false" edit="false">
+                	<field name="lab"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_employee_vignette">
+	                            <div class="oe_employee_image">
+	                                <a type="open"><img t-att-src="kanban_image('aun.registrar.enrollment', 'image_medium', record.id.value)" class="oe_employee_picture"/></a>
+	                            </div>
+                                <div class="oe_employee_details">
+                                	<h4 class="oe_partner_heading"><a type="open"><field name="student_id"/></a></h4>
+                                    <ul>
+										<li t-if="record.fname.raw_value and record.lname.raw_value"><field name="fname"/> <field name="lname"/></li>
+										<li t-if="record.lab.raw_value === false and record.course_id.raw_value and record.section_no.raw_value"><field name="course_id"/> (Section <field name="section_no"/>)</li>
+                                        <font color="green"><li t-if="record.lab.raw_value === true and record.course_id.raw_value and record.course_name.raw_value">Lab: <field name="course_id"/> <field name="course_name"/></li></font>
+                                        <li t-if="record.email.raw_value"><a t-attf-href="mailto:#{record.email.raw_value}"><field name="email"/></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+		<record id="view_faculty_enrollment_tree" model="ir.ui.view">
+			<field name="name">faculty.enrollment.tree</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="priority">4</field>
+			<field name="arch" type="xml">
+				<tree string="Class Rosters" create="false">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="section_id"/>
+					<field name="section_no"/>
+					<field name="duration_id"/>
+					<field name="grade"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_faculty_enr_lab_tree" model="ir.ui.view">
+			<field name="name">faculty.enrollment.tree</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="priority">5</field>
+			<field name="arch" type="xml">
+				<tree string="Lab Rosters" create="false">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="section_id"/>
+					<field name="section_no"/>
+					<field name="duration_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_student_enrollment_tree" model="ir.ui.view">
+			<field name="name">student.enrollment.tree</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="priority">6</field>
+			<field name="arch" type="xml">
+				<tree string="Registration Information" colors="green:lab==True;black:lab==False" create="false">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="section_id"/>
+					<field name="lab"/>
+					<field name="section_no"/>
+					<field name="faculty"/>
+					<field name="duration_id"/>
+					<field name="location_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_student_midterm_grade_tree" model="ir.ui.view">
+			<field name="name">student.midterm.grade.tree</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="priority">7</field>
+			<field name="arch" type="xml">
+				<tree string="Midterm Grades" create="false" delete="false">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="course_name"/>
+					<field name="section_id"/>
+					<field name="faculty"/>
+					<field name="duration_id"/>
+					<field name="midterm_grade"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_enrollment_search" model="ir.ui.view">
+			<field name="name">registrar.enrollment.search</field>
+			<field name="model">aun.registrar.enrollment</field>
+			<field name="arch" type="xml">
+				<search string="Enrollment Information">
+					<field name="term_id"/>
+					<field name="course_id"/>
+					<field name="section_id"/>
+					<field name="subject_id"/>
+					<field name="student_id"/>
+					<field name="duration_id"/>
+					<field name="level_id"/>
+					<field name="faculty_emp_ids"/>
+					<field name="school_ids"/>
+					<field name="grade"/>
+					<field name="state"/>
+					<filter string="Active Term" name="Active" domain="[('term_id.is_active','=',True)]"/>
+					<filter string="Dropped" domain="[('active','=',False)]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Classes" domain="[('lab','=',False)]" groups="academics.group_registrar_ass_registrar"/>
+					<filter string="Labs" domain="[('lab','=',True)]" groups="academics.group_registrar_ass_registrar"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Term" domain="" context="{'group_by':'term_id'}"/>
+                        <filter string="Course" name="Course" domain="" context="{'group_by':'course_id'}"/>
+                        <filter string="Section" name="Section" context="{'group_by':'section_id'}"/>
+                        <filter string="Student" name="Student" context="{'group_by':'student_id'}"/>
+                    </group>
+				</search>
+			</field>
+		</record>
+		
+
+		<!--
+			Enrollment Actions
+		-->
+
+		<record id="registrar_academic_history" model="ir.actions.act_window">
+			<field name="name">Enrollments</field>
+			<field name="res_model">aun.registrar.enrollment</field>
+			<field name="view_mode">tree,form,kanban</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('state','not in',['deleted'])]</field>
+			<field name="context">{}</field>
+			<field name="help">No student is enrolled in any class at the moment. Go to the add/drop form to enroll students.</field>
+		</record>
+		
+		<record id="student_enrollments_action" model="ir.actions.act_window">
+			<field name="name">Concise Schedule</field>
+			<field name="res_model">aun.registrar.enrollment</field>
+			<field name="view_mode">tree</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('state','=','registered')]</field>
+			<field name="context">{'search_default_Active': 1}</field>
+			<field name="view_id" ref="view_student_enrollment_tree"/>
+		</record>
+
+		<record id="student_midterm_grade_action" model="ir.actions.act_window">
+			<field name="name">Midterm Grades</field>
+			<field name="res_model">aun.registrar.enrollment</field>
+			<field name="view_mode">tree</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('state','=','registered'),('lab','=',False),('midterm_grade','!=',False)]</field>
+			<field name="context">{}</field>
+			<field name="view_id" ref="view_student_midterm_grade_tree"/>
+		</record>
+
+		<record id="faculty_roster_action" model="ir.actions.act_window">
+			<field name="name">Class Rosters</field>
+			<field name="res_model">aun.registrar.enrollment</field>
+			<field name="view_mode">kanban,tree</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('section_id.faculty.faculty_id.user_id.id','in',[uid]),('state','=','registered'),('lab','=',False),'|',('grade','=',False),('grade.refund','=',False)]</field>
+			<field name="context">{'search_default_Active': 1, 'search_default_Course': 1}</field>
+		</record>
+		
+		<record id="action_faculty_roster_kanban" model="ir.actions.act_window.view">
+        	<field eval="1" name="sequence"/>
+            <field name="view_mode">kanban</field>
+            <field name="view_id" ref="roster_kanban_view"/>
+            <field name="act_window_id" ref="faculty_roster_action"/>
+		</record>
+
+		<record id="action_faculty_roster_tree" model="ir.actions.act_window.view">
+        	<field eval="2" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_faculty_enrollment_tree"/>
+            <field name="act_window_id" ref="faculty_roster_action"/>
+		</record>
+		
+		<record id="faculty_lab_roster_action" model="ir.actions.act_window">
+			<field name="name">Lab Rosters</field>
+			<field name="res_model">aun.registrar.enrollment</field>
+			<field name="view_mode">tree</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('section_id.faculty.faculty_id.user_id.id','in',[uid]),('state','=','registered'),('lab','=',True)]</field>
+			<field name="context">{'search_default_Active': 1, 'search_default_Course': 1}</field>
+		</record>
+		
+		<record id="action_lab_roster_kanban" model="ir.actions.act_window.view">
+        	<field eval="1" name="sequence"/>
+            <field name="view_mode">kanban</field>
+            <field name="view_id" ref="roster_kanban_view"/>
+            <field name="act_window_id" ref="faculty_lab_roster_action"/>
+		</record>
+	
+		<record id="action_lab_roster_tree" model="ir.actions.act_window.view">
+        	<field eval="2" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_faculty_enr_lab_tree"/>
+            <field name="act_window_id" ref="faculty_lab_roster_action"/>
+		</record>
+		
+		<record id="faculty_grades_action" model="ir.actions.act_window">
+			<field name="name">Enter Final Grades</field>
+			<field name="res_model">aun.registrar.enrollment</field>
+			<field name="view_mode">tree</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('section_id.primary_faculty_user_id','=',uid),('lab','=',False),('state','=','registered'),'|',('section_id.open_for_grading','=',True),('term_id.open_for_grading','=',True),'|',('grade.web_indicator', '=', True),('grade','=',False)]</field>
+			<field name="view_id" ref="view_faculty_enrollment_grade_tree"/>
+		</record>
+
+		<record id="faculty_midterm_grades_action" model="ir.actions.act_window">
+			<field name="name">Enter Midterm Grades</field>
+			<field name="res_model">aun.registrar.enrollment</field>
+			<field name="view_mode">tree</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('section_id.primary_faculty_user_id','=',uid),('lab','=',False),('state','=','registered'),('term_id.open_for_midterm_grading','=',True),'|',('grade.web_indicator', '=', True),('grade','=',False)]</field>
+			<field name="view_id" ref="view_faculty_midterm_grade_tree"/>
+		</record>
+
+
+
+        <!--
+			Registrar Student Views
+		-->
+
+		<record id="view_student_form" model="ir.ui.view">
+			<field name="name">student.partner.form</field>
+			<field name="model">res.partner</field>
+			<field name="arch" type="xml">
+			<form string="Student Information" version="7.0" create="false">
+			<sheet string="Students">
+				<div class="oe_right oe_button_box">
+					<button name="create_users" string="Create Users" type="object" groups="base.group_system"/>
+					<button name="create_user" string="Create User" type="object" groups="base.group_system"/>
+				</div>
+			    <field name="image" widget='image' class="oe_left oe_avatar" options='{"preview_image": "image_medium", "size": [90, 90]}'/>
+                <div class="oe_title">
+                    <div class="oe_edit_only">
+                        <label for="name" string="Student ID"/>
+                    </div>
+                    <h1>
+                        <field name="name" attrs="{'readonly':[('student','=',True)]}"/>
+                    </h1>
+                </div>
+                <div class="oe_right oe_button_box" name="buttons"> </div>
+				<group>
+					<field name="fname" class="oe_inline" attrs="{'invisible':[('student','=',False)],'readonly':[('graduated','=',True)]}"/>
+					<field name="mname" class="oe_inline" attrs="{'invisible':[('student','=',False)],'readonly':[('graduated','=',True)]}"/>
+					<field name="lname" class="oe_inline" attrs="{'invisible':[('student','=',False)],'readonly':[('graduated','=',True)]}"/>
+					<field name="sex" class="oe_inline" attrs="{'invisible':[('student','=',False)],'readonly':[('graduated','=',True)]}"/>
+					<field name="status_id" attrs="{'invisible':[('student','=',False)]}"/>
+					<field name="student" attrs="{'invisible':True}"/>
+				</group>
+                <group>
+                    <group>
+                        <label for="street" string="Address"/>
+                        <div>
+                            <field name="street" placeholder="Street..."/>
+                            <field name="street2"/>
+                            <div class="address_format">
+                                <field name="city" placeholder="City" style="width: 40%%"/>
+                                <field name="state_id" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}' on_change="onchange_state(state_id)"/>
+                                <field name="zip" placeholder="ZIP" style="width: 20%%"/>
+                            </div>
+                            <field name="country_id" placeholder="Country" class="oe_no_button" options='{"no_open": True}'/>
+                        </div>
+                    </group>
+                    <group>
+                        <field name="phone" placeholder="e.g. +234 723 2323"/>
+                        <field name="mobile"/>
+                        <field name="email" widget="email" attrs="{'readonly':[('graduated','=',True)]}"/>
+                        <field name="personal_email" attrs="{'invisible':[('student','=',False)],'readonly':[('graduated','=',True)]}"/>
+                    </group>
+                </group>
+                <notebook colspan="4">
+					<page string="Status" attrs="{'invisible':[('student','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_student,academics.group_registrar_dean,academics.group_academic_advisor">
+						<group col="4">
+							<field name="admission_date" attrs="{'required':[('student','=',True)]}"/>
+							<field name="catalogue_id" on_change="on_change_majors(major_ids,minor_ids,concentration_ids,level_id,catalogue_id,True)" attrs="{'required':[('student','=',True)],'readonly':[('graduated','=',True)]}"/>
+							<field name="term_admitted" attrs="{'required':[('student','=',True)]}"/>
+							<field name="level_id" on_change="on_change_level()" attrs="{'required':[('student','=',True)],'readonly':[('graduated','=',True)]}"/>
+							<field name="dob" attrs="{'invisible':[('student','=',False)],'readonly':[('graduated','=',True)]}"/>
+							<field name="standing_id"/>
+							<field name="student_state_id" on_change="on_change_state(student_state_id)" attrs="{'required':[('student','=',True)]}"/>
+							<field name="graduation_class" attrs="{'invisible':[('graduated','=',False)],
+								'required':[('graduated','=',True)]}"/>
+							<field name="date_of_state" attrs="{'invisible':[('is_active','=',True)],
+								'required':[('student','=',True),'|',('is_active','=',False),('graduated','=',True)]}"/>
+							<field name="honors_id" attrs="{'invisible':['|',('graduated','=',False),('honors_id','=',False)]}"/>
+							<field name="is_active" invisible="1"/>
+							<field name="graduated" invisible="1"/>
+						</group>
+					</page>
+					<page string="Degree" attrs="{'invisible':[('student','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_student,academics.group_registrar_dean,academics.group_academic_advisor">
+						<group col="2">
+							<field name="major_ids" attrs="{'required':[('student','=',True)]}" on_change="on_change_majors(major_ids,minor_ids,concentration_ids,level_id,catalogue_id,False)" domain="['|',('no_school','=',True),'&amp;',('major','=',True),('major_course_ids.catalogue_id','in',[catalogue_id]),('major_course_ids.level_id','in',[level_id])]" widget="many2many_tags"/>
+							<field name="minor_ids" domain="[('id','not in',major_ids[0][2]),('major_course_ids.catalogue_id','in',[catalogue_id]),('minor','=',True),('major_course_ids.program_id.level_id','in',[level_id])]" widget="many2many_tags"/>
+							<field name="concentration_ids" domain="[('conc_ids.major_course_id.major_id','in',major_ids[0][2]),('conc_ids.major_course_id.catalogue_id','=',catalogue_id),('conc_ids.major_course_id.program_id.level_id','=',level_id),('conc','=',True)]" widget="many2many_tags"/>
+							<field name="program_ids" widget="many2many_tags" readonly="1"/>
+							<field name="school_ids" widget="many2many_tags" readonly="1" string="School(s)"/>
+						</group>
+					</page>
+					<page string="Holds" attrs="{'invisible':[('student','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_student,academics.group_registrar_dean,academics.group_admis_staff,academics.group_academic_advisor">
+						<field name="holds" context="{'default_student_id': active_id}">
+							<tree>
+								<field name="hold_id"/>
+								<field name="start_date"/>
+								<field name="end_date"/>
+								<field name="is_active"/>
+								<button name="delete_hold" string="Delete hold" icon="gtk-cancel" type="object" groups="academics.group_admis_staff,academics.group_academic_advisor"/>
+								<field name="state" invisible="1"/>
+							</tree>
+							<form>
+								<field name="hold_id" on_change="on_change_hold(hold_id)"/>
+								<field name="start_date" on_change="on_change_date(start_date, end_date)"/>
+								<field name="end_date" on_change="on_change_date(start_date, end_date)"/>
+								<field name="is_active"/>
+								<field name="state" invisible="1"/>
+							</form>
+						</field>
+					</page>
+					<page string="Academic History" attrs="{'invisible':[('student','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_academic_advisor">
+						<field name="level_gpa_ids"/>
+					</page>
+					<page string="Enrollments" attrs="{'invisible':[('student','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_dean,academics.group_academic_advisor">
+						<field name="enrollment_ids">
+							<tree>
+								<field name="term_id"/>
+								<field name="course_id"/>
+								<field name="course_name"/>
+								<field name="section_id"/>
+								<field name="section_no" string="No." help="Section Number"/>
+								<field name="credit" string="Credit" sum="Total Credits"/>
+								<field name="faculty"/>
+								<field name="duration_id"/>
+								<field name="location_id"/>
+								<field name="grade"/>
+							</tree>
+						</field>
+					</page>
+					<page string="Guardians" attrs="{'invisible':[('student','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_student,academics.group_registrar_dean,academics.group_academic_advisor">
+						<field name="guardians"/>
+					</page>
+					<page string="Accounting" col="4" groups="academics.group_bursary_staff,academics.group_registrar_student">
+						<group>
+			                <group>
+			                    <field name="property_account_position" widget="selection"/>
+			                </group>
+			                <group>
+			                    <field name="last_reconciliation_date"/>
+			                </group>
+			                <group>
+			                    <field name="property_account_receivable" groups="account.group_account_invoice" />
+			                    <field name="property_payment_term" widget="selection"/>
+			                    <field name="credit"/>
+			                    <field name="credit_limit"/>
+			                </group>
+			                <group>
+			                    <field name="property_account_payable" groups="account.group_account_invoice"/>
+			                    <field name="property_supplier_payment_term" widget="selection"/>
+			                    <field name="debit"/>
+			                </group>
+			            </group>
+		                <field name="bank_ids" context="{'default_partner_id': active_id, 'form_view_ref': 'base.view_partner_bank_form'}">
+		                    <tree string="Bank Details">
+		                        <field name="state" invisible="1"/>
+		                        <field name="sequence" invisible="1"/>
+		                        <field name="acc_number"/>
+		                        <field name="bank_name"/>
+		                        <field name="owner_name"/>
+		                    </tree>
+		                </field>
+					</page>
+					<page string = "Clearance" attrs="{'invisible':[('student','=',False)]}" groups="academics.group_registrar_ass_registrar,academics.group_registrar_student,academics.group_bursary_staff,academics.group_registrar_dean">
+						<field name="clearance_ids">
+							<tree>
+								<field name="term_id"/>
+								<field name="credit_hours"/>
+								<field name="room_type"/>
+								<field name="meal_plan"/>
+								<field name="fee_charge" groups="academics.group_bursar"/>
+								<field name="payment_plan" groups="academics.group_bursar"/>
+								<field name="state"/>
+								<field name="date_clear"/>
+							</tree>
+						</field>
+					</page>
+				</notebook>
+			</sheet>
+			<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+				<field name="message_follower_ids" widget="mail_followers"/>
+				<field name="message_ids" widget="mail_thread"/>
+			</div>
+			</form>
+			</field>
+		</record>
+
+		<record id="view_student_tree" model="ir.ui.view">
+			<field name="name">res.partner.student.tree</field>
+			<field name="model">res.partner</field>
+			<field name="arch" type="xml">
+				<tree string="Students">
+					<field name="name"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="sex"/>
+<!-- 					<field name="schools"/> -->
+<!-- 					<field name="cgpa"/> -->
+<!-- 					<field name="total_credits"/> -->
+<!-- 					<field name="status_id" groups="academics.group_registrar_ass_registrar"/> -->
+					<field name="phone"/>
+					<field name="email"/>
+					<button name="create_user" string="Create User" icon="terp-partner" type="object" groups="academics.group_support"/>
+					<button name="reset_password" string="Reset Password" icon="gtk-execute" type="object" groups="academics.group_support"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_student_search" model="ir.ui.view">
+			<field name="name">res.partner.student.search</field>
+			<field name="model">res.partner</field>
+			<field name="arch" type="xml">
+				<search string="Students">
+					<field name="name"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<field name="schools"/>
+					<field name="status_id" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor"/>
+					<field name="standing_id"/>
+					<field name="phone"/>
+					<field name="catalogue_id"/>
+					<field name="email"/>
+					<field name="level_id"/>
+					<field name="term_admitted"/>
+					<field name="major_ids"/>
+					<field name="minor_ids"/>
+					<field name="concentration_ids"/>
+					<field name="program_ids"/>
+					<filter string="Active Students" name="Active" domain="[('is_active','=',True)]" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor"/>
+					<filter string="Graduated" name="Graduated" domain="[('graduated','=',True)]" groups="academics.group_registrar_ass_registrar,academics.group_academic_advisor"/>
+					<group expand="0" string="Group By...">
+	                    <filter string="Gender" domain="[]" context="{'group_by':'sex'}"/>
+	                </group>
+	        	</search>
+			</field>
+		</record>
+		
+        <!-- Student Kanban View -->
+        <record model="ir.ui.view" id="student_kanban_view">
+            <field name="name">res.partner.student.kanban</field>
+            <field name="model">res.partner</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="color"/>
+                    <field name="name"/>
+                    <field name="fname"/>
+                    <field name="lname"/>
+                    <field name="title"/>
+                    <field name="email"/>
+                    <field name="parent_id"/>
+                    <field name="is_company"/>
+                    <field name="function"/>
+                    <field name="phone"/>
+                    <field name="street"/>
+                    <field name="street2"/>
+                    <field name="zip"/>
+                    <field name="city"/>
+<!--                     <field name="country_id"/> -->
+                    <field name="mobile"/>
+                    <field name="state_id"/>
+                    <field name="has_image"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_employee_vignette">
+                            	<div class="oe_employee_image">
+	                                <a type="open">
+	                                    <t t-if="record.has_image.raw_value === true">
+	                                        <img t-att-src="kanban_image('res.partner', 'image_medium', record.id.value)" class="oe_employee_image"/>
+	                                    </t>
+	                                    <t t-if="record.has_image.raw_value === false">
+	                                        <t t-if="record.is_company.raw_value === false">
+	                                            <img t-att-src='_s + "/base/static/src/img/avatar.png"' class="oe_employee_image"/>
+	                                        </t>
+	                                    </t>
+	                                </a>
+	                            </div>
+                                <div class="oe_employee_details">
+                                    <h4 class="oe_partner_heading"><a type="open"><field name="name"/></a></h4>
+                                    <div class="oe_kanban_partner_categories"/>
+                                    <div class="oe_kanban_partner_links"/>
+                                    <ul>
+                                        <li t-if="record.parent_id.raw_value and !record.function.raw_value"><field name="parent_id"/></li>
+                                        <li t-if="!record.parent_id.raw_value and record.function.raw_value"><field name="function"/></li>
+                                        <li t-if="record.parent_id.raw_value and record.function.raw_value"><field name="function"/> at <field name="parent_id"/></li>
+										<li t-if="record.fname.raw_value and record.lname.raw_value"><field name="fname"/> <field name="lname"/></li>
+<!--                                         <li t-if="record.city.raw_value and !record.country.raw_value"><field name="city"/></li> -->
+<!--                                         <li t-if="!record.city.raw_value and record.country.raw_value"><field name="country"/></li> -->
+<!--                                         <li t-if="record.city.raw_value and record.country.raw_value"><field name="city"/>, <field name="country"/></li> -->
+                                        <li t-if="record.email.raw_value"><a t-attf-href="mailto:#{record.email.raw_value}"><field name="email"/></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+
+        <!-- Campus Store Kanban View -->
+        
+        <record model="ir.ui.view" id="store_student_kanban_view">
+            <field name="name">res.partner.store.kanban</field>
+            <field name="model">res.partner</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="color"/>
+                    <field name="name"/>
+                    <field name="fname"/>
+                    <field name="lname"/>
+                    <field name="title"/>
+                    <field name="email"/>
+                    <field name="parent_id"/>
+                    <field name="is_company"/>
+                    <field name="function"/>
+                    <field name="has_image"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_employee_vignette">
+                            	<div class="oe_employee_image">
+	                                <a type="open">
+	                                    <t t-if="record.has_image.raw_value === true">
+	                                        <img t-att-src="kanban_image('res.partner', 'image_medium', record.id.value)" class="oe_employee_image"/>
+	                                    </t>
+	                                    <t t-if="record.has_image.raw_value === false">
+	                                        <t t-if="record.is_company.raw_value === false">
+	                                            <img t-att-src='_s + "/base/static/src/img/avatar.png"' class="oe_employee_image"/>
+	                                        </t>
+	                                    </t>
+	                                </a>
+	                            </div>
+                                <div class="oe_employee_details">
+                                    <h4 class="oe_partner_heading"><a type="open"><field name="name"/></a></h4>
+                                    <div class="oe_kanban_partner_categories"/>
+                                    <div class="oe_kanban_partner_links"/>
+                                    <ul>
+                                        <li t-if="record.parent_id.raw_value and !record.function.raw_value"><field name="parent_id"/></li>
+                                        <li t-if="!record.parent_id.raw_value and record.function.raw_value"><field name="function"/></li>
+                                        <li t-if="record.parent_id.raw_value and record.function.raw_value"><field name="function"/> at <field name="parent_id"/></li>
+										<li t-if="record.fname.raw_value and record.lname.raw_value"><field name="fname"/> <field name="lname"/></li>
+                                        <li t-if="record.email.raw_value"><a t-attf-href="mailto:#{record.email.raw_value}"><field name="email"/></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+
+
+		<!--
+			Student Actions
+		-->
+
+		<record id="store_student_action" model="ir.actions.act_window">
+			<field name="name">Students</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_mode">kanban</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('student', '=', True)]</field>
+			<field name="context">{'search_default_Active': 1}</field>
+			<field name="search_view_id" ref="view_student_search"/>
+			<field name="help">This is the list of students</field>
+		</record>
+
+		<record id="action_store_student_kanban" model="ir.actions.act_window.view">
+        	<field eval="1" name="sequence"/>
+            <field name="view_mode">kanban</field>
+            <field name="view_id" ref="store_student_kanban_view"/>
+            <field name="act_window_id" ref="store_student_action"/>
+		</record>
+
+		<record id="aun_student_action" model="ir.actions.act_window">
+			<field name="name">Students</field>
+			<field name="res_model">res.partner</field>
+			<field name="view_mode">kanban,tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('student','=',True)]</field>
+			<field name="context">{}</field>
+			<field name="search_view_id" ref="view_student_search"/>
+			<field name="help">This is the list of students</field>
+		</record>
+		
+		<record id="action_student_kanban" model="ir.actions.act_window.view">
+        	<field eval="1" name="sequence"/>
+            <field name="view_mode">kanban</field>
+            <field name="view_id" ref="student_kanban_view"/>
+            <field name="act_window_id" ref="aun_student_action"/>
+		</record>
+	
+		<record id="action_student_tree" model="ir.actions.act_window.view">
+        	<field eval="2" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="view_student_tree"/>
+            <field name="act_window_id" ref="aun_student_action"/>
+		</record>
+
+		<record id="action_student_form" model="ir.actions.act_window.view">
+        	<field eval="3" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_student_form"/>
+            <field name="act_window_id" ref="aun_student_action"/>
+		</record>
+		
+		
+		<!-- Guardian Views -->
+		
+		<record id="res_guardian_form" model="ir.ui.view">
+			<field name="name">guardian.form</field>
+			<field name="model">res.guardian</field>
+			<field name="arch" type="xml">
+				<form string="Guardians" version="7.0">
+					<group>	
+						<group>	
+							<field name="name"/>
+						</group>
+						<group>
+							<field name="prefix"/>
+			                <field name="fname"/>
+			                <field name="mname"/>
+			            	<field name="lname"/>
+			            </group>
+				        <group>
+				            <field name="phone"/>
+			                <field name="email"/>
+			            </group>
+			            <group>
+			            	<field name="employer"/>
+			            </group>
+			            <group>
+			                <label for="street" string="Address"/>
+		                    <div>
+		                        <field name="add" placeholder="Street..."/>
+		                        <div class="address_format">
+		                            <field name="city" placeholder="City" style="width: 40%%"/>
+		                            <field name="state" class="oe_no_button" placeholder="State" style="width: 37%%" options='{"no_open": True}' on_change="onchange_state(state)"/>                         
+		                        </div>
+		                        <field name="country" placeholder="Country" class="oe_no_button" options='{"no_open": True}'/>
+		                    </div>
+		                </group>
+		            	<group>
+		            		<field name="priority"/>
+		                	<field name="deceased"/>
+		                </group>
+		       		</group>
+				</form>
+			</field>
+		</record>
+	
+	    <record id="res_guardian_tree" model="ir.ui.view">
+			<field name="name">guardian.tree</field>
+			<field name="model">res.guardian</field>
+			<field name="arch" type="xml">
+				<tree string="Guardians">
+					<field name="name"/>
+					<field name="prefix"/>
+	                <field name="fname"/>
+	                <field name="lname"/>
+	                <field name="phone"/>
+	                <field name="email"/>
+	                <field name="priority"/>
+				</tree>
+			</field>
+		</record>
+		<record id="guardian_action" model="ir.actions.act_window">
+			<field name="name">Guardians</field>
+			<field name="res_model">res.guardian</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help"></field>
+		</record>
+
+		<!-- School views ========================= start-->
+
+
+		<record id="aun_registrar_school_form" model="ir.ui.view">
+			<field name="name">aun.registrar.school.form</field>
+			<field name="model">aun.registrar.school</field>
+			<field name="arch" type="xml">
+				<form string="Schools" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="name" widget="selection"/>
+							<field name="code" class="oe_inline"/>
+							<field name="manager_id" widget="selection"/>
+							<field name="default_school"/>
+							<field name="manager_ids" widget="many2many_tags"/>
+						</group>
+						<group>
+							<field name="description"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="aun_registrar_school_tree" model="ir.ui.view">
+			<field name="name">aun.registrar.school.tree</field>
+			<field name="model">aun.registrar.school</field>
+			<field name="arch" type="xml">
+				<tree string="Schools">
+					<field name="name"/>
+					<field name="code"/>
+					<field name="manager_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="aun_registrar_school_search" model="ir.ui.view">
+			<field name="name">aun.registrar.school.search</field>
+			<field name="model">aun.registrar.school</field>
+			<field name="arch" type="xml">
+				<search string="Schools">
+					<field name="name"/>
+					<field name="code"/>
+				</search>
+			</field>
+
+		</record>
+
+		<!--
+			Registrar School Actions
+		-->
+
+		<record id="registrar_school_action" model="ir.actions.act_window">
+			<field name="name">Schools</field>
+			<field name="res_model">aun.registrar.school</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a school
+	           </p>
+	        </field>
+		</record>
+
+		<!--
+			Registrar Standing Views
+		-->
+
+		<record id="view_registrar_standing_form" model="ir.ui.view">
+			<field name="name">registrar.standing.form</field>
+			<field name="model">aun.registrar.standing</field>
+			<field name="arch" type="xml">
+				<form string="Academic Standing Validation" version="7.0">
+					<sheet>
+						<group>
+							<field name="name"/>
+						</group>
+						<group col="4">
+							<field name="dean_list"/>
+							<field name="prob_ind"/>
+							<field name="proh_reg"/>
+							<field name="default_standing"/>
+							<field name="minimum_hours"/>
+							<field name="maximum_hours"/>
+						</group>
+						<group>
+							<field name="description"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_standing_tree" model="ir.ui.view">
+			<field name="name">registrar.standing.tree</field>
+			<field name="model">aun.registrar.standing</field>
+			<field name="arch" type="xml">
+				<tree string="Academic Standing Validation">
+					<field name="name"/>
+					<field name="dean_list"/>
+					<field name="prob_ind"/>
+					<field name="proh_reg"/>
+					<field name="default_standing"/>
+					<field name="minimum_hours"/>
+					<field name="maximum_hours"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_standing_search" model="ir.ui.view">
+			<field name="name">registrar.standing.search</field>
+			<field name="model">aun.registrar.standing</field>
+			<field name="arch" type="xml">
+				<search string="Academic Standing Validation">
+					<field name="name"/>
+					<field name="dean_list"/>
+					<field name="prob_ind"/>
+					<field name="proh_reg"/>
+					<field name="minimum_hours"/>
+					<field name="maximum_hours"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Standing Actions
+		-->
+
+
+		<record id="registrar_standing_action" model="ir.actions.act_window">
+			<field name="name">Academic Standing</field>
+			<field name="res_model">aun.registrar.standing</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create an academic standing
+	           </p>
+	        </field>
+		</record>
+		
+		
+		
+		<!--
+			Registrar Standing Rules Views
+		-->
+
+		<record id="view_registrar_standing_rules_form" model="ir.ui.view">
+			<field name="name">registrar.standing.rules.form</field>
+			<field name="model">aun.registrar.standing.rules</field>
+			<field name="arch" type="xml">
+				<form string="Academic Standing Rules" version="7.0">
+					<sheet>
+						<group col="4">
+							<field name="old_standing"/>
+							<field name="term_id"/>
+							<field name="min_term_hours"/>
+							<field name="max_term_hours"/>
+							<field name="min_term_gpa"/>
+							<field name="max_term_gpa"/>
+							<field name="min_cumulative_hours"/>
+							<field name="max_cumulative_hours"/>
+							<field name="min_cumulative_gpa"/>
+							<field name="max_cumulative_gpa"/>
+							<field name="min_overall_gpa"/>
+							<field name="max_overall_gpa"/>
+							<field name="new_standing"/>
+							<field name="level_id"/>
+						</group>
+					</sheet>
+					<div class="oe_chatter" groups="academics.group_registrar_ass_registrar">
+						<field name="message_follower_ids" widget="mail_followers"/>
+						<field name="message_ids" widget="mail_thread"/>
+					</div>
+				</form>
+			</field>
+		</record>
+
+		<record id="view_registrar_standing_rules_tree" model="ir.ui.view">
+			<field name="name">registrar.standing.rules.tree</field>
+			<field name="model">aun.registrar.standing.rules</field>
+			<field name="arch" type="xml">
+				<tree string="Academic Standing Rules">
+					<field name="old_standing"/>
+					<field name="term_id"/>
+					<field name="min_term_hours"/>
+					<field name="max_term_hours"/>
+					<field name="min_term_gpa"/>
+					<field name="max_term_gpa"/>
+					<field name="min_cumulative_hours"/>
+					<field name="max_cumulative_hours"/>
+					<field name="min_cumulative_gpa"/>
+					<field name="max_cumulative_gpa"/>
+					<field name="min_overall_gpa"/>
+					<field name="max_overall_gpa"/>
+					<field name="new_standing"/>
+					<field name="level_id"/>
+				</tree>
+			</field>
+		</record>
+
+		<record id="view_registrar_standing_rules_search" model="ir.ui.view">
+			<field name="name">registrar.standing.rules.search</field>
+			<field name="model">aun.registrar.standing.rules</field>
+			<field name="arch" type="xml">
+				<search string="Academic Standing Validation">
+					<field name="old_standing"/>
+					<field name="term_id"/>
+					<field name="min_term_hours"/>
+					<field name="max_term_hours"/>
+					<field name="min_term_gpa"/>
+					<field name="max_term_gpa"/>
+					<field name="min_cumulative_hours"/>
+					<field name="max_cumulative_hours"/>
+					<field name="min_cumulative_gpa"/>
+					<field name="max_cumulative_gpa"/>
+					<field name="min_overall_gpa"/>
+					<field name="max_overall_gpa"/>
+					<field name="new_standing"/>
+					<field name="level_id"/>
+				</search>
+			</field>
+		</record>
+
+		<!--
+			Registrar Standing Rules Actions
+		-->
+
+		<record id="registrar_standing_rules_action" model="ir.actions.act_window">
+			<field name="name">Standing Rules</field>
+			<field name="res_model">aun.registrar.standing.rules</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create an academic standing rule
+	           </p>
+	        </field>
+		</record>
+
+
+
+		<!-- Registrar Email Action -->
+
+		<record id="registrar_email_action" model="ir.actions.act_window">
+			<field name="name">Emails</field>
+			<field name="res_model">email.template</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[('model_id','in',['aun.registrar.enrollment','aun.faculty.section'])]</field>
+			<field name="context">{}</field>
+		</record>
+
+		<record id="board_reg_form" model="ir.ui.view">
+			<field name="name">board.reg.form</field>
+			<field name="model">board.board</field>
+
+			<field name="arch" type="xml">
+				<form string="Registrar Board">
+					<board style="1-1">
+						<column/>
+						<column/>
+					</board>
+				</form>
+			</field>
+		</record>
+		<record id="open_board_registrar" model="ir.actions.act_window">
+			<field name="name">Registrar Dashboard</field>
+			<field name="res_model">board.board</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">form</field>
+			<field name="usage">menu</field>
+			<field name="view_id" ref="board_reg_form"/>
+		</record>
+		
+		<!--record id="board_stud_form" model="ir.ui.view">
+			<field name="name">board.reg.form</field>
+			<field name="model">board.board</field>
+			<field name="arch" type="xml">
+				<form string="Student Board">
+					<board style="1">
+						<column>
+							<action name="%(student_timetable_action)d" string="Active Enrollments"/>
+						</column>
+					</board>
+				</form>
+			</field>
+		</record>
+		
+		<record id="open_board_stud" model="ir.actions.act_window">
+			<field name="name">Student Dashboard</field>
+			<field name="res_model">board.board</field>
+			<field name="view_type">form</field>
+			<field name="view_mode">form</field>
+			<field name="usage">menu</field>
+			<field name="view_id" ref="board_stud_form"/>
+		</record-->
+
+
+		<!--
+			Registrar Menus
+		-->
+		
+		<menuitem id="academics_main_menu" name="Academics" sequence="15"/>
+			<menuitem id="registrar_main_menu" name="Registrar" parent="academics_main_menu" groups="group_registrar_ass_registrar,group_academic_advisor"/>
+				<menuitem id="catalogue_main_menu" name="Catalogs" parent="registrar_main_menu" sequence="3"/>
+					<menuitem id="catalogue_menu" parent="catalogue_main_menu" action="registrar_catalogue_action"/>
+					<menuitem id="program_menu" parent="catalogue_main_menu" action="registrar_program_action" groups="group_registrar_ass_registrar"/>
+					<menuitem id="subject_menu" parent="catalogue_main_menu" action="course_subject_action" groups="group_registrar_ass_registrar"/>
+					<menuitem id="course_menu" parent="catalogue_main_menu" action="registrar_course_action"/>
+					<menuitem id="major_menu" parent="catalogue_main_menu" action="registrar_major_action" groups="group_registrar_ass_registrar"/>
+					<!--menuitem id="concentration_menu" parent="catalogue_main_menu" action="registrar_concentration_action"/-->
+					<menuitem id="school_menu" parent="catalogue_main_menu" action="registrar_school_action"/>
+					<menuitem id="category_menu" parent="catalogue_main_menu" action="registrar_category_action"/>
+				<menuitem id="enrollment_main_menu" parent="registrar_main_menu" name="Timetable" sequence="1"/>
+					<menuitem id="term_menu" parent="enrollment_main_menu" action="registrar_term_action"/>
+					<menuitem id="duration_menu" parent="enrollment_main_menu" action="registrar_duration_action" groups="group_registrar_ass_registrar"/>
+	        		<menuitem id="add_drop_menu" parent="enrollment_main_menu" action="registrar_add_drop_action"/>
+	        		<menuitem id="registrar_academic_history_menu" parent="enrollment_main_menu" action="registrar_academic_history"/>
+	        		<menuitem id="section_menu" parent="enrollment_main_menu" action="registrar_section_action"/>
+				<menuitem id="records_main_menu" parent="registrar_main_menu" name="Records" sequence="2"/>
+			        <menuitem id="students_menu" parent="records_main_menu" action="aun_student_action"/>
+					<menuitem id="transfer_menu" parent="records_main_menu" action="transfer_info_action"/>
+			        <menuitem id="student_term_gpa_menu" parent="records_main_menu" action="gpa_info_action"/>
+			        <menuitem id="student_hold_menu" parent="records_main_menu" action="registrar_hold_assignment_action"/>
+			        <menuitem id="hold_run_menu" parent="records_main_menu" action="hold_run_action"/>
+	
+				<menuitem id="student_reports_main_menu" parent="registrar_main_menu" name="Reports" sequence="4"/>
+
+	        	<menuitem id="config_menu" parent="registrar_main_menu" name="Configuration" groups="group_registrar_registrar" sequence="5"/>
+	                <menuitem id="grade_menu" parent="config_menu" action="registrar_grade_action"/>
+	                <menuitem id="level_menu" parent="config_menu" action="registrar_level_action"/>
+	                <menuitem id="inst_honors_menu" parent="config_menu" action="institutional_honors_action"/>
+	                <menuitem id="grademode_menu" parent="config_menu" action="registrar_grademode_action"/>
+	                <menuitem id="registrar_settings_menu" parent="config_menu" action="registrar_settings_action"/>
+	                <menuitem id="hold_menu" parent="config_menu" name="Hold Types" action="registrar_hold_action"/>
+	                <menuitem id="standing_main_menu" parent="config_menu" name="Academic Standing"/>
+	                <menuitem id="standing_menu" parent="standing_main_menu" action="registrar_standing_action"/>
+	                <menuitem id="standing_rules_menu" parent="standing_main_menu" action="registrar_standing_rules_action"/>
+			        <menuitem id="location_config_menu" parent="config_menu" name="Locations"/>
+				    	<menuitem id="campus_menu" parent="location_config_menu" action="res_campus_action"/>
+				    	<menuitem id="building_menu" parent="location_config_menu" action="res_building_action"/>
+						<menuitem id="rooms_menu" parent="location_config_menu" action="registrar_location_action"/>
+			        <menuitem id="transfer_institution_menu" parent="config_menu" action="transfer_institution_action"/>
+			        <menuitem id="term_config_menu" parent="config_menu" action="term_term_action"/>
+	              	<menuitem id="course_type_menu" parent="config_menu" action="course_type_action"/>
+	                <menuitem id="registrar_email_menu" parent="config_menu" action="registrar_email_action"/>
+	                <menuitem id="student_state_menu" parent="config_menu" action="student_state_action"/>
+				<menuitem id="faculty_menu" parent="academics_main_menu" name = "Faculty" groups="group_registrar_faculty" sequence="3"/>
+					<menuitem id="classes_menu" parent="faculty_menu" action="faculty_section_action" sequence="3"/>
+					<menuitem id="faculty_lab_menu" parent="faculty_menu" action="faculty_lab_action" sequence="4"/>
+					<menuitem id="all_classes_menu" parent="faculty_menu" action="all_faculty_section_action" sequence="5"/>
+					<menuitem id="faculty_midterm_grades_menu" parent="faculty_menu" action="faculty_midterm_grades_action"/>
+					<menuitem id="faculty_grades_menu" parent="faculty_menu" action="faculty_grades_action"/>
+					<menuitem id="faculty_roster_menu" parent="faculty_menu" action="faculty_roster_action" sequence="1"/>
+					<menuitem id="faculty_lab_roster_menu" parent="faculty_menu" action="faculty_lab_roster_action" sequence="2"/>
+					<menuitem id="faculty_term_menu" parent="faculty_menu" action="registrar_term_action"/>
+					
+				<menuitem id="course_man_dean_menu" parent="academics_main_menu" name = "Dean" groups="group_registrar_dean" sequence="2"/>
+					<menuitem id="course_dean_menu" parent="course_man_dean_menu" action="registrar_course_action"/>
+					<menuitem id="section_dean_menu" parent="course_man_dean_menu" action="registrar_section_action"/>
+<!-- 					<menuitem id="add_drop_dean_menu" parent="student_dean_menu" action="student_add_drop_action" name="Add and Drop Classes"/> -->
+					<menuitem id="dean_student_menu" parent="course_man_dean_menu" action="aun_student_action" name="Students"/>
+					<menuitem id="dean_enrollment_menu" parent="course_man_dean_menu" action="registrar_academic_history"/>
+
+				<menuitem id="student_menu" parent="academics_main_menu" name="Student" groups="group_registrar_student" sequence="4"/>
+					<menuitem id="student_records_menu" parent="student_menu" name="Student Records" sequence="4"/>
+						<menuitem id="student_info_menu" parent="student_menu" action="aun_student_action" name="Student Information" sequence="1"/>
+					<menuitem id="student_catalog_main_menu" parent="student_menu" name="Catalogs" sequence="2"/>
+						<menuitem id="student_catalog_menu" parent="student_catalog_main_menu" action="registrar_catalogue_action"/>
+						<menuitem id="student_course_menu" parent="student_catalog_main_menu" action="registrar_course_action"/>
+					<menuitem id="student_registration_menu" parent="student_menu" name="Registration" sequence="3"/>
+						<menuitem id="student_sections_menu" parent="student_registration_menu" action="student_section_action"/>
+						<menuitem id="student_finalgrades_menu" parent="student_records_menu" action="student_gpa_info_action"/>
+						<menuitem id="student_midterm_grades_menu" parent="student_records_menu" action="student_midterm_grade_action"/>
+						<menuitem id="student_academic_history_menu" parent="student_records_menu" action="student_gpa_academic_history_action"/>
+						<menuitem id="add_drop_student_menu" parent="student_registration_menu" action="student_add_drop_action" name="Add/Drop"/>
+						<menuitem id="student_enrollments_menu" parent="student_registration_menu" action="student_enrollments_action"/>
+		
+				<menuitem id="campus_store_menu" parent="academics_main_menu" name="Campus Store" groups="group_campus_store" sequence="5"/>
+					<menuitem id="store_student_menu" parent="campus_store_menu" name="Students" action="store_student_action"/>
+<!-- 		<menuitem id="support_main_menu" name="Support" parent = "base.menu_tools" groups="group_support"/> -->
+<!-- 		<menuitem id="student_support_menu" parent="support_main_menu" action="aun_student_action" groups="group_support"/> -->
+
+    </data>
+</openerp>

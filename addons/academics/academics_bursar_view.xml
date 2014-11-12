@@ -1,0 +1,913 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+	<data>
+	
+		
+		<!--
+			Detail Code Views
+		-->
+		<record id="detail_category_code_form" model="ir.ui.view">
+			<field name="name">detail.category.code.form</field>
+			<field name="model">detail.category.code</field>
+			<field name="arch" type="xml">
+				<form string="Detail Code Category" version="7.0">
+				<sheet>
+				<group col = "4">
+					<field name="name"/>
+					<field name="desc"/>
+				</group>
+				</sheet>
+				</form>
+			</field>
+		</record>
+		
+		<record id="detail_category_code_tree" model="ir.ui.view">
+			<field name="name">detail.category.code.tree</field>
+			<field name="model">detail.category.code</field>
+			<field name="arch" type="xml">
+				<tree string="Detail Code Category" version="7.0">
+					<field name="name"/>
+					<field name="desc"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="detail_category_code_action" model="ir.actions.act_window">
+			<field name="name">Detail Code Category</field>
+			<field name="res_model">detail.category.code</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a detail code category
+	           </p>
+	        </field>
+		</record>
+		<record id="detail_code_form" model="ir.ui.view">
+			<field name="name">detail.code.form</field>
+			<field name="model">detail.code</field>
+			<field name="arch" type="xml">
+				<form string="Detail Code" version="7.0">
+				<sheet>
+				<group col="4">
+					<field name="name"/>
+					<field name="desc"/>
+					<field name="debit_acc"/>
+					<field name="income_acc"/>
+					<field name="fund_acc_id"/>
+					<field name="journal_id"/>
+					<field name="category_id"/>
+					<field name="priority"/>
+				</group>
+				<group string = "Parameters">
+					<field name="refund"/>
+					<field name="negative"/>
+				</group>
+				<h2>Groups</h2>
+					<field name="group_ids"/>
+				</sheet>
+				</form>
+			</field>
+		</record>
+		<record id="detail_code_tree" model="ir.ui.view">
+			<field name="name">detail.code.tree</field>
+			<field name="model">detail.code</field>
+			<field name="arch" type="xml">
+				<tree string="Detail Code" version="7.0">
+					<field name="name"/>
+					<field name="desc"/>
+				 	<field name="priority"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="detail_code_action" model="ir.actions.act_window">
+			<field name="name">Detail Code</field>
+			<field name="res_model">detail.code</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a detail code
+	           </p>
+	        </field>
+		</record>
+		
+		<!--
+			Fee Structure Views
+		-->
+		
+		<record id="academics_fees_tree" model="ir.ui.view">
+			<field name="name">academics.fees.tree</field>
+			<field name="model">academics.fees</field>
+			<field name="arch" type="xml">
+				<tree string="Academic Fees" editable = "bottom" version="7.0">
+					<field name="detail_id" on_change="on_change_detail_code(detail_id)"/>
+					<field name="name"/>
+				 	<field name="charge"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="fee_structure_form" model="ir.ui.view">
+			<field name="name">fee.structure.form</field>
+			<field name="model">fee.structure</field>
+			<field name="arch" type="xml">
+				<form string="Fee Structure" version="7.0">
+				<sheet>
+				<group string = "Fee Structure" col = "4">
+					<field name="term_id" widget = "selection" attrs="{'readonly':[('edit', '=', 'False')]}"/>
+					<field name="level_id" widget = "selection" attrs="{'readonly':[('edit', '=', 'False')]}"/>
+				</group>
+				<group string = "Tuition" col = "4">
+					<field name="tuition_detail_id" attrs="{'readonly':[('edit', '=', 'False')]}"/>
+					<field name="tuition_price" attrs="{'readonly':[('edit', '=', 'False')]}"/>
+					<field name="type" attrs="{'readonly':[('edit', '=', 'False')]}"/>
+					<field name="min_balance" attrs="{'readonly':[('edit', '=', 'False')]}"/>
+				</group>
+				<notebook colspan="4">
+				<page string = "Mandatory Fees">
+					<field name="comp_fees" attrs="{'readonly':[('edit', '=', 'False')]}"/>
+				</page>
+				<page string="Refund Rules">
+					<field name="refund_rules" attrs="{'readonly':[('edit', '=', 'False')]}">
+					<tree editable = "bottom">
+						<field name="start_date"/>
+						<field name="end_date"/>
+						<field name="percent"/>
+					</tree>
+					</field>
+				</page>
+				<page string="Housing Fees">
+					<field name="housing_fees" attrs="{'readonly':[('edit', '=', 'False')]}">
+					<tree editable = "bottom">
+						<field name="room_type" widget = "selection"/>
+						<field name="detail_id"/>
+						<field name="charge"/>
+					</tree>
+					</field>
+				</page>
+				<page string="Meal Fees">
+					<field name="meal_fees" attrs="{'readonly':[('edit', '=', 'False')]}">
+					<tree editable = "bottom">
+						<field name="meal_type" widget = "selection"/>
+						<field name="detail_id"/>
+						<field name="charge"/>
+						<field name="number"/>
+					</tree>
+					</field>
+				</page>
+				<page string="Optional Fees">
+					<field name="other_fees"/>
+				</page>
+				</notebook>
+				<field name="edit"/>
+				</sheet>	
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers"/>
+                	<field name="message_ids" widget="mail_thread"/>
+                </div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="fee_structure_tree" model="ir.ui.view">
+			<field name="name">fee.structure.tree</field>
+			<field name="model">fee.structure</field>
+			<field name="arch" type="xml">
+				<tree string="Fee Structure" version="7.0">
+					<field name="term_id"/>
+					<field name="level_id"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="fee_structure_search" model="ir.ui.view">
+			<field name="name">fee.structure.search</field>
+			<field name="model">fee.structure</field>
+			<field name="arch" type="xml">
+				<search string="Fee Structure" version="7.0">
+					<field name="term_id"/>
+					<field name="level_id"/>
+				</search>
+			</field>
+		</record>
+		
+		<!--
+			Fee Structure Actions
+		-->
+
+		<record id="fee_structure_action" model="ir.actions.act_window">
+			<field name="name">Fee Structure</field>
+			<field name="res_model">fee.structure</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create fee configuration
+	           </p>
+	        </field>
+		</record>
+		
+		<record id="view_student_invoice_form_1" model="ir.ui.view">
+			<field name="name">student.invoice.form.inherit</field>
+			<field name="model">account.invoice</field>
+			<field name="priority">17</field>
+			<field name="inherit_id" ref="account.invoice_form"/>
+			<field name="arch" type="xml">
+				<field name="partner_id" position="replace">
+					<field string="Customer" name="partner_id"
+                                on_change="onchange_partner_id(type,partner_id,date_invoice,payment_term, partner_bank_id,company_id)"
+                                groups="base.group_user" context="{'search_default_customer':1, 'show_address': 1}"
+                                options='{"always_reload": True}' domain="[('student','=',False)]"/>
+					<field name="student" invisible="True"/>
+					<field name="term_id" attrs="{'invisible':[('student','=',False)],'required':[('student','!=',False)]}"/>
+				</field>
+				<field name="fiscal_position" position="replace">
+				<field name="fiscal_position" invisible="1"/>
+					<field name="detail_id" attrs="{'invisible':[('student','=',False)],'required':[('student','!=',False)]}"/>
+				</field>
+			</field>
+		</record>
+		
+		<record id="view_student_invoice_treee" model="ir.ui.view">
+            <field name="name">student.invoice.tree.1</field>
+            <field name="priority">5</field>
+            <field name="model">account.invoice</field>
+            <field name="arch" type="xml">
+                <tree colors="blue:state == 'draft';black:state in ('proforma','proforma2','open');gray:state == 'cancel'" string="Invoice" create="false">
+                    <field string = "Student" name="partner_id" groups="base.group_user"/>
+                    <field name="term_id"/>
+					<field name="detail_name" />
+                    <field name="number"/>
+                    <field name="reference" invisible="1"/>
+                    <field name="name" invisible="1"/>
+                    <field name="journal_id" invisible="1"/>
+                    <field name="period_id" invisible="1" groups="account.group_account_user"/>
+                    <field name="company_id" groups="base.group_multi_company" widget="selection"/>
+                    <field name="user_id"/>
+                    <field name="date_due"/>
+                    <field name="currency_id" groups="base.group_multi_currency"/>
+                    <field name="residual" sum="Residual Amount"/>
+                    <field name="amount_total" sum="Total Amount"/>
+                    <field name="state"/>
+                </tree>
+            </field>
+        </record>
+		
+		<record id="view_student_invoice_filter" model="ir.ui.view">
+			<field name="name">student.invoice.filter.inherit</field>
+			<field name="model">account.invoice</field>
+			<field name="inherit_id" ref="account.view_account_invoice_filter"/>
+			<field name="arch" type="xml">
+				<field name="partner_id" position="after">
+					<field name="term_id" groups="academics.group_student_charge"/>
+					<field name="detail_id" groups="academics.group_student_charge"/>
+				</field>
+<!-- 				<group expand="0" string="Group By..."> -->
+<!--                 	<filter string="Term" domain="[]" context="{'group_by':'term_id'}"/> -->
+<!--                 	<filter string="Detail Code" domain="[]" context="{'group_by':'detail_name'}"/> -->
+<!--                 </group> -->
+			</field>
+		</record>
+		
+		<record id="account.action_invoice_tree1" model="ir.actions.act_window">
+            <field name="domain">[('type','=','out_invoice'),('student','=',False)]</field>
+        </record>
+		
+		<!--
+			Student Invoice Actions
+		-->
+		<record id="action_student_invoice" model="ir.actions.act_window">
+            <field name="name">Student Invoices</field>
+            <field name="res_model">account.invoice</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,calendar,graph</field>
+            <field eval="False" name="view_id"/>
+            <field name="domain">[('type','=','out_invoice'),('student','=',True)]</field>
+            <field name="context">{'default_student':1,'default_type':'out_invoice', 'type':'out_invoice', 'journal_type': 'sale'}</field>
+            <field name="search_view_id" ref="account.view_account_invoice_filter"/>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to create a Student invoice.
+              </p><p>
+                OpenERP's electronic invoicing allows to ease and fasten the
+                collection of student payments. The student receives the
+                invoice by email and he can pay online and/or import it
+                in his own system.
+              </p><p>
+                The discussions with the students are automatically displayed at
+                the bottom of each invoice.
+              </p>
+            </field>
+        </record>
+        
+        <record id="action_invoice_student_view1" model="ir.actions.act_window.view">
+            <field name="view_id" ref="view_student_invoice_treee"/>
+            <field name="view_mode">tree</field>
+            <field name="act_window_id" ref="action_student_invoice"/>
+        </record>
+
+<!--         <record id="action_invoice_student_view2" model="ir.actions.act_window.view"> -->
+<!--             <field eval="2" name="sequence"/> -->
+<!--             <field name="view_mode">form</field> -->
+<!--             <field name="view_id" ref="account.invoice_form"/> -->
+<!--             <field name="act_window_id" ref="action_student_invoice"/> -->
+<!-- 		</record> -->
+	
+	<!-- Student Account Views -->
+	
+	<record id="student_account_form" model="ir.ui.view">
+			<field name="name">student.account.form</field>
+			<field name="model">student.account</field>
+			<field name="arch" type="xml">
+				<form string="Student Account" version="7.0" create ="false">
+				<sheet>
+				<group col = "4">
+					<field name="student_id"/>
+					<label for = "fname" string= "Student Name"/>
+	            	<div>
+	                <field name="fname" class = "oe_inline"/>
+	                <field name="lname" class = "oe_inline"/>
+	                </div>
+					<!-- <field name="total_charge" widget = "monetary" groups="academics.group_bursar,academics.group_registrar_student"/>
+					<field name="total_payment" widget = "monetary" groups="academics.group_bursar,academics.group_registrar_student"/>
+ --><!-- 					<field name="balance" widget = "monetary"/> -->
+					<field name="p_balance" widget = "monetary"/>
+					<field name="payment_plan_id" attrs="{'invisible':[('payment_plan_id', '=', False)]}"/>
+					<field name="applicant" attrs="{'invisible':[('applicant', '=', False)]}"/>
+				</group>
+				<notebook>
+				<page string ="Charges">
+					<field name="charges"/>
+				</page>
+				<page string ="Payments"  groups="academics.group_bursary_staff,academics.group_registrar_student">
+					<field name="payments">
+					<tree colors="blue:state=='draft'">
+						<field name="journal_id" string = "Description"/>
+						<field name="term_id"/>
+						<field name="amount"/>
+						<field name="date"/>
+						<field name="state"/>
+					</tree>
+					</field>
+				</page>
+				</notebook>
+				</sheet>
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers" groups="academics.group_bursar,academics.group_registrar_student"/>
+                	<field name="message_ids" widget="mail_thread" groups="academics.group_bursar,academics.group_registrar_student"/>
+                </div>
+				</form>
+			</field>
+	</record>
+	
+	<record id="student_account_tree" model="ir.ui.view">
+			<field name="name">student.account.tree</field>
+			<field name="model">student.account</field>
+			<field name="arch" type="xml">
+				<tree string="Student Account" version="7.0" create ="false">
+					<field name="student_id"/>
+					<field name="fname"/>
+					<field name="lname"/>
+					<!-- <field name="total_charge" groups="academics.group_bursar,academics.group_registrar_student"/>
+					<field name="total_payment" groups="academics.group_bursar,academics.group_registrar_student"/>
+ -->					<field name="p_balance"/>
+				</tree>
+			</field>
+	</record>
+	
+	<record id="student_account_search" model="ir.ui.view">
+			<field name="name">student.account.search</field>
+			<field name="model">student.account</field>
+			<field name="arch" type="xml">
+				<search string="Student Account" version="7.0">
+					<field name="student_id"/>
+				</search>
+			</field>
+	</record>
+	
+
+	<record id="student_account_action" model="ir.actions.act_window">
+		<field name="name">Student Accounts</field>
+		<field name="res_model">student.account</field>
+		<field name="view_mode">tree,form</field>
+		<field name="view_type">form</field>
+		<field name="domain">[]</field>
+		<field name="context">{}</field>
+		<field name="help" type="html">
+           <p class="oe_view_nocontent_create">
+             Student Account
+           </p>
+        </field>
+	</record>
+	
+	<!-- Term Clearance -->
+	
+	<record id="term_clearance_tree" model="ir.ui.view">
+			<field name="name">term.clearance.tree</field>
+			<field name="model">term.clearance</field>
+			<field name="arch" type="xml">
+				<tree string="Term Clearance" version="7.0">
+					<field name="student_id"/>
+					<field name="term_id"/>
+					<field name="credit_hours"/>
+					<field name="room_type"/>
+					<field name="meal_plan"/>
+					<field name="fee_charge"/>
+					<field name="payment_plan"/>
+					<field name="state"/>
+					<field name="date_clear"/>
+					<button name="case_unclear" string="Unclear?" icon="gtk-cancel" type="object" confirm="Are you sure you want to unclear this student?" groups="academics.group_bursar"/>
+				</tree>
+			</field>
+	</record>
+	
+	<record id="term_clearance_search" model="ir.ui.view">
+			<field name="name">term.clearance.search</field>
+			<field name="model">term.clearance</field>
+			<field name="arch" type="xml">
+				<search string="Term Clearance">
+					<filter string="Cleared" domain="[('state','=','cleared')]"/>
+					<filter string="Not Cleared" domain="[('state','=','draft')]"/>
+					<group expand="0" string="Group By...">
+                        <filter string="Term" name="Manager" domain="[]" context="{'group_by':'term_id'}"/>
+                        <!--<filter string="Credit Hours" name="Partner"  domain="[]" context="{'group_by':'credit_hours'}"/>
+                        <filter string="Room Type" name="Parent" domain="[]" context="{'group_by':'room_type'}"/>
+                        <filter string="Meal Plan" name="Parent" domain="[]" context="{'group_by':'meal_plan'}"/>-->
+                        <filter string="Payment Plan" name="Parent" domain="[]" context="{'group_by':'payment_plan'}"/>
+                        <filter string="Student" name="Parent" domain="[]" context="{'group_by':'student_id'}"/>
+                        <filter string="State" name="Parent" domain="[]" context="{'group_by':'state'}"/>
+                    </group>
+					<field name="student_id"/>
+					<field name="term_id"/>
+					<field name="fee_charge"/>
+					<!--<field name="credit_hours"/>
+					<field name="room_type"/>
+					<field name="meal_plan"/>
+					<field name="payment_plan"/>-->
+					<field name="state"/>
+					<field name="date_clear"/>
+				</search>
+			</field>
+		</record>
+	
+	<record id="term_clearance_action" model="ir.actions.act_window">
+		<field name="name">Clearance Report</field>
+		<field name="res_model">term.clearance</field>
+		<field name="view_mode">tree</field>
+		<field name="view_type">form</field>
+		<field name="domain">[]</field>
+		<field name="context">{}</field>
+		<field name="help" type="html">
+           <p class="oe_view_nocontent_create">
+             Student Clearance Report
+           </p>
+        </field>
+	</record>
+	
+	<!-- Term Charges View -->	
+	
+	<record id="term_charges_tree" model="ir.ui.view">
+			<field name="name">term.charges.tree</field>
+			<field name="model">term.charges</field>
+			<field name="arch" type="xml">
+				<tree string="Term Charges" version="7.0" editable="bottom" edit="false">
+					<field name="detail_id" on_change="on_change_detail_code(detail_id)"/>
+					<field name="name"/>
+					<field name="term_id" on_change="on_change_term_id(parent.student_id,detail_id,term_id)"/>
+					<field name="charge"/>
+					<field name="invoice_date" readonly="1"/>
+					<field name="system" groups="academics.group_bursar"/>
+				</tree>
+			</field>
+	</record>
+	<record id="term_charges_form" model="ir.ui.view">
+			<field name="name">term.charges.form</field>
+			<field name="model">term.charges</field>
+			<field name="arch" type="xml">
+				<form string="Term Charges" version="7.0">
+				<group>
+					<field name="name"/>
+					<field name="term_id"/>
+					<field name="charge"/>
+					<field name="invoice_date"/>
+				</group>
+				<div class="oe_chatter">
+		         	<field name="message_follower_ids" widget="mail_followers"/>
+		         	<field name="message_ids" widget="mail_thread"/>
+	         	</div>
+				</form>
+			</field>
+	</record>
+	
+	<record id="term_charges_action" model="ir.actions.act_window">
+		<field name="name">Term Charges</field>
+		<field name="res_model">term.charges</field>
+		<field name="view_mode">tree,form</field>
+		<field name="view_type">form</field>
+		<field name="domain">[]</field>
+		<field name="context">{}</field>
+		<field name="help" type="html">
+           <p class="oe_view_nocontent_create">
+             Term Charges
+           </p>
+        </field>
+	</record>
+	
+	
+	<!-- Payment Plan Views -->
+	<record id="view_payment_plan_search" model="ir.ui.view">
+        <field name="name">bursar.payment.plan.search</field>
+        <field name="model">bursar.payment.plan</field>
+        <field name="arch" type="xml">
+            <search string="Payment Plan">
+                <field name="name" string="Payment Plan"/>
+                <field name="active"/>
+            </search>
+        </field>
+    </record>
+    <record id="view_payment_plan_tree" model="ir.ui.view">
+        <field name="name">bursar.payment.plan.tree</field>
+        <field name="model">bursar.payment.plan</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Plan">
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+	<record id="view_payment_plan_form" model="ir.ui.view">
+	    <field name="name">bursar.payment.plan.form</field>
+	    <field name="model">bursar.payment.plan</field>
+	    <field name="arch" type="xml">
+	        <form string="Payment Plan" version="7.0">
+	        <sheet>
+	            <group col="4">
+	                <field name="name"/>
+	                <field name="active"/>
+	            </group>
+	            <field name="note" placeholder="Payment plan explanation for the customer..."/>
+	            <group string= "Service Charge">
+	            	<field name="surcharge_detail_id" class = "oe_inline"/>
+	            </group>
+	            <group string= "Late Payment" col= "4">
+	            	<field name="late_detail_id"/>
+	            	<field name="late_payment_fee"/>
+	            </group>
+	            <separator string="Installments"/>
+	            <field name="line_ids"/>
+	     	</sheet>
+            <div class="oe_chatter">
+	         	<field name="message_follower_ids" widget="mail_followers"/>
+	         	<field name="message_ids" widget="mail_thread"/>
+	         </div>
+	        </form>
+	    </field>
+	</record>
+	
+	<record id="view_payment_plan_line_form" model="ir.ui.view">
+        <field name="name">bursar.payment.plan.line.form</field>
+        <field name="model">bursar.payment.plan.line</field>
+        <field name="arch" type="xml">
+            <form string="Payment Plan Lines" version="7.0">
+            <group>
+            	<field name="is_down_payment" on_change="on_change_down_payment(is_down_payment)"/>
+            	<label for = "after"/>
+            	<div>
+                <field name="days" class = "oe_inline" attrs="{'required':[('is_down_payment', '=', False)],'invisible':[('is_down_payment', '=', True)]}"/>
+                <field name="after" class = "oe_inline" attrs="{'invisible':[('is_down_payment', '=', True)]}"/>
+                <field name="date_from" class = "oe_inline" attrs="{'required':[('is_down_payment', '=', False)],'invisible':[('is_down_payment', '=', True)]}"/>
+                <field name="p_type" on_change= "on_change_type(p_type)" class = "oe_inline"/>
+                <field name="options" attrs="{'required':[('p_type', '!=', 'balance')],'invisible':[('p_type', '=', 'balance')]}" class = "oe_inline"/>
+                <field name="value" attrs="{'invisible':[('p_type', '=', 'balance')]}" class = "oe_inline"/>
+                </div>
+            </group>
+            <group col= "4">
+                <field name="surcharge"/>
+                <field name="equal"/>
+            </group>
+            <div class="oe_chatter">
+	         	<field name="message_follower_ids" widget="mail_followers"/>
+	         	<field name="message_ids" widget="mail_thread"/>
+	         </div>
+            </form>
+        </field>
+    </record>
+    
+	<record id="view_payment_plan_line_tree" model="ir.ui.view">
+        <field name="name">bursar.payment.plan.line.tree</field>
+        <field name="model">bursar.payment.plan.line</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Plan Lines">
+            	<field name="is_down_payment"/>
+                <field name="days"/>
+                <field name="date_from"/>
+                <field name="p_type"/>
+                <field name="options"/>
+                <field name="value"/>
+                <field name="surcharge"/>
+                <field name="equal"/>
+            </tree>
+        </field>
+    </record>
+    <record id="action_payment_plan_form" model="ir.actions.act_window">
+        <field name="name">Payment Plan Types</field>
+        <field name="res_model">bursar.payment.plan</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+        <field name="search_view_id" ref="view_payment_plan_search"/>
+    </record>
+        
+    <record id="view_payment_plan_form_form" model="ir.ui.view">
+	    <field name="name">bursar.payment.plan.form.form</field>
+	    <field name="model">bursar.payment.plan.form</field>
+	    <field name="arch" type="xml">
+	        <form string="Payment Plan" version="7.0">
+	        <header>
+                <button name="case_approve" string="Approve" states="submitted" type="object" icon="gtk-apply" groups="academics.group_bursar" confirm = "Are you approve this payment plan?"/>
+				<button name="case_reject" string="Reject" states="submitted" type="object" icon="gtk-cancel" groups="academics.group_bursar" confirm = "Are you sure reject this payment plan?"/>
+	            <button name="case_cancel" string="Cancel" states="submitted,approved" type="object" icon="gtk-cancel" groups="academics.group_registrar_student,academics.group_bursary_staff" confirm = "Are you sure you want to cancel this payment plan?"/>
+				<field name="state" widget="statusbar" statusbar_visible="submitted,approved,paid"/>
+			</header>
+	        <sheet>
+	            <group col="4">
+	                <field name="student_id" on_change="on_change_student_id(student_id)" attrs="{'readonly':[('state', 'not in', 'draft')]}"/>
+	                <label for = "fname" string= "Student Name"/>
+	            	<div>
+	                <field name="fname" class = "oe_inline"/>
+	                <field name="lname" class = "oe_inline"/>
+	                </div>
+	            </group>
+	            <group>
+	                <field name="term_id" on_change="on_change_term_id(term_id,student_id)" attrs="{'readonly':['|',('student_id', '=', False),('state', 'not in', 'draft')]}"/>
+		            <field name="amount" attrs="{'invisible':['|',('term_id', '=', False),('state', 'in', ['approved','paid'])]}" on_change="on_change_amount(amount,total_charge)" class = "oe_inline"/>
+		            <field name="balance" attrs="{'invisible':['|',('term_id', '=', False),('state', 'not in', 'approved')]}"/>
+	                <field name="payment_id" attrs="{'invisible':['|',('term_id', '=', False),('student_id', '=', False)]}" on_change="on_change_payment_id(payment_id,amount,term_id,student_id)" class = "oe_inline"/>
+	                <field name="note" attrs="{'invisible':['|',('payment_id', '=', False),('state', 'in', ['approved','paid'])]}"/>
+	                <field name="override" attrs="{'invisible':[('payment_id', '=', False)]}" groups="academics.group_bursar"/>
+		            <field name="total_charge" invisible="1"/>
+	            </group>
+	            <separator string="Installments"/>
+	            	<field name="installment_ids">
+	            	<tree editable="bottom" create="false" delete="false">
+	            		<field name="name"/>
+	            		<field name="amount" on_change="on_change_amount(amount,config_line_id)"/>
+	            		<field name="due_date"/>
+	            		<field name="surcharge"/>
+	            		<field name="total"/>
+	            		<field name="max_date" invisible="1"/>
+	            		<field name="min_amount" invisible="1"/>
+	            		<field name="config_line_id" invisible="1"/>
+	            	</tree>
+	            	</field>
+	            	<group class="oe_subtotal_footer oe_right">
+						<field name="amount_due" class="oe_subtotal_footer_separator" attrs="{'invisible':[('state', 'in', 'draft')]}" widget = "monetary"/>
+					</group>
+					<group></group>
+	        </sheet>
+            <div class="oe_chatter">
+	         	<field name="message_follower_ids" widget="mail_followers"/>
+	         	<field name="message_ids" widget="mail_thread"/>
+	        </div>
+	        </form>
+	    </field>
+	</record>
+	<record id="view_payment_plan_form_tree" model="ir.ui.view">
+        <field name="name">bursar.payment.plan.form.tree</field>
+        <field name="model">bursar.payment.plan.form</field>
+        <field name="arch" type="xml">
+            <tree string="Payment Plan">
+                <field name="student_id"/>
+                <field name="fname"/>
+                <field name="lname"/>
+                <field name="term_id"/>
+                <field name="payment_id"/>
+                <field name="amount_due"/>
+                <field name="balance"/>
+                <field name="state"/>
+                <field name="total_charge" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_payment_plan_form_search" model="ir.ui.view">
+        <field name="name">bursar.payment.plan.form.search</field>
+        <field name="model">bursar.payment.plan.form</field>
+        <field name="arch" type="xml">
+            <search string="Payment Plan">
+            	<filter string="Submitted" name ="message_unread" domain="[('state','=','submitted')]" groups="academics.group_bursar"/>
+            	<filter string="Approved" domain="[('state','=','approved')]" groups="academics.group_bursar"/>
+            	<filter string="Paid" domain="[('state','=','paid'),('active','=',False)]" groups="academics.group_bursar"/>
+            	<filter string="Rejected" domain="[('state','=','rejected'),('active','=',False)]" groups="academics.group_bursar"/>
+            	<filter string="Cancelled" domain="[('state','=','cancelled'),('active','=',False)]" groups="academics.group_bursar"/>
+            	<group expand="0" string="Group By...">
+                        <filter string="Term" name="Manager" domain="[]" context="{'group_by':'term_id'}"/>
+                        <filter string="Payment Plan" name="Partner"  domain="[]" context="{'group_by':'payment_id'}"/>
+                        <filter string="Student" name="Parent" domain="[]" context="{'group_by':'student_id'}" groups="academics.group_bursar"/>
+                        <filter string="State" name="Parent" domain="[]" context="{'group_by':'state'}" groups="academics.group_bursar"/>
+                    </group>
+                <field name="student_id"/>
+                <field name="term_id"/>
+                <field name="payment_id"/>
+                <field name="state"/>
+            </search>
+        </field>
+    </record>
+    
+    <record id="action_payment_plan" model="ir.actions.act_window">
+        <field name="name">Payment Plan</field>
+        <field name="res_model">bursar.payment.plan.form</field>
+        <field name="view_type">form</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    
+    <record model="ir.ui.view" id="view_student_payment_form">
+            <field name="name">student.payment.form</field>
+            <field name="model">account.voucher</field>
+            <field name="priority" eval="20"/>
+            <field name="arch" type="xml">
+                <form string="Receipt" version="7.0">
+                <header invisible="context.get('line_type', False)">
+                    <button name="proforma_voucher" string="Validate" states="draft" class="oe_highlight" groups="academics.group_bursar"/>
+                    <button name="validate_all_payments" string="Validate All" type="object" states="draft" class="oe_highlight" groups="academics.group_bursar" confirm="This action will validate all the draft student payments on the system and might hold the software for a few minutes. Are you sure you want to continue?"/>
+                    <button name="cancel_voucher" string="Cancel Receipt" states="draft,proforma"/>
+                    <button name="cancel_voucher" string="Unreconcile" type="object" states="posted" confirm="Are you sure to unreconcile and cancel this record ?"/>
+                    <button name="action_cancel_draft" type="object" states="cancel" string="Set to Draft"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,posted" statusbar_colors='{"proforma":"blue"}'/>
+                </header>
+                <sheet>
+                    <h1 attrs="{'invisible': [('number','=',False)]}"><field name="number"/></h1>
+                    <group invisible="context.get('line_type', False)">
+                        <group>
+                            <field name="partner_id" domain="['|',('applicant','=',True), ('student','=',True)]" required="1" on_change="onchange_partner_id(partner_id, journal_id, amount, currency_id, type, date, context)" string="Student" context="{'search_default_student': 1}"/>
+                            <field name="currency_id" invisible="1"/>
+                            <field name="amount" class="oe_inline"
+                                string="Paid Amount"
+                                widget="monetary" options="{'currency_field': 'currency_id'}"
+                                on_change="onchange_amount(amount, payment_rate, partner_id, journal_id, currency_id, type, date, payment_rate_currency_id, company_id, context)"/>
+                            <field name="journal_id"
+                                domain="[('type','in',['bank', 'cash']),('student','=',True)]"
+                                widget="selection"
+                                on_change="onchange_journal(journal_id, line_cr_ids, False, partner_id, date, amount, type, company_id, context)"
+                                string="Payment Method"/>
+                            <field name = 'student' invisible = "True"/>
+							<field name = "term_id" attrs="{'invisible':[('student','=',False)],'required':[('student','!=',False)]}"/>
+                        </group>
+                        <group>
+                            <field name="date" on_change="onchange_date(date, currency_id, payment_rate_currency_id, amount, company_id, context)"/>
+                            <field name="reference" required="True" string="Payment Ref" placeholder="e.g. 003/10"/>
+                            <field name="name" colspan="2" placeholder="e.g. Invoice SAJ/0042"/>
+                            <field name="company_id" widget="selection" groups="base.group_multi_company"/>
+
+                            <field name="account_id"
+                                widget="selection"
+                                invisible="True"/>
+                            <field name="pre_line" invisible="1"/>
+                            <field name="type" invisible="True"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Payment Information" groups="base.group_user">
+                            <label for="line_cr_ids" invisible="context.get('line_type', False)"/>
+                            <field name="line_cr_ids" context="{'journal_id':journal_id, 'type':type, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
+                                <tree string="Invoices and outstanding transactions" editable="bottom" colors="gray:amount==0">
+                                    <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
+                                        on_change="onchange_move_line_id(move_line_id)"
+                                        domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
+                                        required="1"
+                                        groups="account.group_account_user"/>
+                                    <field name="account_id"  groups="base.group_no_one" domain="[('type','=','receivable')]"/>
+                                    <field name="date_original" readonly="1"/>
+                                    <field name="date_due" readonly="1"/>
+                                    <field name="amount_original" readonly="1"/>
+                                    <field name="amount_unreconciled" readonly="1" groups="account.group_account_user"/>
+                                    <field name="reconcile" on_change="onchange_reconcile(reconcile, amount, amount_unreconciled, context)" groups="account.group_account_user"/>
+                                    <field name="amount" sum="Total Allocation" on_change="onchange_amount(amount, amount_unreconciled, context)" string="Allocation"/>
+                                </tree>
+                            </field>
+                            <label for="line_dr_ids" attrs="{'invisible': [('pre_line','=',False)]}"/>
+                            <field name="line_dr_ids" attrs="{'invisible': [('pre_line','=',False)]}" context="{'journal_id':journal_id, 'partner_id':partner_id}" on_change="onchange_line_ids(line_dr_ids, line_cr_ids, amount, currency_id, type, context)">
+                                <tree string="Credits" editable="bottom" colors="gray:amount==0">
+                                    <field name="move_line_id" context="{'journal_id':parent.journal_id, 'partner_id':parent.partner_id}"
+                                        on_change="onchange_move_line_id(move_line_id)"
+                                        domain="[('account_id.type','in',('receivable','payable')), ('reconcile_id','=', False), ('partner_id','=',parent.partner_id)]"
+                                        required="1"/>
+                                    <field name="account_id"  groups="base.group_no_one" domain="[('type','=','receivable')]"/>
+                                    <field name="date_original" readonly="1"/>
+                                    <field name="date_due" readonly="1"/>
+                                    <field name="amount_original" readonly="1"/>
+                                    <field name="amount_unreconciled" readonly="1"/>
+                                    <field name="reconcile" on_change="onchange_reconcile(reconcile, amount, amount_unreconciled, context)"/>
+                                    <field name="amount" sum="Total Allocation" on_change="onchange_amount(amount, amount_unreconciled, context)" string="Allocation"/>
+                                </tree>
+                            </field>
+                            <group col="3">
+                                <group>
+                                    <field name="narration" colspan="2" nolabel="1"/>
+                                </group>
+                                <group col="4" attrs="{'invisible':[('currency_id','=',False),('is_multi_currency','=',False)]}">
+                                    <field name="is_multi_currency" invisible="1"/>
+                                    <field name="payment_rate" required="1" on_change="onchange_rate(payment_rate, amount, currency_id, payment_rate_currency_id, company_id, context)" colspan="3"/>
+                                    <field name="payment_rate_currency_id" colspan="1" nolabel="1" on_change="onchange_payment_rate_currency(currency_id, payment_rate, payment_rate_currency_id, date, amount, company_id, context)" groups="base.group_multi_currency"/>
+                                    <field name="paid_amount_in_company_currency" colspan="4" invisible="1"/>
+                                </group>
+                                <group>
+                                    <field name="writeoff_amount" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+                                    <field name="payment_option" required="1"/>
+                                    <field name="writeoff_acc_id"
+                                           attrs="{'invisible':[('payment_option','!=','with_writeoff')], 'required':[('payment_option','=','with_writeoff')]}"
+                                           domain="[('type','=','other')]"/>
+                                    <field name="comment"
+                                           attrs="{'invisible':[('payment_option','!=','with_writeoff')]}"/>
+                                    <field name="analytic_id"
+                                           groups="analytic.group_analytic_accounting"/>
+                                </group>
+                            </group>
+                        </page>
+                        <page string="Journal Items" attrs="{'invisible': [('state','!=','posted')]}">
+                            <group col="4">
+                                <field name="period_id"/>
+                                <field name="audit"/>
+                            </group>
+                            <field name="move_ids" readonly="1">
+                                <tree string="Journal Items">
+                                    <field name="move_id"/>
+                                    <field name="ref"/>
+                                    <field name="date"/>
+                                    <field name="statement_id"/>
+                                    <field name="partner_id"/>
+                                    <field name="account_id"/>
+                                    <field name="name"/>
+                                    <field name="debit"/>
+                                    <field name="credit"/>
+                                    <field name="state"/>
+                                    <field name="reconcile_id"/>
+                                    <field name="amount_currency"/>
+                                    <field name="currency_id" groups="base.group_multi_currency"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                    </sheet>
+                    <div class="oe_chatter" invisible="context.get('line_type', False)">
+                        <field name="message_follower_ids" widget="mail_followers"/>
+                        <field name="message_ids" widget="mail_thread"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+        
+        
+        <record id="action_student_receipt" model="ir.actions.act_window">
+            <field name="name">Student Payments</field>
+            <field name="res_model">account.voucher</field>
+            <field name="view_type">form</field>
+            <field name="domain">[('journal_id.type', 'in', ['bank', 'cash']), ('type','=','receipt'), ('student','=',True)]</field>
+            <field name="context">{'default_student':1,'type':'receipt'}</field>
+            <field name="search_view_id" ref="account_voucher.view_voucher_filter_customer_pay"/>
+            <field name="view_id" eval="False"/>
+            <field name="target">current</field>
+            <field name="help" type="html">
+              <p class="oe_view_nocontent_create">
+                Click to register a new payment. 
+              </p><p>
+                Enter the student and the payment method and then, either
+                create manually a payment record or OpenERP will propose to you
+                automatically the reconciliation of this payment with the open
+                invoices or sales receipts.
+              </p>
+            </field>
+        </record>
+        
+        <record id="action_vendor_receipt_tree1" model="ir.actions.act_window.view">
+            <field eval="1" name="sequence"/>
+            <field name="view_mode">tree</field>
+            <field name="act_window_id" ref="action_student_receipt"/>
+        </record>
+        <record id="action_vendor_receipt_form1" model="ir.actions.act_window.view">
+            <field eval="2" name="sequence"/>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="view_student_payment_form"/>
+            <field name="act_window_id" ref="action_student_receipt"/>
+        </record>
+	<menuitem id="menu_bursar" name="Students" parent="account.menu_finance" sequence="1" groups="group_student_charge,group_registrar_student"/>
+		<menuitem id="menu_student_invoice" sequence="1" parent="menu_bursar" action="action_student_invoice" groups="group_bursary_staff"/>
+		<menuitem id="menu_student_payment" sequence="3" parent="menu_bursar" action="action_student_receipt" groups="group_bursary_staff"/>
+		<menuitem id="bursar_students_menu" parent="menu_bursar" sequence="6" action="aun_student_action" groups="group_bursary_staff"/>
+		<menuitem id="bursar_student_hold_menu" parent="menu_bursar" sequence="7" action="registrar_hold_assignment_action" groups="group_bursary_staff"/>
+		<menuitem id="student_account_menu" parent="menu_bursar" sequence="4" action="student_account_action" groups="group_student_charge,group_registrar_student"/>
+		<menuitem id="bursar_payment_plan_menu" parent="menu_bursar" sequence="5" action="action_payment_plan" groups="group_bursary_staff,group_registrar_student"/>
+		<menuitem id="bursar_clearance_report_menu" parent="menu_bursar" sequence="6" action="term_clearance_action" groups="group_bursary_staff"/>
+		<!--<menuitem id="term_charges_menu" parent="menu_bursar" sequence="5" action="term_charges_action"/>-->
+		<menuitem id="menu_bursar_config" name="Configuration" parent="menu_bursar" groups="group_bursar"/>
+			<menuitem id="menu_fee_structure" parent="menu_bursar_config" action="fee_structure_action" groups="group_bursar"/>
+			<menuitem id="menu_config_payment_plan" parent="menu_bursar_config" action="action_payment_plan_form" groups="group_bursar"/>
+			<menuitem id="menu_detail_code" parent="menu_bursar_config" action="detail_code_action" groups="group_bursar"/>
+			<menuitem id="menu_detail_category_code" parent="menu_bursar_config" action="detail_category_code_action" groups="group_bursar"/>
+	</data>
+</openerp>

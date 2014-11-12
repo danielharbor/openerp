@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+    		<!-- Transcript request views ========================= start-->
+
+		<record id="transcript_request_form" model="ir.ui.view">
+			<field name="name">transcript.request.form</field>
+			<field name="model">transcript.request</field>
+			<field name="arch" type="xml">
+			<form string="Transcript Request" version="7.0">
+				<header>
+                    <button string="Submit Request" name="submit_request" states="draft" type="object" class="oe_highlight oe_save_only"/>
+                    <button string="Validate" name="validate" type="object" attrs="{'invisible':['|',('invoice_id','=',False), ('state','not in',['in_progress'])]}" class="oe_highlight oe_save_only" groups="academics.group_registrar_ass_registrar"/>
+                    <button string="Generate Invoice" name="generate_invoice" type="object" attrs="{'invisible':['|',('invoice_id','!=',False), ('state','not in',['in_progress'])]}" class="oe_highlight oe_save_only" groups="academics.group_registrar_ass_registrar"/>
+                    <button string="Print Transcript" name="print_transcript" states="to_print" type="object" class="oe_highlight oe_save_only" groups="academics.group_registrar_ass_registrar"/>
+                    <button string="Set to Draft" name="set_to_draft" states="in_progress,refuse" type="object" class="oe_highlight oe_save_only" groups="academics.group_registrar_ass_registrar"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,in_progress,to_print,done" statusbar_colors='{"done":"blue","in_progress":"green","to_print":"blue","refuse":"red"}'/>
+				</header>
+				<sheet>
+					<group col="4">
+						<field name="student_id" on_change="on_change_student(student_id)" domain="[('student','=',True)]" class="oe_inline" attrs="{'readonly':[('state','not in',['draft'])]}" groups="academics.group_registrar_ass_registrar"/>
+						<label for="fname" string="Student Name" attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar"/>
+						<div attrs="{'invisible':[('student_id','=',False)]}" groups="academics.group_registrar_ass_registrar">
+						<field name="fname" class="oe_inline"/> <field name="mname" class="oe_inline"/> <field name="lname" class="oe_inline"/>
+						</div>
+						<field name="level_ids" widget="many2many_tags" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+						<field name="print_transcript" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+						<field name="copies" on_change="on_change_copies(copies)" attrs="{'readonly':[('state','not in',['draft'])]}" sum="Total Copies"/>
+						<field name="term_ids" widget="many2many_tags" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+						<field name="create_date" class="oe_save_only"/>
+						<field name="print_date" class="oe_save_only"/>
+						<field name="invoice_id" class="oe_save_only"/>
+						<field name="order_no" class="oe_save_only"/>
+						<field name="track_no" groups="academics.group_registrar_ass_registrar"/>
+						<field name="student_track_no" groups="academics.group_registrar_student"/>
+						<field name="total" sum="Total" widget="monetary" options="{'currency_field': 'currency_id'}"/>
+						<field name="lg_level_ids" widget="many2many_tags" invisible="1"/>
+						<field name="lg_term_ids" widget="many2many_tags" invisible="1"/>
+					</group>
+					<notebook colspan="4">
+						<page string="Issue Information">
+							<group>
+								<field name="issue_to" style="width: 50%%" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+								<label for="street" string="Address"/>
+			                    <div>
+			                        <field name="street" placeholder="Street..." style="width: 50%%" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                        <field name="street2" style="width: 50%%" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                        <field name="street3" style="width: 50%%" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                        <field name="city" placeholder="City" style="width: 50%%" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                        <field name="state_id" class="oe_no_button" style="width: 50%%" placeholder="State" options='{"no_open": True}' on_change="on_change_state(state_id)" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                        <field name="country_id" placeholder="Country" style="width: 50%%" class="oe_no_button" options='{"no_open": True}' attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                    	<field name="zip" placeholder="Postal Code" style="width: 50%%" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                    	<field name="phone" placeholder="Phone" style="width: 50%%" attrs="{'readonly':[('state','not in',['draft'])]}"/>
+			                    </div>
+							</group>
+						</page>
+						<page string="Charges" groups="academics.group_registrar_ass_registrar">
+							<group col="2">
+								<field name="currency_id" groups="base.group_multi_currency" attrs="{'readonly':[('invoice_id','!=',False)]}"/>
+								<field name="billing_term" class="oe_inline" attrs="{'readonly':[('invoice_id','!=',False)]}"/>
+								<field name="transcript_charge" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'readonly':[('invoice_id','!=',False)]}"/>
+								<!--  field name="shipping_charge" widget="monetary" options="{'currency_field': 'currency_id'}" attrs="{'readonly':[('invoice_id','!=',False)]}"/>-->
+							</group>
+						</page>
+						<page string="Status">
+							<group col="4">
+								<field name="level_id" on_change="on_change_level(student_id,level_id)"/>
+								<field name="standing_id" widget="selection"/>
+								<field name="first_term" widget="selection"/>
+								<field name="last_term" widget="selection"/>
+								<field name="level_gpa_id" invisible="1"/>
+							</group>
+							<group col="6" string="Institution" attrs="{'invisible':[('transfer','=',False)]}">
+								<field name="attempted_hours"/>
+								<field name="passed_hours"/>
+								<field name="earned_hours"/>
+								<field name="quality_points"/>
+								<field name="gpa_hours"/>
+								<field name="cgpa"/>
+							</group>
+							<group string="Transfer" col="6" attrs="{'invisible':[('transfer','=',False)]}">
+								<field name="t_attempted_hours"/>
+								<field name="t_passed_hours"/>
+								<field name="t_earned_hours"/>
+								<field name="t_quality_points"/>
+								<field name="t_gpa_hours"/>
+								<field name="t_cgpa"/>
+								<field name="transfer" invisible="1"/>
+							</group>
+							<group string="Overall" col="6">
+								<field name="o_attempted_hours"/>
+								<field name="o_passed_hours"/>
+								<field name="o_earned_hours"/>
+								<field name="o_quality_points"/>
+								<field name="o_gpa_hours"/>
+								<field name="o_cgpa"/>
+							</group>
+						</page>
+					</notebook>
+				</sheet>	
+				<div class="oe_chatter">
+                	<field name="message_follower_ids" widget="mail_followers" groups="academics.group_registrar_ass_registrar"/>
+                	<field name="message_ids" widget="mail_thread" groups="academics.group_registrar_ass_registrar"/>
+                </div>
+				</form>
+			</field>
+		</record>
+		
+		<record id="transcript_request_tree" model="ir.ui.view">
+			<field name="name">transcript.request.tree</field>
+			<field name="model">transcript.request</field>
+			<field name="arch" type="xml">
+				<tree string="Transcript Request">
+					<field name="order_no"/>
+					<field name="student_id"/>
+					<field name="level_ids"/>
+					<field name="copies"/>
+					<field name="print_transcript"/>
+					<field name="create_date"/>
+					<field name="print_date"/>
+					<field name="state"/>
+				</tree>
+			</field>
+		</record>
+		
+		<record id="transcript_request_search" model="ir.ui.view">
+			<field name="name">transcript.request.search</field>
+			<field name="model">transcript.request</field>
+			<field name="arch" type="xml">
+				<search string="Transcript Request">
+					<field name="order_no"/>
+					<field name="invoice_id"/>
+					<field name="student_id"/>
+					<field name="level_ids"/>
+                    <separator/>
+					<group expand="0" string="Group By...">
+						<filter name="group_name" string="Student" domain="[]" context="{'group_by':'student_id'}"/>
+						<filter name="group_print_transcript" string="Print Transcript" domain="[]" context="{'group_by':'print_transcript'}"/>
+						<filter name="group_create_date" string="Date Requested" domain="[]" context="{'group_by':'create_date'}"/>
+						<filter name="group_print_date" string="Date Printed" domain="[]" context="{'group_by':'print_date'}"/>
+					</group>
+					<filter string="Draft" name="Draft" domain="[('state','=','draft')]"/>
+					<filter string="In Progress" name="message_unread" domain="[('state','=','in_progress')]"/>
+					<filter string="To Print" name="To Print" domain="[('state','=','to_print')]"/>
+					<filter string="Done" name="Done" domain="[('state','=','done')]"/>
+				</search>
+			</field>
+		</record>
+		
+		<!--
+			Transcript Request Actions
+		-->
+
+		<record id="transcript_request_action" model="ir.actions.act_window">
+			<field name="name">Transcript Request</field>
+			<field name="res_model">transcript.request</field>
+			<field name="view_mode">tree,form</field>
+			<field name="view_type">form</field>
+			<field name="domain">[]</field>
+			<field name="context">{}</field>
+			<field name="help" type="html">
+	           <p class="oe_view_nocontent_create">
+	             Click to create a transcript request
+	           </p>
+	        </field>
+		</record>
+		
+        <record id="view_registrar_settings_form2" model="ir.ui.view">
+            <field name="name">registrar.settings.form2</field>
+            <field name="model">registrar.settings</field>
+            <field name="inherit_id" ref="academics.view_registrar_settings_form"/>
+            <field name="arch" type="xml">
+                <data>
+                	<field name="include_current_hrs" position="after">
+                		 <field name="transcript_detail_code"/>
+                	</field>
+                </data>
+            </field>
+        </record>
+		
+ 		<menuitem id="transcript_request_menu" parent="records_main_menu" action="transcript_request_action"/>
+		<menuitem id="student_transcript_request_menu" parent="student_records_menu" action="transcript_request_action"/>
+		
+    </data>
+</openerp>

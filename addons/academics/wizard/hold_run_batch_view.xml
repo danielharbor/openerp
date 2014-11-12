@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<openerp>
+    <data>
+
+        <record id="view_hold_run_students" model="ir.ui.view">
+            <field name="name">hold_run_students</field>
+            <field name="model">hold.run.students</field>
+            <field name="arch" type="xml">
+                <form string="Holds by Students" version="7.0">
+                    <header>
+                        <button icon="gtk-execute" string="Generate" name="generate_holds" type="object" class="oe_highlight"  />
+                    </header>
+                    <group>
+                        <label colspan="4" nolabel="1" string="This wizard will generate holds for the selected student(s) based on the dates specified on the hold batch." />
+                    </group>
+                    <group colspan="4" >
+                        <separator string="Students" colspan="4"/>
+                        <newline/>
+                        <field name="student_ids" context="{'tree_view_ref': 'academics.view_student_tree','search_view_ref': 'academics.view_student_search'}" nolabel="1"/>
+                    </group>
+               </form>
+            </field>
+        </record>
+
+        <record id="action_hold_run_students" model="ir.actions.act_window">
+            <field name="name">Generate Holds</field>
+            <field name="res_model">hold.run.students</field>
+            <field name="view_type">form</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="view_hold_run_students"/>
+            <field name="target">new</field>
+        </record>
+
+    </data>
+</openerp>
