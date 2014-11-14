@@ -29,6 +29,7 @@ from dateutil.relativedelta import relativedelta
 from string import ascii_lowercase, ascii_uppercase
 from openerp import pooler, tools
 from openerp import SUPERUSER_ID
+from twisted.trial._synctest import Todo
 
 AVAILABLE_STATES = [
     ('draft', 'New'),
@@ -512,7 +513,6 @@ class aun_applicant(osv.osv):
         applicants= self.browse(cr, SUPERUSER_ID, self.search(cr, SUPERUSER_ID, [('sem_id','=',118),('state','=','accepted')]), context)
         partner_obj = self.pool.get('res.partner')
         for applicant in applicants:
-            print applicant
             if applicant.prev_student_id:
                 applicant_partner_id = partner_obj.search(cr, SUPERUSER_ID, [('name','=',applicant.prev_student_id),('student','=',True)])[0]
             else:
@@ -752,20 +752,45 @@ class aun_applicant(osv.osv):
     def unlink(self, cr, uid, ids, context=None):
         if context is None:
             context = {}
-        applicants = self.read(cr, uid, ids, ['state'], context=context)
+#         applicants = self.read(cr, uid, ids, ['state'], context=context)
+#         app_test_obj = self.pool.get('applicant.test')
+#         unlink_ids = []
+#         inactive_ids = []
+#         for a in applicants:
+#             if a['state'] in ('draft'):
+#                 unlink_ids.append(a['id'])
+#                 
+#             elif a['state'] in ('submitted'):
+#                 inactive_ids.append(a['id'])
+#                 app_test_obj.unlink(cr, uid, app_test_obj.search(cr, uid, [('app_id','=',a['id'])]))
+#             else:
+#                 raise osv.except_osv(_('Invalid action!'), _('You cannot delete this application.'))
+#         osv.osv.unlink(self, cr, uid, unlink_ids, context=context)
         app_test_obj = self.pool.get('applicant.test')
-        unlink_ids = []
-        inactive_ids = []
-        for a in applicants:
-            if a['state'] in ('draft'):
-                unlink_ids.append(a['id'])
-            elif a['state'] in ('submitted'):
-                inactive_ids.append(a['id'])
-                app_test_obj.unlink(cr, uid, app_test_obj.search(cr, uid, [('app_id','=',a['id'])]))
-            else:
-                raise osv.except_osv(_('Invalid action!'), _('You cannot delete this application.'))
-        osv.osv.unlink(self, cr, uid, unlink_ids, context=context)
-        super(aun_applicant, self).write(cr, uid, inactive_ids, {'active': False}, context=context)
+        test_result_obj = self.pool.get('test.result')
+        high_school_obj = self.pool.get('aun.high.school.app')
+        tc_app_obj = self.pool.get('transcript.course.app')
+        guardian_obj = self.pool.get('aun.guardian')
+        applications = self.browse(cr, uid, ids)
+        for app in applications:
+            #unlink all test results in application
+            for tr in app.test_result_ids:
+                test_result_obj.unlink(cr, uid, [t.id for t in tr.test_result_ids])
+            
+            #unlink all tests in application
+            app_test_obj.unlink(cr, uid, [tr.id for tr in app.test_result_ids])
+            
+            #unlink all transcript subjects in high school
+            for hs in app.high_school:
+                tc_app_obj.unlink(cr, uid, [t.id for t in hs.transcript_ids])
+            
+            #unlink all high schools in application
+            high_school_obj.unlink(cr, uid, [h.id for h in app.high_school])
+            
+            #unlink all guardians in application
+            guardian_obj.unlink(cr, uid, [g.id for g in app.guardians])
+        
+        super(aun_applicant, self).write(cr, uid, ids, {'active': False}, context=context)
         return True
     
     def check_aun_email(self, cr, uid, ids, context=None):
@@ -827,29 +852,37 @@ class aun_application_type(osv.osv):
 
     def create(self, cr, uid, vals, context=None):
         vals['state'] = 'done'
+        vals['name'] = self.getName(cr, uid, vals['type_id'], vals['level_id'])
         return super(aun_application_type, self).create(cr, uid, vals, context)
 
+    #Todo: Write method not called on create anymore [odoo 8.0]
     def write(self, cr, uid, ids, vals, context=None):
         app_type = self.browse(cr, uid, ids, context=context)[0]
-        type_obj = self.pool.get('aun.applicant.type')
-        level_obj = self.pool.get('aun.registrar.level') 
         if 'type_id' in vals:
-            type_name = type_obj.browse(cr, uid, vals['type_id']).name
+            type_id = vals['type_id']
         else:
-            type_name = app_type.type_id.name
-        name = type_name
+            type_id = app_type.type_id.id  
         
         if 'level_id' in vals:
-            level_name = level_obj.browse(cr, uid, vals['level_id']).name
+            level_id = vals['level_id']
         else:
-            level_name = app_type.level_id.name
-        name += ' ' + level_name + ' Student'
-                    
+            level_id = app_type.level_id.id
+        
+        name = self.getName(cr, uid, type_id, level_id)
         vals.update({'name': name})
         return super(aun_application_type, self).write(cr, uid, ids, vals, context=context)
+    
+    def getName(self, cr, uid, type_id, level_id, context=None):
+        type_obj = self.pool.get('aun.applicant.type')
+        level_obj = self.pool.get('aun.registrar.level') 
+        type_name = type_obj.browse(cr, uid, type_id).name
+        level_name = level_obj.browse(cr, uid, level_id).name 
+        name = type_name  + ' ' + level_name + ' Student'
+        return name
+        
 
     _columns = {
-        'name': fields.char('Name', readonly=True),
+        'name': fields.char('Name', size=32, readonly=True),
         'type_id': fields.many2one('aun.applicant.type', 'Applicant type', required=True, track_visibility="onchange"),
         'level_id': fields.many2one('aun.registrar.level', 'Level', required=True, track_visibility="onchange"),
         'description': fields.text('Description'),
@@ -873,24 +906,31 @@ class aun_guardian(osv.osv):
     _name = 'aun.guardian'
     _description = 'Guardians'
     _columns = {
-            'name': fields.selection([('aunt','Aunt'),('brother','Brother'),('child','Child'),('father','Father'),('friend','Friend'),('grandparent','Grandparent'),('guardian','Guardian'),('husband','Husband'),('mother','Mother'),('other','Other'),('sister','Sister'),('uncle','Uncle'),('wife','Wife'),('other','Other')],'Relationship Type', required=True),
-            'prefix': fields.selection([('mr','Mr.'),('mrs','Mrs.'),('dr','Dr.'),('chief','Chief'),('alhaji','Alhaji'),('hajiya','Hajiya'),('sir','Sir')],'Prefix'),
-            'fname': fields.char('First Name', size=32, required=True),
-            'mname': fields.char('Middle Name', size=32),
-            'lname': fields.char('Last Name', size=32, required=True),
-            'phone': fields.char('Phone Number', size=16, required=True),
-            'email': fields.char('Email', size=64),
-            'employer': fields.char('Employer', size=64),
-            'street': fields.char('Street', size=32, required=True),
-            'street2': fields.char('Street2', size=32),
-            'city': fields.char('City', size=64, required=True),
-            'state_id': fields.many2one('res.country.state', 'State', required=True),
-            'country_id': fields.many2one('res.country', 'Country', required=True),
-            'zip' : fields.char('ZIP', size=16),
-            #'priority': fields.selection([('1','1'),('2','2'),('3','3'),('4','4'),('5','5'),('6','6'),('7','7'),('8','8'),('9','9')], 'Priority'),
-            'deceased': fields.boolean('Deceased'),
-            'app_id': fields.many2one('aun.applicant', 'Applicant', required=True)
-            }
+        'name': fields.selection([('aunt','Aunt'),('brother','Brother'),('child','Child'),('father','Father'),('friend','Friend'),('grandparent','Grandparent'),('guardian','Guardian'),('husband','Husband'),('mother','Mother'),('other','Other'),('sister','Sister'),('uncle','Uncle'),('wife','Wife'),('other','Other')],'Relationship Type', required=True),
+        'prefix': fields.selection([('mr','Mr.'),('mrs','Mrs.'),('dr','Dr.'),('chief','Chief'),('alhaji','Alhaji'),('hajiya','Hajiya'),('sir','Sir')],'Prefix'),
+        'fname': fields.char('First Name', size=32, required=True),
+        'mname': fields.char('Middle Name', size=32),
+        'lname': fields.char('Last Name', size=32, required=True),
+        'phone': fields.char('Phone Number', size=16, required=True),
+        'email': fields.char('Email', size=64),
+        'employer': fields.char('Employer', size=64),
+        'street': fields.char('Street', size=32, required=True),
+        'street2': fields.char('Street2', size=32),
+        'city': fields.char('City', size=64, required=True),
+        'state_id': fields.many2one('res.country.state', 'State', required=True),
+        'country_id': fields.many2one('res.country', 'Country', required=True),
+        'zip' : fields.char('ZIP', size=16),
+        'deceased': fields.boolean('Deceased'),
+        'app_id': fields.many2one('aun.applicant', 'Applicant', required=True),
+        'active': fields.boolean('Active')
+    }  
+    _defaults={
+        'active': True
+    }
+    
+    def unlink(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'active': False})
+        return True
 
     def on_change_state(self, cr, uid, ids, state_id, context=None):
         if state_id:
@@ -902,11 +942,7 @@ class aun_guardian(osv.osv):
         if country_id and state_id:
             if country_id != self.pool.get('res.country.state').browse(cr, uid, state_id, context).country_id.id:
                 return {'value': {'state_id': False}}
-        return {}
-                
-#     _sql_constraints = [
-#         ('priority_uniq', 'unique(app_id, priority)', 'Guardian priority must be unique!'),
-#     ]   
+        return {} 
 
 aun_guardian()
 
@@ -1094,6 +1130,8 @@ class test_code(osv.osv):
         vals['subject'] = vals['subject'].strip()
         if vals['scores']:
             vals['scores'] = self.sort_scores(vals['scores'])
+        tn_obj = self.pool.get('test.name')
+        vals['name'] = tn_obj.browse(cr, uid, vals['test_id']).code + vals['subject']
         return super(test_code, self).create(cr, uid, vals, context)
 
     def write(self, cr, uid, ids, vals, context=None):
@@ -1295,7 +1333,7 @@ class applicant_test(osv.osv):
         }
 
     _sql_constraints = [
-        ('app_test_id_uniq', 'unique(app_id, test_name_id)', 'One of your test results is duplicated!')
+        ('app_test_id_uniq', 'unique(app_id, test_name_id)', 'One of your tests is duplicated!')
     ]
     
 applicant_test()
@@ -1306,15 +1344,15 @@ class test_result(osv.osv):
     _description = "Test Result"
     _inherit = ["mail.thread"]
     
-    def name_get(self, cr, uid, ids, context=None):
-        if not ids:
-            return []
-        reads = self.browse(cr, uid, ids, context=context)
-        res = []
-        for record in reads:
-            name = record.app_test_id.app_id.name + '/' + record.test_id.name
-            res.append((record['id'], name))
-        return res
+#     def name_get(self, cr, uid, ids, context=None):
+#         if not ids:
+#             return []
+#         reads = self.browse(cr, uid, ids, context=context)
+#         res = []
+#         for record in reads:
+#             name = record.app_test_id.app_id.name + '/' + record.test_id.name
+#             res.append((record['id'], name))
+#         return res
 
     def create(self, cr, uid, vals, context=None):
         vals['score'] = vals['score'].strip()
@@ -1330,7 +1368,15 @@ class test_result(osv.osv):
         'score': fields.char('Score', size=32, required=True, track_visibility="onchange"),
         'app_test_id': fields.many2one('applicant.test', 'Applicant', required=True),
         'app_id': fields.related('app_test_id', 'app_id', type='many2one', relation='aun.applicant', string='Applicant', readonly=True, store=True),
+        'acive': fields.boolean('Active')
         }
+    _defaults = {
+        'active': True
+    }
+    
+    def unlink(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'active': False})
+        return True
 
     def on_change_test(self, cr, uid, ids, test_id, context=None):
         if test_id:
@@ -1414,7 +1460,12 @@ class transcript_course_app(osv.osv):
         'score': fields.integer('Score', required=True),
         'high_school_app_id': fields.many2one('aun.high.school.app', 'Applicant High School', required=True),
         'app_id': fields.related('high_school_app_id', 'app_id', type='many2one', relation='aun.applicant', string='Applicant', readonly=True, store=True),
+        'active': fields.boolean('Active')
         }
+    
+    _defaults={
+        'active': True
+    }
 
     def _check_score(self, cr, uid, ids, context=None):
         result = self.browse(cr, uid, ids, context=context)[0]
@@ -1423,6 +1474,10 @@ class transcript_course_app(osv.osv):
             raise osv.except_osv(_('Invalid Transcript Score!'), _('The score for ' + subject.name + ' cannot be less than 0.'))
         if result.score > subject.max:
             raise osv.except_osv(_('Invalid Transcript Score!'), _('The score for ' + subject.name + ' cannot be greater than ' + str(subject.max) + '.'))                    
+        return True
+    
+    def unlink(self, cr, uid, ids, context=None):
+        self.write(cr, uid, ids, {'active': False}, context=context)
         return True
 
     _constraints=[
